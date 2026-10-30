@@ -61,9 +61,9 @@ def load_spec(path: Path) -> dict:
     if (not isinstance(grid, list) or not grid or grid != sorted(set(grid))
             or any(isinstance(x, bool) or not isinstance(x, (int, float)) or not x > 0 for x in grid)):
         raise Refused("refused: generation.sigma_grid must be a non-empty increasing list of positive numbers")
-    if "action_noise_std" in g or not 0 < g.get("min_acceptance", 0) <= 1:
+    if "action_noise_std" in g or not 0 <= g.get("max_failure", -1) <= 1:
         raise Refused("refused: sigma is selected from generation.sigma_grid (no action_noise_std), and "
-                      "generation.min_acceptance must be in (0, 1]")
+                      "generation.max_failure must be in [0, 1]")
     if not spec["learner"].get("patience") or spec["learner"].get("checkpoint_selection") != "validation":
         raise Refused("refused: the learner needs the validation stopping rule (patience, checkpoint_selection: "
                       "validation); the step budget is only a failure ceiling")
@@ -152,9 +152,10 @@ class Context:
         return s
 
     def generation(self, sigma: float) -> dict:
-        g = {k: v for k, v in self.spec["generation"].items() if k not in ("sigma_grid", "min_acceptance")}
-        return {**g, "action_noise_std": sigma, "k_max": max(self.spec["synthetic_doses"]),
-                "action_bound": self.task.action_bound}
+        """sigma is in normalized action units (a fraction of the action bound); the generator takes action units."""
+        g = {k: v for k, v in self.spec["generation"].items() if k not in ("sigma_grid", "max_failure")}
+        return {**g, "sigma_normalized": sigma, "action_noise_std": sigma * self.task.action_bound,
+                "k_max": max(self.spec["synthetic_doses"]), "action_bound": self.task.action_bound}
 
 
 # --- stage plumbing ---------------------------------------------------------------------------------------------------
@@ -224,9 +225,18 @@ def full_candidates(ctx, arm: str, r: float, seed: int, sigma: float) -> Path:
     return sup.generate(ctx.store, subset_p, model, model_sha, ctx.generation(sigma), seed) / "candidates.npz"
 
 
-def acceptance(path: Path) -> float:
+GENUINE_FAILURES = ("non_finite", "generation_failed", "out_of_support")
+
+
+def failure(path: Path) -> float:
+    """The fraction of candidates that fail genuinely: non-finite, a failed solve, or a state outside the support.
+    Proposals are drawn inside the action bounds, so an action-bound rejection is an implementation error."""
     from ccil.schema import read_candidates
-    return float(read_candidates(path).accepted.mean())
+    c = read_candidates(path)
+    reasons = dict(zip(c.reason_codes, np.asarray(c.reasons).T))
+    if reasons.get("action_out_of_bounds", np.zeros(1)).any():
+        raise StoreError(f"{path}: a bounded proposal was rejected by the action bound (implementation error)")
+    return float(np.any([reasons[r] for r in GENUINE_FAILURES if r in reasons], axis=0).mean())
 
 
 def unit(ctx, arm, r, k, seed, sigma=None, full=None) -> dict:
@@ -237,19 +247,21 @@ def unit(ctx, arm, r, k, seed, sigma=None, full=None) -> dict:
 
 
 def plan(ctx, selection: dict | None = None) -> tuple[dict, dict]:
-    """The policy groups, each trained together, and the infeasible sigmas (acceptance below the minimum; never
-    trained). Without a selection: BC, and the learned arm at every feasible sigma of the grid. With one: the exact
-    arm at each coordinate's selected sigma."""
+    """The policy groups, each trained together, and every candidate set's genuine-failure fraction with whether it is
+    feasible (an infeasible sigma is never trained). Without a selection: BC, and the learned arm at every feasible
+    sigma of the grid. With one: the exact arm at each coordinate's selected sigma."""
     sp, g = ctx.spec, ctx.spec["generation"]
-    groups, infeasible = {}, {}
+    groups, feasibility = {}, {}
     for r in sp["real_fractions"]:
         for seed in sp["seeds"]:
             if selection is None:
                 groups.setdefault(("bc", r, 0, None), []).append(unit(ctx, "bc", r, 0, seed))
                 for sigma in g["sigma_grid"] if "ccil_learned" in sp["arms"] else ():
                     full = full_candidates(ctx, "ccil_learned", r, seed, sigma)
-                    if (acc := acceptance(full)) < g["min_acceptance"]:
-                        infeasible[f"ccil_learned/r{r}/s{seed}/sigma{sigma}"] = acc
+                    fail = failure(full)
+                    feasibility[f"ccil_learned/r{r}/s{seed}/sigma{sigma}"] = {
+                        "failure": fail, "feasible": fail <= g["max_failure"]}
+                    if fail > g["max_failure"]:
                         continue
                     for k in sorted(sp["synthetic_doses"]):
                         groups.setdefault(("ccil_learned", r, k, sigma), []).append(
@@ -258,8 +270,10 @@ def plan(ctx, selection: dict | None = None) -> tuple[dict, dict]:
                 for k in sorted(sp["synthetic_doses"]):
                     sigma = selection[f"r{r}/k{k}/s{seed}"]["selected_sigma"]
                     full = full_candidates(ctx, "ccil_exact", r, seed, sigma)
-                    if (acc := acceptance(full)) < g["min_acceptance"]:
-                        infeasible[f"ccil_exact/r{r}/k{k}/s{seed}/sigma{sigma}"] = acc
+                    fail = failure(full)
+                    feasibility[f"ccil_exact/r{r}/k{k}/s{seed}/sigma{sigma}"] = {
+                        "failure": fail, "feasible": fail <= g["max_failure"]}
+                    if fail > g["max_failure"]:
                         continue
                     groups.setdefault(("ccil_exact", r, k, None), []).append(
                         unit(ctx, "ccil_exact", r, k, seed, sigma, full))
@@ -267,7 +281,7 @@ def plan(ctx, selection: dict | None = None) -> tuple[dict, dict]:
         group = sorted([u["seed"], None if u["candidates"] is None else sha256_file(u["candidates"])] for u in us)
         for u in us:
             u["identity"] = policy_identity(ctx, u, group)
-    return groups, infeasible
+    return groups, feasibility
 
 
 def policy_identity(ctx, u, group) -> dict:
@@ -344,20 +358,21 @@ def train_groups(ctx, groups: dict) -> dict:
 
 def train(ctx) -> dict:
     """BC and the learned arm at every feasible sigma; the selection; then the exact arm at the selected sigmas."""
-    groups, infeasible = plan(ctx)
+    groups, feasibility = plan(ctx)
     rows = train_groups(ctx, groups)
     selection = select(ctx, rows) if "ccil_learned" in ctx.spec["arms"] else {}
     unselectable = sorted(k_ for k_, v in selection.items() if v["selected_sigma"] is None)
-    exact_infeasible = {}
+    exact_feasibility = {}
     if "ccil_exact" in ctx.spec["arms"] and not unselectable:
-        g2, exact_infeasible = plan(ctx, selection)
+        g2, exact_feasibility = plan(ctx, selection)
         rows |= train_groups(ctx, g2)
+    exact_infeasible = sorted(k_ for k_, v in exact_feasibility.items() if not v["feasible"])
     # The stopping rule must have fired for every unit: reaching the step ceiling is a failed fit, not a result.
     incomplete = sorted(k_ for k_, v in rows.items() if v["stopping"]["outcome"] != "patience")
     ok = not incomplete and not unselectable and not exact_infeasible
     return {"all_pass": ok, "units": rows, "trained": sum(v["reused"] is False for v in rows.values()),
-            "infeasible": infeasible, "selection": selection, "unselectable": unselectable,
-            "exact_infeasible": exact_infeasible, "incomplete_fit": incomplete,
+            "feasibility": feasibility, "selection": selection, "unselectable": unselectable,
+            "exact_feasibility": exact_feasibility, "exact_infeasible": exact_infeasible, "incomplete_fit": incomplete,
             "analysis": analysis_units(ctx, selection) if ok else None}
 
 
@@ -393,14 +408,14 @@ def audit(ctx) -> dict:
                         raise StoreError("the recomputed unit row differs from the train stage's")
                 except StoreError as e:
                     problems[u["key"]] = str(e)
-    groups, infeasible = plan(ctx)
+    groups, feasibility = plan(ctx)
     check(groups)
     selection = select(ctx, rows)
-    exact_infeasible = {}
+    exact_feasibility = {}
     if "ccil_exact" in ctx.spec["arms"]:
-        g2, exact_infeasible = plan(ctx, selection)
+        g2, exact_feasibility = plan(ctx, selection)
         check(g2)
-    for name, mine in (("infeasible", infeasible), ("selection", selection), ("exact_infeasible", exact_infeasible),
+    for name, mine in (("feasibility", feasibility), ("selection", selection), ("exact_feasibility", exact_feasibility),
                        ("analysis", analysis_units(ctx, selection)), ("units", set(rows))):
         theirs = set(tr["units"]) if name == "units" else tr[name]
         if (mine if name == "units" else _json(mine)) != theirs:

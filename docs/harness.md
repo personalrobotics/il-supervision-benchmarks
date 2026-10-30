@@ -59,12 +59,12 @@ So work done by other code, another lock or another environment is never reused.
 
 The action-noise scale σ is a hyperparameter of CCIL: it sets the distribution and locality of the synthetic supervision. The study does not fix it. It selects it the way a user of the method would, from validation data only:
 
-1. **Feasibility, before training.** For each (r, seed) and each σ of the declared grid, the learned arm's K_max candidate set is generated. A σ whose acceptance (every validator, the action bound included) is below `generation.min_acceptance` is infeasible and never trained.
+1. **Proposals and feasibility, before training.** σ is declared in normalized action units (a fraction of the action bound). Proposals are drawn from a Gaussian truncated to the actuator range (`action_bounds` of the CCIL generator): the first K_max feasible proposals of each transition's stream, so at a saturated action the perturbations point inward, and a nested K view is the first K of them. For each (r, seed) and each σ of the grid, the learned arm's K_max candidate set is generated. A σ whose genuine-failure fraction (non-finite, a failed solve, or a state outside the support) exceeds `generation.max_failure` is infeasible and never trained. The action-bound validator stays: after bounded proposals, any rejection by it is an implementation error and stops the run.
 2. **Candidates.** The learned arm trains at every feasible σ and every K.
 3. **Selection, per (r, K, seed).** Each candidate's selected checkpoint predicts the actions of the unit's held-out demonstration episodes. The σ with the least mean squared error, in raw action units, is selected; ties go to the smaller σ. Raw units keep the errors comparable across σ, whereas the trainer's own validation loss is in each model's scaled units.
 4. **The exact arm** trains at the selected σ of the same (r, K, seed). So learned − exact compares two dynamics models under one selected σ, and the contrast stays a measure of dynamics-model error.
 
-The final-test starts are never used for selection. The train report records every candidate's validation error, the infeasible σ with their acceptance, and the selected σ; the audit recomputes all three. `tools/sigma_geometry.py SPEC` reports what each σ of the grid produces under the exact dynamics (acceptance, rejections, displacement against the data's spacing) as a diagnostic. It selects nothing: selecting σ from exact dynamics would make the learned method oracle-assisted.
+The final-test starts are never used for selection. The train report records every candidate's validation error, every candidate set's failure fraction and feasibility, and the selected σ; the audit recomputes all three. `tools/sigma_geometry.py SPEC` reports what each σ of the grid produces under the exact dynamics (failures, rejections, proposals per transition, displacement against the data's spacing) as a diagnostic. It selects nothing: selecting σ from exact dynamics would make the learned method oracle-assisted.
 
 ## Adapters
 
@@ -90,11 +90,12 @@ A benchmark contributes adapters, not a runner.
 
 - `tools/port_check.py --ccil CCIL_CHECKOUT` gives the Pendulum map, scorer and starts against CCIL, written to `docs/fixtures/evidence/pendulum-port-check.json`.
 - `tools/fixture.py --work NEW_DIR` is the compact end-to-end fixture, written to `docs/fixtures/evidence/vertical-slice-fixture.json`:
-  - every arm, two fractions, two doses and three seeds, through every stage on CPU, with a three-point σ grid whose largest σ is infeasible;
+  - every arm, two fractions, two doses and three seeds, through every stage on CPU, with a three-point σ grid;
   - a resume that reruns nothing;
   - a second study that reuses every unit and reports identically;
   - refusals of a wrong dataset hash, a corrupted rollout, a report after a failed audit, a mismatched store entry, and an out-of-order stage;
   - a copy of the harness whose source differs by one comment, which retrains every unit instead of reusing the store's;
-  - a step ceiling below any patience stop, which fails the train stage on every unit, after which the audit refuses.
+  - a step ceiling below any patience stop, which fails the train stage on every unit, after which the audit refuses;
+  - no genuine generation failure tolerated, which skips every σ with any failure untrained and fails the train stage on the coordinates left without a feasible σ.
 
   The evidence holds no paths, times or commits, so a rerun on the same host reproduces it byte for byte.

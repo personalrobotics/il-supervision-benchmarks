@@ -18,7 +18,7 @@ The exact-dynamics arm isolates dynamics-model error: it uses the same generator
 | Validation | 20% of each subset's episodes, seed-keyed, held out from training; used for checkpoint selection, patience and σ selection. |
 | Synthetic doses K | 0 (BC), 1, 4, 20 = K_max: nested views of one K_max candidate set per (r, seed, dynamics, σ). |
 | Arms | `bc`; `ccil_learned` (dynamics fitted on the subset's training episodes); `ccil_exact` (the task's transition map). |
-| Generator | Newton preimage (`noisy_action_preimage`) for both CCIL arms, 30 iterations, tolerance 1e-4; validators: finite, solver success, support radius 1.0, action bound ±3. |
+| Generator | Newton preimage (`noisy_action_preimage`) for both CCIL arms, 30 iterations, tolerance 1e-4, proposals truncated to ±3 (the first K feasible draws of each transition's stream, with the raw attempt index recorded); validators: finite, solver success, support radius 1.0, action bound ±3. |
 | Dynamics | The corrected recipe: MLP 512×512, soft-sampling Lipschitz (constraint 2.0, weight 1e-3, ε 3e-4, 5 samples, model-normalized coordinates), learning rate 1e-3, weight decay 1e-5, 100 epochs, batch 512. |
 | Learner | `vector_bc_v2` for every arm: MLP 256×256, learning rate 1e-3, batch 512, standard observation scaling, min-max action scaling, α = 0.5 for CCIL arms, validation checkpoint selection every 50 steps, patience P and step ceiling from pilot 1. |
 | Evaluation | 100 fixed final-test starts (`eval_seed` 2201), used only by the study's evaluate stage. |
@@ -27,10 +27,10 @@ The exact-dynamics arm isolates dynamics-model error: it uses the same generator
 ## σ selection
 
 σ is a hyperparameter of CCIL and is selected per (r, K, seed) from validation data only (`docs/harness.md`, "Selecting σ"):
-- **Grid:** 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.
-- **Feasibility before training:** a σ whose learned-dynamics candidates have acceptance below 0.95 is not trained.
+- **Grid,** in normalized action units (a fraction of the bound 3): 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.
+- **Feasibility before training:** a σ is not trained when more than 5% of its learned-dynamics candidates fail genuinely (non-finite, failed solve, or outside the support). The action bound cannot reject a bounded proposal; if it does, the run stops.
 - **Selection:** the least mean squared action error, in raw torque units, on the unit's held-out demonstration episodes; ties go to the smaller σ.
-- **The exact arm** uses the selected σ of the same (r, K, seed). If its own acceptance at that σ is below 0.95, the run stops.
+- **The exact arm** uses the selected σ of the same (r, K, seed). If more than 5% of its own candidates at that σ fail, the run stops.
 
 `tools/sigma_geometry.py` reports what each σ produces under exact dynamics, as a committed diagnostic. It does not select.
 
@@ -56,8 +56,8 @@ Pilots use non-study seeds (9501–9520) and non-study evaluation starts (`eval_
 From a clean checkout of the merged protocol on siddh:
 
 ```bash
-gh release download data/pendulum-corrected-demonstrator-v1 -R personalrobotics/CCIL \
-    -p 'pendulum_cont_corrected-*.npz' -O data/pendulum_cont_corrected.npz
+mkdir -p data && curl -fL -o data/pendulum_cont_corrected.npz https://github.com/personalrobotics/CCIL/releases/download/data/pendulum-corrected-demonstrator-v1/pendulum_cont_corrected-sha256-59c332bc829db9c9da40d9c1bd9ebbf808965aca6a167be48dc0f2ade52cf43c.npz
+sha256sum data/pendulum_cont_corrected.npz   # 59c332bc829db9c9da40d9c1bd9ebbf808965aca6a167be48dc0f2ade52cf43c (preflight refuses other bytes)
 uv run python -m ilsb run studies/pendulum-j-r-k/study.yaml --root runs/<timestamp>-j-r-k
 ```
 

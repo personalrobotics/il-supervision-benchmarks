@@ -15,8 +15,9 @@ seeds: [9501, 9502, 9503, 9504, 9505]
 dynamics: {hidden_layers: [512, 512], activation: relu, lipschitz_type: soft_sampling, lipschitz_constraint: 2.0,
            lipschitz_coordinates: model_normalized, soft_penalty_weight: 0.001, soft_sampling_eps: 0.0003,
            soft_samples: 5, learning_rate: 0.001, weight_decay: 1.0e-05, epochs: 100, batch_size: 512}
+# sigma in normalized action units (a fraction of the action bound, 3); proposals truncated to the bound.
 generation: {generator: noisy_action_preimage, sigma_grid: [1.0e-05, 0.0001, 0.001, 0.01, 0.1, 1.0],
-             min_acceptance: 0.95, support_radius: 1.0, max_iterations: 30, tolerance: 0.0001}
+             max_failure: 0.05, support_radius: 1.0, max_iterations: 30, tolerance: 0.0001}
 learner: {hidden_layers: [256, 256], learning_rate: 0.001, batch_size: 512, epochs: 200,
           observation_scaler: standard, action_scaler: min_max, balance_labels: null, step_budget: null,
           checkpoint_selection: validation, validation_interval_steps: 50, patience: 1000000,

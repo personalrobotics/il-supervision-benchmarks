@@ -7,7 +7,7 @@ requires-python = ">=3.11"
 dependencies = [
     # ccil supplies the supervision method (labels, nested views, supervision manifests) and, for the first study,
     # the learner (vector_bc_v2). Pinned to one commit; bump deliberately.
-    "ccil[torch] @ git+https://github.com/personalrobotics/CCIL@ead5294ea7f81b120b4ff09d9a6e714315621a45",
+    "ccil[torch] @ git+https://github.com/personalrobotics/CCIL@a7f02cc81762fc98fb64b3db978b2f18aa348809",
     "numpy>=1.24",
     "pyyaml>=6.0",
     "scipy==1.16.3",

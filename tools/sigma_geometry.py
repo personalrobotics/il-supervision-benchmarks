@@ -5,9 +5,10 @@
 
 sigma is a hyperparameter of CCIL, selected per (r, K, seed) from validation data (ilsb.run.select); choosing it
 from exact dynamics would make the learned method oracle-assisted. This tool trains nothing and computes no return.
-On the specification's dataset, the study's generator (Newton preimage, K_max draws, the study's validators) runs
-under the exact transition map at every sigma of the grid, with a non-study seed. It reports acceptance, rejections by
-reason, and the displacement |z_G - z| in normalized task coordinates (each state coordinate over its standard
+On the specification's dataset, the study's generator (Newton preimage, K_max draws truncated to the action bound,
+the study's validators) runs under the exact transition map at every sigma of the grid (normalized action units), with
+a non-study seed. It reports the genuine-failure fraction, rejections by reason, skipped proposals, and the
+displacement |z_G - z| in normalized task coordinates (each state coordinate over its standard
 deviation across the demonstration states), beside the data's own spacing: the distance from each demonstration
 state to the nearest state of another episode, and to the nearest other state at all.
 """
@@ -22,7 +23,7 @@ from pathlib import Path
 import numpy as np
 from scipy.spatial import cKDTree
 
-from ilsb.run import load_spec
+from ilsb.run import GENUINE_FAILURES, load_spec
 from ilsb.store import sha256_file
 from ilsb.tasks.pendulum import ExactModel, Task
 
@@ -71,14 +72,21 @@ def main() -> int:
     validators = [Finite(), GenerationFailed(), SupportRadius(g["support_radius"]),
                   ActionBounds([-task.action_bound], [task.action_bound])]
     rows = []
+    bounds = ([-task.action_bound], [task.action_bound])
     for sigma in g["sigma_grid"]:
-        c = generate_labels(ds, rep, model, NoisyActionPreimage(k_max, sigma, g["max_iterations"], g["tolerance"]),
-                            validators, run_id="sigma-geometry", seed=SEED, inputs={"transition_model": model.sha256})
+        gen = NoisyActionPreimage(k_max, sigma * task.action_bound, g["max_iterations"], g["tolerance"],
+                                  action_bounds=bounds)
+        c = generate_labels(ds, rep, model, gen, validators, run_id="sigma-geometry", seed=SEED,
+                            inputs={"transition_model": model.sha256})
         origin = np.stack([z[e][f] for e, f in zip(c.source_episode_id.astype(str), c.source_frame)])
         dz = np.linalg.norm((c.observations["state"].astype(np.float64) - origin) / scale, axis=1)[c.accepted]
-        rows.append({"sigma": sigma, "candidates": len(c.actions), "acceptance": float(c.accepted.mean()),
-                     "feasible_at_min_acceptance": bool(c.accepted.mean() >= g["min_acceptance"]),
-                     "rejection_by_reason": dict(zip(c.reason_codes, np.asarray(c.reasons).mean(axis=0).tolist())),
+        reasons = dict(zip(c.reason_codes, np.asarray(c.reasons).T))
+        fail = float(np.any([reasons[r] for r in GENUINE_FAILURES if r in reasons], axis=0).mean())
+        attempts = c.measurements["generator.attempt_index"].reshape(-1, k_max)[:, -1] + 1
+        rows.append({"sigma_normalized": sigma, "sigma_action_units": sigma * task.action_bound,
+                     "candidates": len(c.actions), "failure": fail, "feasible": fail <= g["max_failure"],
+                     "rejection_by_reason": {r: float(v.mean()) for r, v in reasons.items()},
+                     "proposals_per_transition": quantiles(attempts),
                      "displacement_norm": quantiles(dz) if len(dz) else None})
     from importlib import metadata
     direct = json.loads(metadata.distribution("ccil").read_text("direct_url.json") or "{}")
