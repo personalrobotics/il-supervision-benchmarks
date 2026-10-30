@@ -1,0 +1,25 @@
+[project]
+name = "il-supervision-benchmarks"
+version = "0.1.0.dev0"
+description = "Reproducible studies of how supervision construction affects imitation learning"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    # ccil supplies the supervision method (labels, nested views, supervision manifests) and, for the first study,
+    # the learner (vector_bc_v2). Pinned to one commit; bump deliberately.
+    "ccil[torch] @ git+https://github.com/personalrobotics/CCIL@ead5294ea7f81b120b4ff09d9a6e714315621a45",
+    "numpy>=1.24",
+    "pyyaml>=6.0",
+    "scipy==1.16.3",
+    "torch==2.14.1",
+]
+
+[project.scripts]
+ilsb = "ilsb.run:main"
+
+[build-system]
+requires = ["uv_build>=0.12,<0.14"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "ilsb"
