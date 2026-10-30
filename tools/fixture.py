@@ -9,13 +9,16 @@ through the whole state machine, on CPU. Then:
 - resume: the same command on the same root reruns no stage and trains nothing;
 - reuse: a second study root on the same store trains nothing and reports identically;
 - refusals, each on a copy: a wrong dataset hash (preflight), a corrupted rollout (evaluation audit), a mismatched
-  store entry (train), and an evaluation before any training (out of order).
+  store entry (train), and an evaluation before any training (out of order);
+- a changed implementation (a copy of the harness source with one added comment) reuses no policy from the store;
+- a step ceiling the patience rule never reaches fails the train stage (incomplete fit), and the audit refuses.
 The written evidence holds no paths, times or commits, so a rerun on the same host reproduces it byte for byte.
 """
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -26,6 +29,7 @@ import yaml
 from ilsb.store import sha256_file
 from ilsb.tasks.pendulum import Task, demonstrations
 
+REPO = Path(__file__).resolve().parents[1]
 TASK = {"variant": "continuous", "action_bound": 3.0, "horizon": 120, "eval_episodes": 8, "eval_seed": 9001}
 SPEC = {
     "study": "vertical-slice-fixture",
@@ -49,9 +53,9 @@ SPEC = {
 }
 
 
-def ilsb(*args, allow_dirty=False) -> subprocess.CompletedProcess:
+def ilsb(*args, allow_dirty=False, env=None) -> subprocess.CompletedProcess:
     return subprocess.run([sys.executable, "-m", "ilsb", *args, *(["--allow-dirty"] if allow_dirty else [])],
-                          capture_output=True, text=True)
+                          capture_output=True, text=True, env=env)
 
 
 def stage(root: Path, name: str) -> dict:
@@ -146,10 +150,45 @@ def main() -> int:
     refusals["out_of_order"] = {"refused": p.returncode != 0 and "needs a completed preflight" in p.stderr + p.stdout}
     ev["refusals"] = refusals
 
+    # 5. A changed implementation: the same study from a copy of the harness whose source differs by one comment
+    # trains every unit again on the same store instead of reusing work done by other code.
+    impl = work / "impl"
+    shutil.copytree(REPO / "src", impl / "src")
+    shutil.copy(REPO / "uv.lock", impl / "uv.lock")
+    with open(impl / "src" / "ilsb" / "run.py", "a") as f:
+        f.write("# implementation changed\n")
+    env = {**os.environ, "PYTHONPATH": str(impl / "src")}
+    root5 = work / "r-impl"
+    for name in ("preflight", "train"):
+        p = ilsb("stage", name, str(work / "spec.yaml"), "--root", str(root5), "--store", str(store),
+                 allow_dirty=True, env=env)
+    tr5 = stage(root5, "train")
+    ev["implementation_change"] = {
+        "exit": p.returncode, "trained": tr5["trained"], "units": len(tr5["units"]),
+        "source_differs": json.loads((root5 / "root.json").read_text())["scope"]["ilsb_source_sha256"]
+        != json.loads((root / "root.json").read_text())["scope"]["ilsb_source_sha256"]}
+
+    # 6. A ceiling below any patience stop: every unit is an incomplete fit, the stage fails, and the audit refuses.
+    ceiling = {**spec, "learner": {**spec["learner"], "step_budget": 40, "patience": 50}}
+    (work / "spec-ceiling.yaml").write_text(yaml.safe_dump(ceiling, sort_keys=True))
+    root6 = work / "r-ceiling"
+    p = ilsb("run", str(work / "spec-ceiling.yaml"), "--root", str(root6), "--store", str(store), allow_dirty=dirty)
+    tr6 = stage(root6, "train")
+    p2 = ilsb("stage", "audit", str(work / "spec-ceiling.yaml"), "--root", str(root6), "--store", str(store),
+              allow_dirty=dirty)
+    ev["incomplete_fit"] = {"run_exit": p.returncode, "train_all_pass": tr6["all_pass"],
+                            "incomplete_units": len(tr6["incomplete_fit"]), "units": len(tr6["units"]),
+                            "audit_refused": p2.returncode != 0 and "the train stage did not pass" in p2.stderr + p2.stdout}
+
     ev["all_pass"] = bool(ev["first_run"]["exit"] == 0 and all(ev["audits"].values())
                           and ev["resume"]["exit"] == 0 and set(ev["resume"]["stages"].values()) == {"resumed"}
                           and ev["reuse"]["exit"] == 0 and ev["reuse"]["trained"] == 0 and ev["reuse"]["report_identical"]
-                          and all(r["refused"] for r in refusals.values()))
+                          and all(r["refused"] for r in refusals.values())
+                          and ev["implementation_change"]["exit"] == 0 and ev["implementation_change"]["source_differs"]
+                          and ev["implementation_change"]["trained"] == ev["implementation_change"]["units"] == ev["units"]
+                          and ev["incomplete_fit"]["run_exit"] != 0 and ev["incomplete_fit"]["train_all_pass"] is False
+                          and ev["incomplete_fit"]["incomplete_units"] == ev["incomplete_fit"]["units"] == ev["units"]
+                          and ev["incomplete_fit"]["audit_refused"])
     text = json.dumps(ev, indent=1, sort_keys=True) + "\n"
     if a.out:
         a.out.parent.mkdir(parents=True, exist_ok=True)

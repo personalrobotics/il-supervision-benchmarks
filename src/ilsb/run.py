@@ -3,7 +3,8 @@
     uv run python -m ilsb run SPEC --root ROOT [--store STORE]     # every stage in order, resuming
     uv run python -m ilsb stage NAME SPEC --root ROOT [--store S]  # one stage (it refuses if out of order)
 
-The run root holds root.json (the protocol identity: the specification, the harness and ccil commits, the lock),
+The run root holds root.json (the protocol identity: the specification, the harness and ccil commits, the lock, and
+the scope every store identity carries: the harness source, ccil commit, lock and execution environment),
 stages/<stage>.json (each stage's report) and manifest.json (each completed report's SHA-256). A stage runs only
 when every predecessor's report passed and still hashes to the manifest's record under the same protocol; a failed
 check stops the run, and its report is written with all_pass false. Units are content-addressed store entries, so a
@@ -12,7 +13,9 @@ rerun reuses every verified unit and recomputes nothing; the store may be shared
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import platform
 import subprocess
 import sys
 from importlib import metadata
@@ -51,6 +54,9 @@ def load_spec(path: Path) -> dict:
         raise Refused("refused: real fractions must be in (0, 1] and synthetic doses integers >= 1")
     if len(set(spec["seeds"])) != len(spec["seeds"]):
         raise Refused("refused: seeds repeat")
+    if not spec["learner"].get("patience") or spec["learner"].get("checkpoint_selection") != "validation":
+        raise Refused("refused: the learner needs the validation stopping rule (patience, checkpoint_selection: "
+                      "validation); the step budget is only a failure ceiling")
     return spec
 
 
@@ -68,18 +74,42 @@ def code_state() -> dict:
             "uv_lock_sha256": sha256_file(lock) if lock.exists() else None}
 
 
+def source_sha256() -> str:
+    """The harness implementation by content: every source file of the ilsb package, so a dirty tree is named too."""
+    h = hashlib.sha256()
+    pkg = Path(__file__).resolve().parent
+    for f in sorted(pkg.rglob("*.py")):
+        h.update(f.relative_to(pkg).as_posix().encode() + b"\0" + f.read_bytes() + b"\0")
+    return h.hexdigest()
+
+
+def environment(device: str) -> dict:
+    """The execution environment numerical artifacts belong to; they are not reused outside it."""
+    import torch
+    env = {"python": platform.python_version(), "system": platform.system(), "machine": platform.machine(),
+           "numpy": np.__version__, "torch": torch.__version__, "device": device}
+    if device.startswith("cuda"):
+        env |= {"cuda": torch.version.cuda, "gpu": torch.cuda.get_device_name(torch.device(device))}
+    return env
+
+
 class Context:
     def __init__(self, spec_path: Path, root: Path, store: Path | None, allow_dirty: bool):
         self.spec_path, self.root = Path(spec_path).resolve(), Path(root).resolve()
         self.spec = load_spec(self.spec_path)
-        self.store = Store(Path(store).resolve() if store else self.root / "store")
         self.task = Task(**self.spec["task"])
         self.device = self.spec["compute"]["device"]
         state = code_state()
         if state["dirty"] and not allow_dirty:
             raise Refused(f"refused: the harness tree is dirty: {state['dirty'][:5]}")
+        if not state["ccil"]["commit"] and not allow_dirty:
+            raise Refused("refused: ccil is not installed from a pinned commit, so its implementation is unnamed")
+        # Every store identity carries the implementation (harness source, ccil commit, lock) and the environment.
+        self.scope = {"ilsb_source_sha256": source_sha256(), "ccil": state["ccil"],
+                      "uv_lock_sha256": state["uv_lock_sha256"], "environment": environment(self.device)}
+        self.store = Store(Path(store).resolve() if store else self.root / "store", self.scope)
         self.protocol = {"spec": self.spec, "spec_sha256": sha256_file(self.spec_path), "code": state,
-                         "allow_dirty": allow_dirty}
+                         "scope": self.scope, "allow_dirty": allow_dirty}
         rj = self.root / "root.json"
         if rj.exists():
             if json.loads(rj.read_text()) != json.loads(json.dumps(self.protocol, sort_keys=True, default=str)):
@@ -188,8 +218,7 @@ def candidates_for(ctx, arm: str, r: float, seed: int, k: int) -> Path | None:
 def policy_identity(ctx, arm, r, k, seed, subset_p, split_p, cands) -> dict:
     return {"kind": "policy", "arm": arm, "subset": sha256_file(subset_p), "split": sha256_file(split_p),
             "candidates": None if cands is None else sha256_file(cands), "settings": ctx.learner_settings(arm),
-            "seed": seed, "group_seeds": list(ctx.spec["seeds"]), "learner": "ccil.training.vector_bc_v2",
-            "ccil": ctx.protocol["code"]["ccil"], "device": ctx.device}
+            "seed": seed, "group_seeds": list(ctx.spec["seeds"]), "learner": "ccil.training.vector_bc_v2"}
 
 
 def units(ctx) -> list[dict]:
@@ -234,12 +263,15 @@ def train(ctx) -> dict:
         for u in cell:
             d = ctx.store.get("policy", u["identity"])
             rec = json.loads((d / "training.json").read_text())
-            rows[key(u)] = {"entry": digest(u["identity"]), "policy_sha256": sha256_file(d / "policy.npz"),
+            rows[key(u)] = {"entry": d.name, "policy_sha256": sha256_file(d / "policy.npz"),
                             "reused": u not in todo, "stopping": rec["stopping"],
                             "exposure": {k_: rec["exposure"][k_] for k_ in ("rows", "realized_synthetic_row_fraction",
                                                                              "requested_synthetic_fraction")},
                             "selected_step": (rec["validation"] or {}).get("selected_step")}
-    return {"all_pass": True, "units": rows, "trained": sum(not v["reused"] for v in rows.values())}
+    # The stopping rule must have fired for every unit: reaching the step ceiling is a failed fit, not a result.
+    incomplete = sorted(k_ for k_, v in rows.items() if v["stopping"]["outcome"] != "patience")
+    return {"all_pass": not incomplete, "units": rows, "trained": sum(not v["reused"] for v in rows.values()),
+            "incomplete_fit": incomplete}
 
 
 def audit(ctx) -> dict:
@@ -253,7 +285,7 @@ def audit(ctx) -> dict:
         k_ = key(u)
         try:
             d = ctx.store.get("policy", u["identity"])
-            if d is None or prior["train"]["units"].get(k_, {}).get("entry") != digest(u["identity"]):
+            if d is None or prior["train"]["units"].get(k_, {}).get("entry") != d.name:
                 raise StoreError("missing, or not the entry the train stage recorded")
             rec = json.loads((d / "training.json").read_text())
             settings = ctx.learner_settings(u["arm"])
@@ -280,7 +312,7 @@ def evaluate(ctx) -> dict:
             np.savez(d / "rollout.npz", **ro)
             (d / "scores.json").write_text(json.dumps(ctx.task.score(ro), sort_keys=True) + "\n")
         d, reused = ctx.store.ensure("rollout", ident, write)
-        rows[key(u)] = {"entry": digest(ident), "rollout_sha256": sha256_file(d / "rollout.npz"), "reused": reused,
+        rows[key(u)] = {"entry": d.name, "rollout_sha256": sha256_file(d / "rollout.npz"), "reused": reused,
                         "scores": json.loads((d / "scores.json").read_text())}
     return {"all_pass": True, "units": rows}
 

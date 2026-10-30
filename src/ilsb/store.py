@@ -4,6 +4,8 @@ An entry holds identity.json (that identity), its files, and manifest.json (each
 written whole into a temporary directory and renamed into place, so an entry either exists complete or not at all.
 Reuse needs the stored identity to equal the requested one and every file to match the manifest; any other state is
 refused, never silently recomputed or overwritten. Entries may be shared across studies: equal identity is equal work.
+A store opened with a scope (the implementation and execution environment) folds it into every identity, so no entry
+is reused after the code, the lock or the environment changes.
 """
 from __future__ import annotations
 
@@ -44,15 +46,19 @@ def write_json(path: Path, obj) -> None:
 
 
 class Store:
-    def __init__(self, root: Path):
-        self.root = Path(root)
+    def __init__(self, root: Path, scope: dict | None = None):
+        self.root, self.scope = Path(root), scope
+
+    def full(self, identity: dict) -> dict:
+        return identity if self.scope is None else {**identity, "scope": self.scope}
 
     def path(self, kind: str, identity: dict) -> Path:
-        return self.root / kind / digest(identity)
+        return self.root / kind / digest(self.full(identity))
 
     def get(self, kind: str, identity: dict) -> Path | None:
         """The verified entry for identity, None if absent; StoreError if present but not exactly this work."""
         d = self.path(kind, identity)
+        identity = self.full(identity)
         if not d.exists():
             return None
         if not (d / "identity.json").exists() or not (d / "manifest.json").exists():
@@ -71,6 +77,7 @@ class Store:
     def put(self, kind: str, identity: dict, write) -> Path:
         """Create the entry: write(tmpdir) fills it; the manifest is computed and the directory renamed into place."""
         d = self.path(kind, identity)
+        identity = self.full(identity)
         if d.exists():
             raise StoreError(f"{d} exists; use get()")
         d.parent.mkdir(parents=True, exist_ok=True)
