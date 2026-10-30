@@ -178,7 +178,7 @@ def main() -> int:
               allow_dirty=dirty)
     ev["incomplete_fit"] = {"run_exit": p.returncode, "train_all_pass": tr6["all_pass"],
                             "incomplete_units": len(tr6["incomplete_fit"]), "units": len(tr6["units"]),
-                            "audit_refused": p2.returncode != 0 and "the train stage did not pass" in p2.stderr + p2.stdout}
+                            "audit_refused": p2.returncode != 0 and "needs a completed train stage" in p2.stderr + p2.stdout}
 
     ev["all_pass"] = bool(ev["first_run"]["exit"] == 0 and all(ev["audits"].values())
                           and ev["resume"]["exit"] == 0 and set(ev["resume"]["stages"].values()) == {"resumed"}
