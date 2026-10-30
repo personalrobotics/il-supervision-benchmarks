@@ -49,11 +49,22 @@ So work done by other code, another lock or another environment is never reused.
 | Stage | What it checks or produces |
 |---|---|
 | preflight | The dataset matches its declared hash; the plan of units. |
-| train | Every policy unit. A whole (arm, r, K) cell trains as one group, through the learner adapter. Every unit must stop by the validation patience rule; a unit that reaches the step ceiling is an incomplete fit, and the stage fails. |
-| audit | Every unit is a verified entry. Its training identity, which hashes the supervision manifest with the dataset, split and candidate hashes, recomputes from the unit's own inputs. Its weights hash to the record. |
-| evaluate | One rollout per policy from the task's fixed final-test starts, with its scores. |
+| train | Every policy unit, each group of seeds trained together through the learner adapter, in three steps (below): BC and the learned arm at every feasible σ; the σ selection; the exact arm at the selected σ. Every unit must stop by the validation patience rule; a unit that reaches the step ceiling is an incomplete fit, and the stage fails. So does a coordinate with no feasible σ. |
+| audit | Every trained unit is a verified entry. Its training identity, which hashes the supervision manifest with the dataset, split and candidate hashes, recomputes from the unit's own inputs. Its weights hash to the record, and its reported row (stopping, exposure, validation error) recomputes. Feasibility, the σ selection and the analysis units recompute to the reported ones. |
+| evaluate | One rollout per analysis unit from the task's fixed final-test starts, with its scores. Unselected σ candidates are never evaluated. |
 | evaluation_audit | Every rollout reopened. It checks hashes, shapes, starts and the action bound, replays every transition through the task map, and recomputes every score exactly. |
 | report | The predeclared paired contrasts (union BCa/t interval) over seeds. |
+
+## Selecting σ
+
+The action-noise scale σ is a hyperparameter of CCIL: it sets the distribution and locality of the synthetic supervision. The study does not fix it. It selects it the way a user of the method would, from validation data only:
+
+1. **Feasibility, before training.** For each (r, seed) and each σ of the declared grid, the learned arm's K_max candidate set is generated. A σ whose acceptance (every validator, the action bound included) is below `generation.min_acceptance` is infeasible and never trained.
+2. **Candidates.** The learned arm trains at every feasible σ and every K.
+3. **Selection, per (r, K, seed).** Each candidate's selected checkpoint predicts the actions of the unit's held-out demonstration episodes. The σ with the least mean squared error, in raw action units, is selected; ties go to the smaller σ. Raw units keep the errors comparable across σ, whereas the trainer's own validation loss is in each model's scaled units.
+4. **The exact arm** trains at the selected σ of the same (r, K, seed). So learned − exact compares two dynamics models under one selected σ, and the contrast stays a measure of dynamics-model error.
+
+The final-test starts are never used for selection. The train report records every candidate's validation error, the infeasible σ with their acceptance, and the selected σ; the audit recomputes all three. `tools/sigma_geometry.py SPEC` reports what each σ of the grid produces under the exact dynamics (acceptance, rejections, displacement against the data's spacing) as a diagnostic. It selects nothing: selecting σ from exact dynamics would make the learned method oracle-assisted.
 
 ## Adapters
 
@@ -79,7 +90,7 @@ A benchmark contributes adapters, not a runner.
 
 - `tools/port_check.py --ccil CCIL_CHECKOUT` gives the Pendulum map, scorer and starts against CCIL, written to `docs/fixtures/evidence/pendulum-port-check.json`.
 - `tools/fixture.py --work NEW_DIR` is the compact end-to-end fixture, written to `docs/fixtures/evidence/vertical-slice-fixture.json`:
-  - every arm, two fractions, two doses and three seeds, through every stage on CPU;
+  - every arm, two fractions, two doses and three seeds, through every stage on CPU, with a three-point σ grid whose largest σ is infeasible;
   - a resume that reruns nothing;
   - a second study that reuses every unit and reports identically;
   - refusals of a wrong dataset hash, a corrupted rollout, a report after a failed audit, a mismatched store entry, and an out-of-order stage;

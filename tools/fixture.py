@@ -5,7 +5,9 @@
 
 On a 12-episode demonstration file from the corrected demonstrator (120 steps), a tiny study with every arm
 (BC, learned-dynamics CCIL, exact-dynamics CCIL), two real fractions, two synthetic doses and three seeds runs
-through the whole state machine, on CPU. Then:
+through the whole state machine, on CPU. The learned arm trains at every feasible sigma of a three-point grid (the
+largest is infeasible: the action bound rejects too many of its candidates) and each (r, K, seed) takes the sigma with
+the least validation error; the exact arm trains at that sigma. Then:
 - resume: the same command on the same root reruns no stage and trains nothing;
 - reuse: a second study root on the same store trains nothing and reports identically;
 - refusals, each on a copy: a wrong dataset hash (preflight), a corrupted rollout (evaluation audit), a mismatched
@@ -41,8 +43,8 @@ SPEC = {
     "seeds": [1, 2, 3],
     "dynamics": {"hidden_layers": [32, 32], "activation": "relu", "lipschitz_type": "none", "learning_rate": 1e-3,
                  "weight_decay": 0.0, "epochs": 3, "batch_size": 64},
-    "generation": {"generator": "noisy_action_preimage", "action_noise_std": 0.05, "support_radius": 0.5,
-                   "max_iterations": 30, "tolerance": 1e-8},
+    "generation": {"generator": "noisy_action_preimage", "sigma_grid": [0.02, 0.05, 3.0], "min_acceptance": 0.53,
+                   "support_radius": 0.5, "max_iterations": 30, "tolerance": 1e-8},
     "learner": {"hidden_layers": [32, 32], "learning_rate": 1e-3, "batch_size": 32, "epochs": 1,
                 "observation_scaler": "standard", "action_scaler": "min_max", "balance_labels": None,
                 "step_budget": 1500, "checkpoint_selection": "validation", "validation_interval_steps": 20,
@@ -95,6 +97,8 @@ def main() -> int:
     ev["realized_synthetic_row_fractions"] = sorted({u["exposure"]["realized_synthetic_row_fraction"]
                                                      for u in tr["units"].values()})
     ev["audits"] = {s: stage(root, s)["all_pass"] for s in ("audit", "evaluation_audit")}
+    ev["selection"] = {"infeasible": tr["infeasible"], "selected_sigmas": rep["selected_sigmas"],
+                       "learned_candidates": sum(u["arm"] == "ccil_learned" for u in tr["units"].values())}
     ev["report"] = {"cells": {k: v["mean"] for k, v in rep["cells"].items()},
                     "contrasts": {k: {"mean": v["mean"], "interval": v["interval"], "outcome": v["outcome"]}
                                   for k, v in rep["contrasts"].items()}}
@@ -184,6 +188,7 @@ def main() -> int:
                           and ev["resume"]["exit"] == 0 and set(ev["resume"]["stages"].values()) == {"resumed"}
                           and ev["reuse"]["exit"] == 0 and ev["reuse"]["trained"] == 0 and ev["reuse"]["report_identical"]
                           and all(r["refused"] for r in refusals.values())
+                          and len(ev["selection"]["infeasible"]) > 0
                           and ev["implementation_change"]["exit"] == 0 and ev["implementation_change"]["source_differs"]
                           and ev["implementation_change"]["trained"] == ev["implementation_change"]["units"] == ev["units"]
                           and ev["incomplete_fit"]["run_exit"] != 0 and ev["incomplete_fit"]["train_all_pass"] is False

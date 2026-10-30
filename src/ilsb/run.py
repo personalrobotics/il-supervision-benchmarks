@@ -54,6 +54,16 @@ def load_spec(path: Path) -> dict:
         raise Refused("refused: real fractions must be in (0, 1] and synthetic doses integers >= 1")
     if len(set(spec["seeds"])) != len(spec["seeds"]):
         raise Refused("refused: seeds repeat")
+    if "ccil_exact" in spec["arms"] and "ccil_learned" not in spec["arms"]:
+        raise Refused("refused: ccil_exact takes its sigma from the learned arm's selection, so it needs ccil_learned")
+    g = spec["generation"]
+    grid = g.get("sigma_grid")
+    if (not isinstance(grid, list) or not grid or grid != sorted(set(grid))
+            or any(isinstance(x, bool) or not isinstance(x, (int, float)) or not x > 0 for x in grid)):
+        raise Refused("refused: generation.sigma_grid must be a non-empty increasing list of positive numbers")
+    if "action_noise_std" in g or not 0 < g.get("min_acceptance", 0) <= 1:
+        raise Refused("refused: sigma is selected from generation.sigma_grid (no action_noise_std), and "
+                      "generation.min_acceptance must be in (0, 1]")
     if not spec["learner"].get("patience") or spec["learner"].get("checkpoint_selection") != "validation":
         raise Refused("refused: the learner needs the validation stopping rule (patience, checkpoint_selection: "
                       "validation); the step budget is only a failure ceiling")
@@ -141,8 +151,9 @@ class Context:
             s.pop("synthetic_fraction", None)  # BC has no synthetic rows; everything else is identical
         return s
 
-    def generation(self) -> dict:
-        return {**self.spec["generation"], "k_max": max(self.spec["synthetic_doses"]),
+    def generation(self, sigma: float) -> dict:
+        g = {k: v for k, v in self.spec["generation"].items() if k not in ("sigma_grid", "min_acceptance")}
+        return {**g, "action_noise_std": sigma, "k_max": max(self.spec["synthetic_doses"]),
                 "action_bound": self.task.action_bound}
 
 
@@ -200,9 +211,8 @@ def data_units(ctx, r: float, seed: int) -> tuple[Path, Path]:
     return s_entry, sp
 
 
-def candidates_for(ctx, arm: str, r: float, seed: int, k: int) -> Path | None:
-    if arm == "bc":
-        return None
+def full_candidates(ctx, arm: str, r: float, seed: int, sigma: float) -> Path:
+    """The K_max candidate set of a CCIL arm at (r, seed, sigma), under the learned or the exact dynamics."""
     subset_p, split_p = data_units(ctx, r, seed)
     if arm == "ccil_exact":
         model = ExactModel(ctx.task)
@@ -211,31 +221,101 @@ def candidates_for(ctx, arm: str, r: float, seed: int, k: int) -> Path | None:
         from ccil.core import load_transition_model
         dyn = sup.fit_dynamics(ctx.store, subset_p, split_p, ctx.spec["dynamics"], seed, ctx.device)
         model, model_sha = load_transition_model(dyn / "model.npz", ctx.device), sha256_file(dyn / "model.npz")
-    full = sup.generate(ctx.store, subset_p, model, model_sha, ctx.generation(), seed) / "candidates.npz"
-    return sup.view(ctx.store, full, k) / "candidates.npz"
+    return sup.generate(ctx.store, subset_p, model, model_sha, ctx.generation(sigma), seed) / "candidates.npz"
 
 
-def policy_identity(ctx, arm, r, k, seed, subset_p, split_p, cands) -> dict:
-    return {"kind": "policy", "arm": arm, "subset": sha256_file(subset_p), "split": sha256_file(split_p),
-            "candidates": None if cands is None else sha256_file(cands), "settings": ctx.learner_settings(arm),
-            "seed": seed, "group_seeds": list(ctx.spec["seeds"]), "learner": "ccil.training.vector_bc_v2"}
+def acceptance(path: Path) -> float:
+    from ccil.schema import read_candidates
+    return float(read_candidates(path).accepted.mean())
 
 
-def units(ctx) -> list[dict]:
-    """Every policy unit with its inputs (building data, dynamics and candidate entries as needed)."""
-    out = []
-    for arm, r, k in ctx.cells():
-        for seed in ctx.spec["seeds"]:
-            subset_p, split_p = data_units(ctx, r, seed)
-            cands = candidates_for(ctx, arm, r, seed, k)
-            out.append({"arm": arm, "r": r, "k": k, "seed": seed, "subset": subset_p, "split": split_p,
-                        "candidates": cands,
-                        "identity": policy_identity(ctx, arm, r, k, seed, subset_p, split_p, cands)})
+def unit(ctx, arm, r, k, seed, sigma=None, full=None) -> dict:
+    subset_p, split_p = data_units(ctx, r, seed)
+    key = f"{arm}/r{r}/k{k}/s{seed}" + (f"/sigma{sigma}" if arm == "ccil_learned" else "")
+    return {"key": key, "arm": arm, "r": r, "k": k, "seed": seed, "sigma": sigma, "subset": subset_p,
+            "split": split_p, "candidates": None if full is None else sup.view(ctx.store, full, k) / "candidates.npz"}
+
+
+def plan(ctx, selection: dict | None = None) -> tuple[dict, dict]:
+    """The policy groups, each trained together, and the infeasible sigmas (acceptance below the minimum; never
+    trained). Without a selection: BC, and the learned arm at every feasible sigma of the grid. With one: the exact
+    arm at each coordinate's selected sigma."""
+    sp, g = ctx.spec, ctx.spec["generation"]
+    groups, infeasible = {}, {}
+    for r in sp["real_fractions"]:
+        for seed in sp["seeds"]:
+            if selection is None:
+                groups.setdefault(("bc", r, 0, None), []).append(unit(ctx, "bc", r, 0, seed))
+                for sigma in g["sigma_grid"] if "ccil_learned" in sp["arms"] else ():
+                    full = full_candidates(ctx, "ccil_learned", r, seed, sigma)
+                    if (acc := acceptance(full)) < g["min_acceptance"]:
+                        infeasible[f"ccil_learned/r{r}/s{seed}/sigma{sigma}"] = acc
+                        continue
+                    for k in sorted(sp["synthetic_doses"]):
+                        groups.setdefault(("ccil_learned", r, k, sigma), []).append(
+                            unit(ctx, "ccil_learned", r, k, seed, sigma, full))
+            elif "ccil_exact" in sp["arms"]:
+                for k in sorted(sp["synthetic_doses"]):
+                    sigma = selection[f"r{r}/k{k}/s{seed}"]["selected_sigma"]
+                    full = full_candidates(ctx, "ccil_exact", r, seed, sigma)
+                    if (acc := acceptance(full)) < g["min_acceptance"]:
+                        infeasible[f"ccil_exact/r{r}/k{k}/s{seed}/sigma{sigma}"] = acc
+                        continue
+                    groups.setdefault(("ccil_exact", r, k, None), []).append(
+                        unit(ctx, "ccil_exact", r, k, seed, sigma, full))
+    for us in groups.values():  # a policy's identity names its whole training group
+        group = sorted([u["seed"], None if u["candidates"] is None else sha256_file(u["candidates"])] for u in us)
+        for u in us:
+            u["identity"] = policy_identity(ctx, u, group)
+    return groups, infeasible
+
+
+def policy_identity(ctx, u, group) -> dict:
+    return {"kind": "policy", "arm": u["arm"], "subset": sha256_file(u["subset"]), "split": sha256_file(u["split"]),
+            "candidates": None if u["candidates"] is None else sha256_file(u["candidates"]),
+            "settings": ctx.learner_settings(u["arm"]), "seed": u["seed"], "group": group,
+            "learner": "ccil.training.vector_bc_v2"}
+
+
+def validation_mse(u, d: Path) -> float:
+    """The selected checkpoint's mean squared action error, in raw action units, on the unit's held-out
+    demonstration episodes: comparable across sigma, unlike the trainer's loss in each model's own scaled units."""
+    obs, act, _ = sup.supervision(u["arm"], u["subset"], u["split"], None, "validation").arrays()
+    err = np.asarray(vector_bc.load(d)(obs), np.float64).reshape(act.shape) - act.astype(np.float64)
+    return float((err ** 2).sum(axis=1).mean())
+
+
+def row_of(u, d: Path) -> dict:
+    rec = json.loads((d / "training.json").read_text())
+    return {"entry": d.name, "arm": u["arm"], "r": u["r"], "k": u["k"], "seed": u["seed"], "sigma": u["sigma"],
+            "policy_sha256": sha256_file(d / "policy.npz"), "stopping": rec["stopping"],
+            "exposure": {k_: rec["exposure"][k_] for k_ in ("rows", "realized_synthetic_row_fraction",
+                                                             "requested_synthetic_fraction")},
+            "selected_step": (rec["validation"] or {}).get("selected_step"), "validation_mse": validation_mse(u, d)}
+
+
+def select(ctx, rows: dict) -> dict:
+    """Per (r, K, seed): the learned arm's sigma with the least validation error; ties go to the smaller sigma."""
+    out = {}
+    for r in ctx.spec["real_fractions"]:
+        for k in sorted(ctx.spec["synthetic_doses"]):
+            for seed in ctx.spec["seeds"]:
+                c = {x["sigma"]: x["validation_mse"] for x in rows.values()
+                     if x["arm"] == "ccil_learned" and (x["r"], x["k"], x["seed"]) == (r, k, seed)}
+                out[f"r{r}/k{k}/s{seed}"] = {"candidates": {str(s_): v for s_, v in sorted(c.items())},
+                                             "selected_sigma": min(c, key=lambda s_: (c[s_], s_)) if c else None}
     return out
 
 
-def key(u) -> str:
-    return f"{u['arm']}/r{u['r']}/k{u['k']}/s{u['seed']}"
+def analysis_units(ctx, selection: dict) -> dict:
+    """Each analysis unit's policy row: the learned arm's is the selected sigma's."""
+    out = {}
+    for arm, r, k in ctx.cells():
+        for seed in ctx.spec["seeds"]:
+            key_ = f"{arm}/r{r}/k{k}/s{seed}"
+            out[key_] = (f"{key_}/sigma{selection[f'r{r}/k{k}/s{seed}']['selected_sigma']}"
+                         if arm == "ccil_learned" else key_)
+    return out
 
 
 # --- stages -----------------------------------------------------------------------------------------------------------
@@ -246,14 +326,11 @@ def preflight(ctx) -> dict:
             "plan_sha256": digest(plan), "code": ctx.protocol["code"]}
 
 
-def train(ctx) -> dict:
-    us = units(ctx)
-    rows, by_cell = {}, {}
-    for u in us:
-        by_cell.setdefault((u["arm"], u["r"], u["k"]), []).append(u)
-    for (arm, r, k), cell in by_cell.items():
+def train_groups(ctx, groups: dict) -> dict:
+    rows = {}
+    for (arm, *_), cell in groups.items():
         todo = [u for u in cell if ctx.store.get("policy", u["identity"]) is None]
-        if todo:  # the whole cell trains as one group (its identity names the group's seeds)
+        if todo:  # the whole group trains together (each identity names the group)
             jobs = [(sup.supervision(arm, u["subset"], u["split"], u["candidates"], "train"),
                      sup.supervision(arm, u["subset"], u["split"], None, "validation"), u["seed"]) for u in cell]
             results = vector_bc.train(jobs, ctx.learner_settings(arm), ctx.device)
@@ -261,50 +338,85 @@ def train(ctx) -> dict:
                 if u in todo:
                     ctx.store.put("policy", u["identity"], lambda d, p=policy, rc=rec: vector_bc.save(p, rc, d))
         for u in cell:
-            d = ctx.store.get("policy", u["identity"])
-            rec = json.loads((d / "training.json").read_text())
-            rows[key(u)] = {"entry": d.name, "policy_sha256": sha256_file(d / "policy.npz"),
-                            "reused": u not in todo, "stopping": rec["stopping"],
-                            "exposure": {k_: rec["exposure"][k_] for k_ in ("rows", "realized_synthetic_row_fraction",
-                                                                             "requested_synthetic_fraction")},
-                            "selected_step": (rec["validation"] or {}).get("selected_step")}
+            rows[u["key"]] = {**row_of(u, ctx.store.get("policy", u["identity"])), "reused": u not in todo}
+    return rows
+
+
+def train(ctx) -> dict:
+    """BC and the learned arm at every feasible sigma; the selection; then the exact arm at the selected sigmas."""
+    groups, infeasible = plan(ctx)
+    rows = train_groups(ctx, groups)
+    selection = select(ctx, rows) if "ccil_learned" in ctx.spec["arms"] else {}
+    unselectable = sorted(k_ for k_, v in selection.items() if v["selected_sigma"] is None)
+    exact_infeasible = {}
+    if "ccil_exact" in ctx.spec["arms"] and not unselectable:
+        g2, exact_infeasible = plan(ctx, selection)
+        rows |= train_groups(ctx, g2)
     # The stopping rule must have fired for every unit: reaching the step ceiling is a failed fit, not a result.
     incomplete = sorted(k_ for k_, v in rows.items() if v["stopping"]["outcome"] != "patience")
-    return {"all_pass": not incomplete, "units": rows, "trained": sum(not v["reused"] for v in rows.values()),
-            "incomplete_fit": incomplete}
+    ok = not incomplete and not unselectable and not exact_infeasible
+    return {"all_pass": ok, "units": rows, "trained": sum(v["reused"] is False for v in rows.values()),
+            "infeasible": infeasible, "selection": selection, "unselectable": unselectable,
+            "exact_infeasible": exact_infeasible, "incomplete_fit": incomplete,
+            "analysis": analysis_units(ctx, selection) if ok else None}
 
 
 def audit(ctx) -> dict:
-    """Provenance: every planned unit is a verified store entry, trained on exactly this unit's supervision (its
-    training identity, which hashes the supervision manifest with its dataset, split and candidate hashes, recomputes
-    from the unit's own inputs), and its weights are the ones the record describes."""
+    """Provenance and selection, recomputed. Every trained unit is a verified store entry, trained on exactly this
+    unit's supervision (its training identity, which hashes the supervision manifest with its dataset, split and
+    candidate hashes, recomputes from the unit's own inputs), with the weights its record describes and the row the
+    train stage reported. Feasibility, the sigma selection and the analysis units recompute to the reported ones."""
     from ccil.training import vector_bc_v2 as v2
     prior = require(ctx, "audit")
-    problems = {}
-    for u in units(ctx):
-        k_ = key(u)
-        try:
-            d = ctx.store.get("policy", u["identity"])
-            if d is None or prior["train"]["units"].get(k_, {}).get("entry") != d.name:
-                raise StoreError("missing, or not the entry the train stage recorded")
-            rec = json.loads((d / "training.json").read_text())
-            settings = ctx.learner_settings(u["arm"])
-            tr = sup.supervision(u["arm"], u["subset"], u["split"], u["candidates"], "train")
-            va = sup.supervision(u["arm"], u["subset"], u["split"], None, "validation")
-            if v2.training_identity_v2(tr, settings, u["seed"], None, va)["sha256"] != rec["training_identity_sha256"]:
-                raise StoreError("the policy was not trained on this unit's supervision and settings")
-            if v2.parameters_sha256(vector_bc.load(d).__self__) != rec["parameters_sha256"]:
-                raise StoreError("the stored weights are not the weights the training record describes")
-        except StoreError as e:
-            problems[k_] = str(e)
-    return {"all_pass": not problems, "units": len(prior["train"]["units"]), "problems": problems}
+    tr = prior["train"]
+    problems, rows = {}, {}
+
+    def check(groups):
+        for cell in groups.values():
+            for u in cell:
+                try:
+                    d = ctx.store.get("policy", u["identity"])
+                    if d is None or tr["units"].get(u["key"], {}).get("entry") != d.name:
+                        raise StoreError("missing, or not the entry the train stage recorded")
+                    rec = json.loads((d / "training.json").read_text())
+                    settings = ctx.learner_settings(u["arm"])
+                    t_ = sup.supervision(u["arm"], u["subset"], u["split"], u["candidates"], "train")
+                    va = sup.supervision(u["arm"], u["subset"], u["split"], None, "validation")
+                    if v2.training_identity_v2(t_, settings, u["seed"], None, va)["sha256"] != \
+                            rec["training_identity_sha256"]:
+                        raise StoreError("the policy was not trained on this unit's supervision and settings")
+                    if v2.parameters_sha256(vector_bc.load(d).__self__) != rec["parameters_sha256"]:
+                        raise StoreError("the stored weights are not the weights the training record describes")
+                    rows[u["key"]] = row_of(u, d)
+                    reported = {k_: v for k_, v in tr["units"][u["key"]].items() if k_ != "reused"}
+                    if _json(rows[u["key"]]) != reported:
+                        raise StoreError("the recomputed unit row differs from the train stage's")
+                except StoreError as e:
+                    problems[u["key"]] = str(e)
+    groups, infeasible = plan(ctx)
+    check(groups)
+    selection = select(ctx, rows)
+    exact_infeasible = {}
+    if "ccil_exact" in ctx.spec["arms"]:
+        g2, exact_infeasible = plan(ctx, selection)
+        check(g2)
+    for name, mine in (("infeasible", infeasible), ("selection", selection), ("exact_infeasible", exact_infeasible),
+                       ("analysis", analysis_units(ctx, selection)), ("units", set(rows))):
+        theirs = set(tr["units"]) if name == "units" else tr[name]
+        if (mine if name == "units" else _json(mine)) != theirs:
+            problems[name] = f"the recomputed {name} differs from the train stage's"
+    return {"all_pass": not problems, "units": len(tr["units"]), "problems": problems}
+
+
+def _json(x):
+    return json.loads(json.dumps(x, sort_keys=True, default=str))
 
 
 def evaluate(ctx) -> dict:
-    require(ctx, "evaluate")
+    tr = require(ctx, "evaluate")["train"]
     rows = {}
-    for u in units(ctx):
-        pol = ctx.store.get("policy", u["identity"])
+    for key_, row_key in tr["analysis"].items():  # only the analysis units; no unselected sigma is ever evaluated
+        pol = ctx.store.root / "policy" / tr["units"][row_key]["entry"]
         ident = {"kind": "rollout", "policy": sha256_file(pol / "policy.npz"), "task": ctx.task.identity()}
 
         def write(d, pol=pol):
@@ -312,7 +424,7 @@ def evaluate(ctx) -> dict:
             np.savez(d / "rollout.npz", **ro)
             (d / "scores.json").write_text(json.dumps(ctx.task.score(ro), sort_keys=True) + "\n")
         d, reused = ctx.store.ensure("rollout", ident, write)
-        rows[key(u)] = {"entry": d.name, "rollout_sha256": sha256_file(d / "rollout.npz"), "reused": reused,
+        rows[key_] = {"entry": d.name, "rollout_sha256": sha256_file(d / "rollout.npz"), "reused": reused,
                         "scores": json.loads((d / "scores.json").read_text())}
     return {"all_pass": True, "units": rows}
 
@@ -364,7 +476,10 @@ def report(ctx) -> dict:
                 kb = 0 if B == "bc" else k
                 contrasts[f"{A}-{B}/r{r}/k{k}"] = analysis.paired(values(A, r, k), values(B, r, kb), a["confidence"],
                                                                   a["min_pairs"])
-    return {"all_pass": True, "metric": a["metric"], "cells": cells, "contrasts": contrasts}
+    sel = prior["train"]["selection"]
+    chosen = {f"r{r}/k{k}": sorted(sel[f"r{r}/k{k}/s{s_}"]["selected_sigma"] for s_ in ctx.spec["seeds"])
+              for r in ctx.spec["real_fractions"] for k in sorted(ctx.spec["synthetic_doses"])} if sel else {}
+    return {"all_pass": True, "metric": a["metric"], "cells": cells, "contrasts": contrasts, "selected_sigmas": chosen}
 
 
 RUNNERS = {"preflight": preflight, "train": train, "audit": audit, "evaluate": evaluate,
