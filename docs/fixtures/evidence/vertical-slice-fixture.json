@@ -17,6 +17,19 @@
   },
   "stderr_tail": ""
  },
+ "implementation_change": {
+  "exit": 0,
+  "source_differs": true,
+  "trained": 30,
+  "units": 30
+ },
+ "incomplete_fit": {
+  "audit_refused": true,
+  "incomplete_units": 30,
+  "run_exit": 1,
+  "train_all_pass": false,
+  "units": 30
+ },
  "realized_synthetic_row_fractions": [
   0.0,
   0.5
