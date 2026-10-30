@@ -1,0 +1,32 @@
+{
+ "all_pass": true,
+ "ccil_commit": "84451ffb14e5349150b413b96de10a963bf4d35b",
+ "map_continuous": {
+  "bit_identical": true,
+  "flips": 0,
+  "states": 5000
+ },
+ "map_discontinuous": {
+  "bit_identical": true,
+  "flips": 88,
+  "states": 5000
+ },
+ "scorer": {
+  "final_hold": {
+   "ccil": 1.0,
+   "equal": true,
+   "ilsb": 1.0
+  },
+  "normalized_height": {
+   "ccil": 0.7593658368084241,
+   "equal": true,
+   "ilsb": 0.7593658368084241
+  },
+  "upright_occupancy": {
+   "ccil": 0.6053,
+   "equal": true,
+   "ilsb": 0.6053
+  }
+ },
+ "starts_identical": true
+}
