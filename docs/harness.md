@@ -49,7 +49,7 @@ So work done by other code, another lock or another environment is never reused.
 | Stage | What it checks or produces |
 |---|---|
 | preflight | The dataset matches its declared hash; the plan of units. |
-| train | Every policy unit, each group of seeds trained together through the learner adapter, in three steps (below): BC and the learned arm at every feasible σ; the σ selection; the exact arm at the selected σ. Every unit must stop by the validation patience rule; a unit that reaches the step ceiling is an incomplete fit, and the stage fails. So does a coordinate with no feasible σ. |
+| train | Every policy unit, each group of seeds trained together through the learner adapter, in three steps (below): BC and the learned arm at every feasible σ; the σ selection; the exact arm at the selected σ. Every unit must stop by the validation rule (patience at the plateau schedule's floor); a unit that reaches the step ceiling is an incomplete fit, and the stage fails. So does a coordinate with no feasible σ. |
 | audit | Every trained unit is a verified entry. Its training identity, which hashes the supervision manifest with the dataset, split and candidate hashes, recomputes from the unit's own inputs. Its weights hash to the record, and its reported row (stopping, exposure, validation error) recomputes. Feasibility, the σ selection and the analysis units recompute to the reported ones. |
 | evaluate | One rollout per analysis unit from the task's fixed final-test starts, with its scores. Unselected σ candidates are never evaluated. |
 | evaluation_audit | Every rollout reopened. It checks hashes, shapes, starts and the action bound, replays every transition through the task map, and recomputes every score exactly. |
@@ -82,7 +82,7 @@ A benchmark contributes adapters, not a runner.
 
 **Learner** (`ilsb/learners/`). It trains through the backend's own validation selection, stopping and records.
 - **`vector_bc_v2`** is the first learner:
-  - patience on the validation history, with the step budget only a ceiling;
+  - a plateau learning-rate schedule and a stop at its floor, on the validation history, with the step budget only a ceiling;
   - a fixed synthetic sampling fraction;
   - a realized-exposure record.
 

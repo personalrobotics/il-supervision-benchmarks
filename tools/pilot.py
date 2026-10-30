@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 """The pilot decisions of the J(r, K | alpha = 0.5) protocol (docs/studies/pendulum-j-r-k.md), by declared rules.
 
-    uv run python tools/pilot.py stopping ROOT --store STORE [--out FILE]   # patience and the step ceiling
-    uv run python tools/pilot.py precision ROOT [--out FILE]                # the number of study seeds
+    uv run python tools/pilot.py stopping ROOT [ROOT ...] [--out FILE]   # the convergence settings, in ladder order
+    uv run python tools/pilot.py precision ROOT [--out FILE]              # the number of study seeds
 
-The pilots use non-study seeds and non-study evaluation starts, and choose only the stopping rule's patience, the
-failure ceiling and the seed count. Neither output carries an arm mean or a contrast mean.
+The pilots use non-study seeds and non-study evaluation starts, and choose only the training procedure's convergence
+settings, the failure ceiling and the seed count. Neither output carries an arm mean or a contrast mean.
 
-stopping: every unit of the stopping pilot trained its whole schedule and recorded its validation history. For each
-candidate patience P, the trainer's rule (stop after P evaluations without an improvement) is replayed on every
-history; its regret is the relative excess of the checkpoint it would select over the history's best loss. The
-chosen P is the smallest candidate that fires on every unit with a 95th-percentile regret of at most 1%; the
-ceiling is twice the latest step at which that P stops, rounded up to a multiple of 1000.
+stopping: each ROOT is one rung of the declared ladder (studies/pendulum-j-r-k/pilot-stopping-*.yaml, cheapest
+first), whose units trained with the plateau schedule and stopped at its floor, then trained on to twice the stop
+step (extend_after_stop) to see what more training would have gained. A rung passes when its rule fired on every
+unit before the ceiling and no unit's extension improved its selected validation loss by more than 2%. The chosen
+settings are those of the first passing rung; the ceiling is three times its latest stop step, rounded up to a
+multiple of 10,000 (a safety limit only: a unit that reaches it is an incomplete fit).
 
 precision: for each primary contrast (every contrast at K = K_max, at every real fraction), the standard deviation
 of the paired per-seed differences. The seed count is the smallest n whose normal-approximation half-width
@@ -28,50 +29,45 @@ from pathlib import Path
 import numpy as np
 from scipy.stats import norm
 
-PATIENCE = (5, 10, 20, 40)
-REGRET_Q, REGRET_MAX = 0.95, 0.01
+GAIN_MAX = 0.02  # a doubling of training that improves validation loss by more than this is still converging
+CEILING_FACTOR, CEILING_ROUND = 3, 10_000
+CONVERGENCE_KEYS = ("validation_interval_steps", "lr_schedule", "lr_factor", "lr_patience", "min_lr", "patience")
 HALF_WIDTH, N_MIN, N_MAX = 0.05, 20, 50
 
 
-def replay(losses: list[float], patience: int) -> tuple[int | None, int]:
-    """(index at which the rule stops, or None; index of the checkpoint selected by then): the trainer's rule with
-    min_delta 0, an evaluation improving when strictly below the best so far."""
-    best, best_i, stale = math.inf, 0, 0
-    for i, v in enumerate(losses):
-        if v < best:
-            best, best_i, stale = v, i, 0
-        else:
-            stale += 1
-            if stale >= patience:
-                return i, best_i
-    return None, best_i
-
-
-def stopping(root: Path, store: Path) -> dict:
+def rung(root: Path, store: Path) -> dict:
+    spec = json.loads((root / "root.json").read_text())["spec"]
     units = json.loads((root / "stages" / "train.json").read_text())["units"]
-    per_p = {}
-    for p in PATIENCE:
-        regrets, stops, never = [], [], []
-        for key, u in units.items():
-            ev = json.loads((store / "policy" / u["entry"] / "training.json").read_text())["validation"]["evaluations"]
-            losses, steps = [e["loss"] for e in ev], [e["step"] for e in ev]
-            at, sel = replay(losses, p)
-            if at is None:
-                never.append(key)
-                continue
-            regrets.append((losses[sel] - min(losses)) / min(losses))
-            stops.append(steps[at])
-        per_p[str(p)] = {"fires_on_every_unit": not never, "never_fired": len(never),
-                         "regret_q95": float(np.quantile(regrets, REGRET_Q)) if regrets else None,
-                         "regret_max": float(max(regrets)) if regrets else None,
-                         "latest_stop_step": max(stops) if stops else None,
-                         "median_stop_step": float(np.median(stops)) if stops else None}
-    ok = [p for p in PATIENCE if per_p[str(p)]["fires_on_every_unit"] and per_p[str(p)]["regret_q95"] <= REGRET_MAX]
-    chosen = min(ok) if ok else None
-    ceiling = None if chosen is None else int(math.ceil(2 * per_p[str(chosen)]["latest_stop_step"] / 1000) * 1000)
-    return {"rule": f"smallest P in {list(PATIENCE)} firing on every unit with q{int(REGRET_Q * 100)} regret <= "
-                    f"{REGRET_MAX}; ceiling = 2 x latest stop step, rounded up to 1000",
-            "units": len(units), "candidates": per_p, "patience": chosen, "step_budget": ceiling,
+    fired, gains, stops, steps = [], [], [], []
+    for key, u in units.items():
+        st = json.loads((store / "policy" / u["entry"] / "training.json").read_text())["stopping"]
+        steps.append(st["steps"])
+        if st["outcome"] != "patience" or not st.get("extension"):
+            continue
+        fired.append(key)
+        gains.append(st["extension"]["relative_gain"])
+        stops.append(st["stopped_at_step"])
+    ok = len(fired) == len(units) and max(gains) <= GAIN_MAX
+    return {"root": str(root), "settings": {k: spec["learner"].get(k) for k in CONVERGENCE_KEYS},
+            "units": len(units), "fired": len(fired), "gain_max": max(gains) if gains else None,
+            "gain_q95": float(np.quantile(gains, 0.95)) if gains else None,
+            "latest_stop_step": max(stops) if stops else None,
+            "median_stop_step": float(np.median(stops)) if stops else None, "steps_trained": int(sum(steps)),
+            "pass": ok}
+
+
+def stopping(roots: list[Path], store: Path | None) -> dict:
+    names = [json.loads((r / "root.json").read_text())["spec"]["study"] for r in roots]
+    if names != [f"pendulum-j-r-k-pilot-stopping-{i + 1}" for i in range(len(roots))]:
+        sys.exit(f"the roots must be the ladder's rungs in order, from 1; got {names}")
+    rungs = [rung(r, store or r / "store") for r in roots]
+    chosen = next((r for r in rungs if r["pass"]), None)
+    ceiling = None if chosen is None else int(math.ceil(CEILING_FACTOR * chosen["latest_stop_step"] / CEILING_ROUND)
+                                              * CEILING_ROUND)
+    return {"rule": f"the first rung (cheapest first) whose rule fires on every unit and whose extension to twice the "
+                    f"stop step gains at most {GAIN_MAX} relative validation loss on every unit; ceiling = "
+                    f"{CEILING_FACTOR} x its latest stop step, rounded up to {CEILING_ROUND}",
+            "rungs": rungs, "settings": None if chosen is None else chosen["settings"], "step_budget": ceiling,
             "pass": chosen is not None}
 
 
@@ -96,11 +92,11 @@ def precision(root: Path) -> dict:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("part", choices=("stopping", "precision"))
-    ap.add_argument("root", type=Path)
+    ap.add_argument("root", type=Path, nargs="+")
     ap.add_argument("--store", type=Path)
     ap.add_argument("--out", type=Path)
     a = ap.parse_args()
-    out = stopping(a.root, a.store or a.root / "store") if a.part == "stopping" else precision(a.root)
+    out = stopping(a.root, a.store) if a.part == "stopping" else precision(a.root[0])
     text = json.dumps(out, indent=1, sort_keys=True) + "\n"
     if a.out:
         a.out.parent.mkdir(parents=True, exist_ok=True)

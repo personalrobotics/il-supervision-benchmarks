@@ -64,9 +64,11 @@ def load_spec(path: Path) -> dict:
     if "action_noise_std" in g or not 0 <= g.get("max_failure", -1) <= 1:
         raise Refused("refused: sigma is selected from generation.sigma_grid (no action_noise_std), and "
                       "generation.max_failure must be in [0, 1]")
-    if not spec["learner"].get("patience") or spec["learner"].get("checkpoint_selection") != "validation":
-        raise Refused("refused: the learner needs the validation stopping rule (patience, checkpoint_selection: "
-                      "validation); the step budget is only a failure ceiling")
+    lr = spec["learner"]
+    if (not lr.get("patience") or lr.get("checkpoint_selection") != "validation" or lr.get("lr_schedule") != "plateau"
+            or not lr.get("step_budget")):
+        raise Refused("refused: the learner needs the convergence-driven rule (checkpoint_selection: validation, "
+                      "lr_schedule: plateau, patience) and a step_budget, which is only a failure ceiling")
     return spec
 
 
