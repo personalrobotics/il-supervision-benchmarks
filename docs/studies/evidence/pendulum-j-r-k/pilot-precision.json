@@ -1,0 +1,19 @@
+{
+ "capped": false,
+ "n_required": 39,
+ "pilot_seeds": 10,
+ "rule": "smallest n with z_c * sd / sqrt(n) <= 0.05 for every primary contrast, in [20, 50]",
+ "sd_of_paired_differences": {
+  "ccil_exact-bc/r0.1/k20": 0.0797916086092043,
+  "ccil_exact-bc/r0.25/k20": 0.027446412920857637,
+  "ccil_exact-bc/r1.0/k20": 0.03733449099395594,
+  "ccil_exact-ccil_learned/r0.1/k20": 0.11197187059455802,
+  "ccil_exact-ccil_learned/r0.25/k20": 0.06471364070528973,
+  "ccil_exact-ccil_learned/r1.0/k20": 0.013252113290591238,
+  "ccil_learned-bc/r0.1/k20": 0.06404914658118233,
+  "ccil_learned-bc/r0.25/k20": 0.0854938335658062,
+  "ccil_learned-bc/r1.0/k20": 0.04251005867896311
+ },
+ "seeds": 39,
+ "z_c": 2.772661047486445
+}

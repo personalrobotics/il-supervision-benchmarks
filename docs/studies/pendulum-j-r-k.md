@@ -70,6 +70,8 @@ The traces showed why. The gaps between successive improvements were about 1,500
    **Open decision.** Either accept the rule as converged in practice (for example, a gain criterion with an absolute floor), or change the rule for near-zero-loss fits. Pilot 2 ran provisionally under this rule and with its ceiling of 260,000 steps, so its seed count is usable if the rule is accepted.
 2. **Precision** (seeds 9511–9520, with the frozen rule and ceiling): the standard deviation of each primary contrast's paired differences. The study uses the smallest n with z_c · sd / √n ≤ 0.05 for every primary contrast, clipped to [20, 50]. Study seeds are 1301 onward.
 
+   **Result** (`studies/pendulum-j-r-k/pilot-precision.yaml`, preflight through evaluation audit, no report; `docs/studies/evidence/pendulum-j-r-k/pilot-precision.json`). All 660 units stopped by the rule; none reached the ceiling, and the latest stop was at 129,480 of 260,000 steps. The largest paired-difference standard deviation is 0.112 (`ccil_exact − ccil_learned`, r = 10%, K = 20). With z_c = 2.77 this gives **n = 39**, so the study uses seeds 1301–1339 (`studies/pendulum-j-r-k/study.yaml`). This holds only if the open decision above accepts the rule; changing the rule reruns this pilot.
+
 ## Execution
 
 From a clean checkout of the merged protocol on siddh:
