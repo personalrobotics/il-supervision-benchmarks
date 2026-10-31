@@ -1,0 +1,11 @@
+{
+ "protocol_sha256": "e45a5abc43998d85df5d8aadcfe175a2a6aeca50b4782f7d3a3cc42bfba934f4",
+ "stages": {
+  "audit": "cf029e4de8528c333b9bcd77c8a88fc7b7aeac4850935fd4265ce548f92c5920",
+  "evaluate": "488761b1ef930fdb8c6de982406b3882301e52ef8d348e570a5f4acd25301116",
+  "evaluation_audit": "2207975a4b3f54835fd5509cf53e756a79cd1ed376d3c53e7c81526fbbdd4a0f",
+  "preflight": "b230d515121c3fd80480d5b1d11ca585950fadb61340a918eaf6f66e1574fdfb",
+  "report": "fd287b3bcbfb809c57a8b233f9996e0d61ff8c175f53fb2a7db2cd3b6a8a0e6e",
+  "train": "668b30332e150bafbfd472554ade0f5a37d5a0d16b94955930267b096e8fdb64"
+ }
+}
