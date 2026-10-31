@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """The pilot decisions of the J(r, K | alpha = 0.5) protocol (docs/studies/pendulum-j-r-k.md), by declared rules.
 
-    uv run python tools/pilot.py stopping ROOT [ROOT ...] [--out FILE]   # the convergence settings, in ladder order
-    uv run python tools/pilot.py precision ROOT [--out FILE]              # the number of study seeds
+    uv run python tools/pilot.py stopping ROOT [--out FILE]    # the convergence check and the step ceiling
+    uv run python tools/pilot.py precision ROOT [--out FILE]   # the number of study seeds
 
 The pilots use non-study seeds and non-study evaluation starts, and choose only the training procedure's convergence
 settings, the failure ceiling and the seed count. Neither output carries an arm mean or a contrast mean.
 
-stopping: each ROOT is one rung of the declared ladder (studies/pendulum-j-r-k/pilot-stopping-*.yaml, cheapest
-first), whose units trained with the plateau schedule and stopped at its floor, then trained on to twice the stop
-step (extend_after_stop) to see what more training would have gained. A rung passes when its rule fired on every
-unit before the ceiling and no unit's extension improved its selected validation loss by more than 2%. The chosen
-settings are those of the first passing rung; the ceiling is three times its latest stop step, rounded up to a
-multiple of 10,000 (a safety limit only: a unit that reaches it is an incomplete fit).
+stopping: ROOT is the convergence sentinel (studies/pendulum-j-r-k/pilot-stopping.yaml): the extremes of the design
+(the smallest and the full real fraction; BC and CCIL at K_max and the largest sigma) on a few non-study seeds,
+trained with the study's convergence rule and then on to twice each unit's stop step (extend_after_stop). It passes
+when the rule fired on every unit before the ceiling and no unit's extension improved its selected validation loss
+by more than 2%. The step ceiling is three times the latest stop step, rounded up to a multiple of 10,000 (a safety
+limit only: a study unit that reaches it is an incomplete fit).
 
 precision: for each primary contrast (every contrast at K = K_max, at every real fraction), the standard deviation
 of the paired per-seed differences. The seed count is the smallest n whose normal-approximation half-width
@@ -31,7 +31,7 @@ from scipy.stats import norm
 
 GAIN_MAX = 0.02  # a doubling of training that improves validation loss by more than this is still converging
 CEILING_FACTOR, CEILING_ROUND = 3, 10_000
-CONVERGENCE_KEYS = ("validation_interval_steps", "lr_schedule", "lr_factor", "lr_patience", "min_lr", "patience")
+CONVERGENCE_KEYS = ("validation_interval_epochs", "validation_min_steps", "lr_schedule", "lr_factor", "lr_patience", "min_lr", "patience")
 HALF_WIDTH, N_MIN, N_MAX = 0.05, 20, 50
 
 
@@ -56,19 +56,13 @@ def rung(root: Path, store: Path) -> dict:
             "pass": ok}
 
 
-def stopping(roots: list[Path], store: Path | None) -> dict:
-    names = [json.loads((r / "root.json").read_text())["spec"]["study"] for r in roots]
-    if names != [f"pendulum-j-r-k-pilot-stopping-{i + 1}" for i in range(len(roots))]:
-        sys.exit(f"the roots must be the ladder's rungs in order, from 1; got {names}")
-    rungs = [rung(r, store or r / "store") for r in roots]
-    chosen = next((r for r in rungs if r["pass"]), None)
-    ceiling = None if chosen is None else int(math.ceil(CEILING_FACTOR * chosen["latest_stop_step"] / CEILING_ROUND)
-                                              * CEILING_ROUND)
-    return {"rule": f"the first rung (cheapest first) whose rule fires on every unit and whose extension to twice the "
-                    f"stop step gains at most {GAIN_MAX} relative validation loss on every unit; ceiling = "
-                    f"{CEILING_FACTOR} x its latest stop step, rounded up to {CEILING_ROUND}",
-            "rungs": rungs, "settings": None if chosen is None else chosen["settings"], "step_budget": ceiling,
-            "pass": chosen is not None}
+def stopping(root: Path, store: Path) -> dict:
+    out = rung(root, store)
+    ceiling = (int(math.ceil(CEILING_FACTOR * out["latest_stop_step"] / CEILING_ROUND) * CEILING_ROUND)
+               if out["pass"] else None)
+    return {"rule": f"the rule fires on every unit and the extension to twice the stop step gains at most {GAIN_MAX} "
+                    f"relative validation loss on every unit; ceiling = {CEILING_FACTOR} x the latest stop step, "
+                    f"rounded up to {CEILING_ROUND}", **out, "step_budget": ceiling}
 
 
 def precision(root: Path) -> dict:
@@ -92,11 +86,11 @@ def precision(root: Path) -> dict:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("part", choices=("stopping", "precision"))
-    ap.add_argument("root", type=Path, nargs="+")
+    ap.add_argument("root", type=Path)
     ap.add_argument("--store", type=Path)
     ap.add_argument("--out", type=Path)
     a = ap.parse_args()
-    out = stopping(a.root, a.store) if a.part == "stopping" else precision(a.root[0])
+    out = stopping(a.root, a.store or a.root / "store") if a.part == "stopping" else precision(a.root)
     text = json.dumps(out, indent=1, sort_keys=True) + "\n"
     if a.out:
         a.out.parent.mkdir(parents=True, exist_ok=True)
