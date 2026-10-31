@@ -20,7 +20,8 @@ The exact-dynamics arm isolates dynamics-model error: it uses the same generator
 | Arms | `bc`; `ccil_learned` (dynamics fitted on the subset's training episodes); `ccil_exact` (the task's transition map). |
 | Generator | Newton preimage (`noisy_action_preimage`) for both CCIL arms, 30 iterations, tolerance 1e-4, proposals truncated to ±3 (the first K feasible draws of each transition's stream, with the raw attempt index recorded); validators: finite, solver success, support radius 1.0, action bound ±3. |
 | Dynamics | The corrected recipe: MLP 512×512, soft-sampling Lipschitz (constraint 2.0, weight 1e-3, ε 3e-4, 5 samples, model-normalized coordinates), learning rate 1e-3, weight decay 1e-5, 100 epochs, batch 512. |
-| Learner | `vector_bc_v2` for every arm: MLP 256×256, learning rate 1e-3, batch 512, standard observation scaling, min-max action scaling, α = 0.5 for CCIL arms, validation checkpoint selection every 50 steps, patience P and step ceiling from pilot 1. |
+| Learner | `vector_bc_v2` for every arm: MLP 256×256, initial learning rate 1e-3, batch 512, standard observation scaling, min-max action scaling, α = 0.5 for CCIL arms. |
+| Training procedure | Convergence-driven and the same for every unit; the number of updates is not held fixed. Training runs in steps, not epochs. The full validation set is evaluated every few steps, and the best checkpoint is kept. The learning rate drops by a factor after a plateau in validation loss, never below a floor. A unit stops only at the floor, after a further patience period without improvement. The step ceiling is a safety limit: a unit that reaches it is an incomplete fit, and the run fails. Pilot 1 chooses the interval, plateau patience, factor, floor, stopping patience and ceiling. |
 | Evaluation | 100 fixed final-test starts (`eval_seed` 2201), used only by the study's evaluate stage. |
 | Host | siddh, CUDA, is the canonical execution host. Store entries are scoped to it, and no numerical artifact is reused from another environment. |
 
@@ -44,12 +45,23 @@ The exact-dynamics arm isolates dynamics-model error: it uses the same generator
 
 ## Pilots
 
-Pilots use non-study seeds (9501–9520) and non-study evaluation starts (`eval_seed` 9601). They choose only patience, the step ceiling and the seed count, by the rules in `tools/pilot.py`. They report no arm or contrast mean.
+Pilots use non-study seeds (9501–9520) and non-study evaluation starts (`eval_seed` 9601). They choose only the convergence settings, the step ceiling and the seed count, by the rules in `tools/pilot.py`. They report no arm or contrast mean.
 
-1. **Stopping** (`studies/pendulum-j-r-k/pilot-stopping.yaml`, seeds 9501–9505): every unit trains a 200-epoch schedule with the stopping rule off and records its validation history.
-   - **Patience:** the smallest P in {5, 10, 20, 40} evaluations that fires on every unit with a 95th-percentile regret of at most 1%.
-   - **Ceiling:** twice the latest stop step, rounded up to 1000.
-2. **Precision** (seeds 9511–9520, with pilot 1's P and ceiling): the standard deviation of each primary contrast's paired differences. The study uses the smallest n with z_c · sd / √n ≤ 0.05 for every primary contrast, clipped to [20, 50]. Study seeds are 1301 onward.
+An earlier pilot trained 200 epochs at a constant learning rate. At the end, validation loss was still falling: the median best step was 90–95% of the schedule, and the loss swung about 2× between evaluations. That schedule did not converge, so it was replaced by the procedure above.
+
+1. **Convergence** (`studies/pendulum-j-r-k/pilot-stopping-{1..4}.yaml`, seeds 9501–9505). Each rung trains every unit under one set of convergence settings, cheapest first:
+
+   | Rung | Interval (steps) | Plateau patience | Factor | Floor | Stopping patience |
+   |---|---|---|---|---|---|
+   | 1 | 50 | 5 | 0.5 | 1e-5 | 5 |
+   | 2 | 50 | 10 | 0.5 | 1e-5 | 10 |
+   | 3 | 100 | 10 | 0.2 | 1e-6 | 20 |
+   | 4 | 100 | 20 | 0.2 | 1e-6 | 40 |
+
+   - **Extension:** after its stop, each unit trains on to twice its stop step, once, to measure what more training would have gained. The returned checkpoint is the one selected at the stop.
+   - **Choice:** the first rung whose rule fires on every unit, and whose extension improves no unit's selected validation loss by more than 2%.
+   - **Ceiling:** three times that rung's latest stop step, rounded up to 10,000.
+2. **Precision** (seeds 9511–9520, with pilot 1's settings and ceiling): the standard deviation of each primary contrast's paired differences. The study uses the smallest n with z_c · sd / √n ≤ 0.05 for every primary contrast, clipped to [20, 50]. Study seeds are 1301 onward.
 
 ## Execution
 
