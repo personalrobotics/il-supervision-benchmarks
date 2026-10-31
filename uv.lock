@@ -9,7 +9,7 @@ resolution-markers = [
 [[package]]
 name = "ccil"
 version = "0.1.0.dev0"
-source = { git = "https://github.com/personalrobotics/CCIL?rev=85be062217f06eb4b123ee43ccc40b4f2f21932f#85be062217f06eb4b123ee43ccc40b4f2f21932f" }
+source = { git = "https://github.com/personalrobotics/CCIL?rev=cc711b5961c2ccfbef8a330f7ab784757886411e#cc711b5961c2ccfbef8a330f7ab784757886411e" }
 dependencies = [
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "numpy", version = "2.5.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
@@ -135,7 +135,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ccil", extras = ["torch"], git = "https://github.com/personalrobotics/CCIL?rev=85be062217f06eb4b123ee43ccc40b4f2f21932f" },
+    { name = "ccil", extras = ["torch"], git = "https://github.com/personalrobotics/CCIL?rev=cc711b5961c2ccfbef8a330f7ab784757886411e" },
     { name = "numpy", specifier = ">=1.24" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "scipy", specifier = "==1.16.3" },
