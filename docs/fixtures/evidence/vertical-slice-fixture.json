@@ -5,6 +5,21 @@
   "evaluation_audit": true
  },
  "demonstrations_sha256": "de149d4d9872e9b1e560fa06f676852d074b11bed99ae565fb5349c745ca44f1",
+ "design": {
+  "planned_units": 26,
+  "seeds_by_cell": {
+   "bc/r0.5/k0": 3,
+   "bc/r1.0/k0": 3,
+   "ccil_exact/r0.5/k1": 2,
+   "ccil_exact/r0.5/k2": 3,
+   "ccil_exact/r1.0/k1": 2,
+   "ccil_exact/r1.0/k2": 3,
+   "ccil_learned/r0.5/k1": 2,
+   "ccil_learned/r0.5/k2": 3,
+   "ccil_learned/r1.0/k1": 2,
+   "ccil_learned/r1.0/k2": 3
+  }
+ },
  "failure_gate": {
   "infeasible": 8,
   "pass": true,
@@ -30,15 +45,15 @@
  "implementation_change": {
   "exit": 0,
   "source_differs": true,
-  "trained": 54,
-  "units": 54
+  "trained": 26,
+  "units": 26
  },
  "incomplete_fit": {
   "audit_refused": true,
-  "incomplete_units": 54,
+  "incomplete_units": 26,
   "run_exit": 1,
   "train_all_pass": false,
-  "units": 54
+  "units": 26
  },
  "realized_synthetic_row_fractions": [
   0.0,
@@ -65,65 +80,17 @@
   "cells": {
    "bc/r0.5/k0": 0.00034722222222222224,
    "bc/r1.0/k0": 0.00034722222222222224,
-   "ccil_exact/r0.5/k1": 0.00034722222222222224,
+   "ccil_exact/r0.5/k1": 0.0,
    "ccil_exact/r0.5/k2": 0.00034722222222222224,
-   "ccil_exact/r1.0/k1": 0.00034722222222222224,
-   "ccil_exact/r1.0/k2": 0.00034722222222222224,
-   "ccil_learned/r0.5/k1": 0.00034722222222222224,
+   "ccil_exact/r1.0/k1": 0.0,
+   "ccil_exact/r1.0/k2": 0.0,
+   "ccil_learned/r0.5/k1": 0.0,
    "ccil_learned/r0.5/k2": 0.00034722222222222224,
-   "ccil_learned/r1.0/k1": 0.00034722222222222224,
-   "ccil_learned/r1.0/k2": 0.00034722222222222224
+   "ccil_learned/r1.0/k1": 0.0,
+   "ccil_learned/r1.0/k2": 0.0
   },
   "contrasts": {
-   "ccil_exact-bc/r0.5/k1": {
-    "interval": [
-     0.0,
-     0.0
-    ],
-    "mean": 0.0,
-    "outcome": "no_detectable_difference"
-   },
-   "ccil_exact-bc/r0.5/k2": {
-    "interval": [
-     0.0,
-     0.0
-    ],
-    "mean": 0.0,
-    "outcome": "no_detectable_difference"
-   },
-   "ccil_exact-bc/r1.0/k1": {
-    "interval": [
-     0.0,
-     0.0
-    ],
-    "mean": 0.0,
-    "outcome": "no_detectable_difference"
-   },
-   "ccil_exact-bc/r1.0/k2": {
-    "interval": [
-     0.0,
-     0.0
-    ],
-    "mean": 0.0,
-    "outcome": "no_detectable_difference"
-   },
-   "ccil_exact-ccil_learned/r0.5/k1": {
-    "interval": [
-     0.0,
-     0.0
-    ],
-    "mean": 0.0,
-    "outcome": "no_detectable_difference"
-   },
    "ccil_exact-ccil_learned/r0.5/k2": {
-    "interval": [
-     0.0,
-     0.0
-    ],
-    "mean": 0.0,
-    "outcome": "no_detectable_difference"
-   },
-   "ccil_exact-ccil_learned/r1.0/k1": {
     "interval": [
      0.0,
      0.0
@@ -139,23 +106,7 @@
     "mean": 0.0,
     "outcome": "no_detectable_difference"
    },
-   "ccil_learned-bc/r0.5/k1": {
-    "interval": [
-     0.0,
-     0.0
-    ],
-    "mean": 0.0,
-    "outcome": "no_detectable_difference"
-   },
    "ccil_learned-bc/r0.5/k2": {
-    "interval": [
-     0.0,
-     0.0
-    ],
-    "mean": 0.0,
-    "outcome": "no_detectable_difference"
-   },
-   "ccil_learned-bc/r1.0/k1": {
     "interval": [
      0.0,
      0.0
@@ -165,10 +116,28 @@
    },
    "ccil_learned-bc/r1.0/k2": {
     "interval": [
+     -0.0018411988644778273,
+     0.0011467544200333827
+    ],
+    "mean": -0.00034722222222222224,
+    "outcome": "no_detectable_difference"
+   }
+  },
+  "derived": {
+   "ccil_exact-bc/r0.5/k2": {
+    "interval": [
      0.0,
      0.0
     ],
     "mean": 0.0,
+    "outcome": "no_detectable_difference"
+   },
+   "ccil_exact-bc/r1.0/k2": {
+    "interval": [
+     -0.0018411988644778273,
+     0.0011467544200333827
+    ],
+    "mean": -0.00034722222222222224,
     "outcome": "no_detectable_difference"
    }
   }
@@ -199,10 +168,6 @@
     "failure": 0.0,
     "feasible": true
    },
-   "ccil_learned/r0.5/s1/sigma1.0": {
-    "failure": 0.0,
-    "feasible": true
-   },
    "ccil_learned/r0.5/s2/sigma0.005": {
     "failure": 0.0,
     "feasible": true
@@ -211,24 +176,8 @@
     "failure": 0.0,
     "feasible": true
    },
-   "ccil_learned/r0.5/s2/sigma1.0": {
-    "failure": 0.0,
-    "feasible": true
-   },
-   "ccil_learned/r0.5/s3/sigma0.005": {
-    "failure": 0.0,
-    "feasible": true
-   },
    "ccil_learned/r0.5/s3/sigma0.02": {
     "failure": 0.0006944444444444445,
-    "feasible": true
-   },
-   "ccil_learned/r0.5/s3/sigma1.0": {
-    "failure": 0.0,
-    "feasible": true
-   },
-   "ccil_learned/r1.0/s1/sigma0.005": {
-    "failure": 0.0010416666666666667,
     "feasible": true
    },
    "ccil_learned/r1.0/s1/sigma0.02": {
@@ -239,10 +188,6 @@
     "failure": 0.001736111111111111,
     "feasible": true
    },
-   "ccil_learned/r1.0/s2/sigma0.005": {
-    "failure": 0.0,
-    "feasible": true
-   },
    "ccil_learned/r1.0/s2/sigma0.02": {
     "failure": 0.0006944444444444445,
     "feasible": true
@@ -251,40 +196,30 @@
     "failure": 0.00034722222222222224,
     "feasible": true
    },
-   "ccil_learned/r1.0/s3/sigma0.005": {
-    "failure": 0.0010416666666666667,
-    "feasible": true
-   },
-   "ccil_learned/r1.0/s3/sigma0.02": {
-    "failure": 0.0,
-    "feasible": true
-   },
    "ccil_learned/r1.0/s3/sigma1.0": {
     "failure": 0.00034722222222222224,
     "feasible": true
    }
   },
-  "learned_candidates": 36,
+  "learned_candidates": 10,
   "selected_sigmas": {
    "r0.5/k1": [
-    0.005,
     0.005,
     0.005
    ],
    "r0.5/k2": [
-    0.005,
-    0.005,
-    0.005
+    0.02,
+    0.02,
+    0.02
    ],
    "r1.0/k1": [
-    0.005,
-    0.005,
+    0.02,
     0.02
    ],
    "r1.0/k2": [
-    0.005,
-    0.02,
-    0.02
+    1.0,
+    1.0,
+    1.0
    ]
   }
  },
@@ -298,11 +233,13 @@
     ],
     [
      "ccil_exact",
-     "bc"
-    ],
+     "ccil_learned"
+    ]
+   ],
+   "derived": [
     [
      "ccil_exact",
-     "ccil_learned"
+     "bc"
     ]
    ],
    "metric": "upright_occupancy",
@@ -332,11 +269,12 @@
    "generator": "noisy_action_preimage",
    "max_failure": 0.05,
    "max_iterations": 30,
-   "sigma_grid": [
-    0.005,
-    0.02,
-    1.0
-   ],
+   "sigma": {
+    "r0.5/k1": 0.005,
+    "r0.5/k2": 0.02,
+    "r1.0/k1": 0.02,
+    "r1.0/k2": 1.0
+   },
    "support_radius": 0.5,
    "tolerance": 1e-08
   },
@@ -375,6 +313,10 @@
    "validation_fraction": 0.25
   },
   "study": "vertical-slice-fixture",
+  "surface_seeds": [
+   1,
+   2
+  ],
   "synthetic_doses": [
    1,
    2
@@ -388,18 +330,17 @@
   }
  },
  "stopping_outcomes": {
-  "patience": 54
+  "patience": 26
  },
  "store_entries": {
-  "candidates": 25,
+  "candidates": 20,
   "dynamics": 6,
-  "policy": 54,
-  "rollout": 30,
+  "policy": 26,
+  "rollout": 26,
   "split": 6,
   "subset": 6,
-  "view": 48
+  "view": 20
  },
- "trained": 54,
- "units": 54
+ "trained": 26,
+ "units": 26
 }
-
