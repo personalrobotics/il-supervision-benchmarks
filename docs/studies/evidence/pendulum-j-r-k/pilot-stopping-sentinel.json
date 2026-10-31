@@ -1,0 +1,126 @@
+{
+ "exposure": {
+  "bc/r0.1/k0/s9501": {
+   "demonstration_epoch_steps": 8,
+   "demonstration_epochs": 5002.0040080160325,
+   "synthetic_at_stop": null
+  },
+  "bc/r0.1/k0/s9502": {
+   "demonstration_epoch_steps": 8,
+   "demonstration_epochs": 7002.805611222445,
+   "synthetic_at_stop": null
+  },
+  "bc/r0.1/k0/s9503": {
+   "demonstration_epoch_steps": 8,
+   "demonstration_epochs": 5566.332665330661,
+   "synthetic_at_stop": null
+  },
+  "bc/r1.0/k0/s9501": {
+   "demonstration_epoch_steps": 78,
+   "demonstration_epochs": 2203.446893787575,
+   "synthetic_at_stop": null
+  },
+  "bc/r1.0/k0/s9502": {
+   "demonstration_epoch_steps": 78,
+   "demonstration_epochs": 2136.753507014028,
+   "synthetic_at_stop": null
+  },
+  "bc/r1.0/k0/s9503": {
+   "demonstration_epoch_steps": 78,
+   "demonstration_epochs": 1557.0340681362725,
+   "synthetic_at_stop": null
+  },
+  "ccil_learned/r0.1/k20/s9501/sigma1.0": {
+   "demonstration_epoch_steps": 16,
+   "demonstration_epochs": 1821.2424849699398,
+   "synthetic_at_stop": {
+    "all_rows_drawn": true,
+    "distinct_rows": 79840,
+    "draws": 3635200,
+    "draws_per_row_max": 46,
+    "draws_per_row_min": 45,
+    "steps": 14200
+   }
+  },
+  "ccil_learned/r0.1/k20/s9502/sigma1.0": {
+   "demonstration_epoch_steps": 16,
+   "demonstration_epochs": 2257.314629258517,
+   "synthetic_at_stop": {
+    "all_rows_drawn": true,
+    "distinct_rows": 79840,
+    "draws": 4505600,
+    "draws_per_row_max": 57,
+    "draws_per_row_min": 56,
+    "steps": 17600
+   }
+  },
+  "ccil_learned/r0.1/k20/s9503/sigma1.0": {
+   "demonstration_epoch_steps": 16,
+   "demonstration_epochs": 1718.6372745490983,
+   "synthetic_at_stop": {
+    "all_rows_drawn": true,
+    "distinct_rows": 79840,
+    "draws": 3430400,
+    "draws_per_row_max": 43,
+    "draws_per_row_min": 42,
+    "steps": 13400
+   }
+  },
+  "ccil_learned/r1.0/k20/s9501/sigma1.0": {
+   "demonstration_epoch_steps": 156,
+   "demonstration_epochs": 296.1186372745491,
+   "synthetic_at_stop": {
+    "all_rows_drawn": true,
+    "distinct_rows": 798400,
+    "draws": 5910528,
+    "draws_per_row_max": 8,
+    "draws_per_row_min": 7,
+    "steps": 23088
+   }
+  },
+  "ccil_learned/r1.0/k20/s9502/sigma1.0": {
+   "demonstration_epoch_steps": 156,
+   "demonstration_epochs": 258.10340681362726,
+   "synthetic_at_stop": {
+    "all_rows_drawn": true,
+    "distinct_rows": 798400,
+    "draws": 5151744,
+    "draws_per_row_max": 7,
+    "draws_per_row_min": 6,
+    "steps": 20124
+   }
+  },
+  "ccil_learned/r1.0/k20/s9503/sigma1.0": {
+   "demonstration_epoch_steps": 156,
+   "demonstration_epochs": 276.11062124248497,
+   "synthetic_at_stop": {
+    "all_rows_drawn": true,
+    "distinct_rows": 798400,
+    "draws": 5511168,
+    "draws_per_row_max": 7,
+    "draws_per_row_min": 6,
+    "steps": 21528
+   }
+  }
+ },
+ "fired": 12,
+ "gain_max": 0.06777372102678986,
+ "gain_q95": 0.04517137422639308,
+ "latest_stop_step": 85900,
+ "median_stop_step": 21614.0,
+ "pass": false,
+ "root": "runs/20261031T052343Z-pilot-stopping",
+ "rule": "the rule fires on every unit and the extension to twice the stop step gains at most 0.02 relative validation loss on every unit; ceiling = 3 x the latest stop step, rounded up to 10000",
+ "settings": {
+  "lr_factor": 0.2,
+  "lr_patience": 20,
+  "lr_schedule": "plateau",
+  "min_lr": 1e-06,
+  "patience": 20,
+  "validation_interval_epochs": 1,
+  "validation_min_steps": 100
+ },
+ "step_budget": null,
+ "steps_trained": 816680,
+ "units": 12
+}

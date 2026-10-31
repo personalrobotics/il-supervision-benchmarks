@@ -1,0 +1,41 @@
+{
+ "candidates": {
+  "10": {
+   "fires_on_every_unit": false,
+   "latest_stop_step": 4900,
+   "median_stop_step": 2150.0,
+   "never_fired": 8,
+   "regret_max": 9.153512011689395,
+   "regret_q95": 6.013215171097975
+  },
+  "20": {
+   "fires_on_every_unit": false,
+   "latest_stop_step": 11550,
+   "median_stop_step": 3850.0,
+   "never_fired": 69,
+   "regret_max": 9.153512011689395,
+   "regret_q95": 4.243529213811315
+  },
+  "40": {
+   "fires_on_every_unit": false,
+   "latest_stop_step": 18800,
+   "median_stop_step": 8050.0,
+   "never_fired": 175,
+   "regret_max": 3.420300003519808,
+   "regret_q95": 2.4084909460466637
+  },
+  "5": {
+   "fires_on_every_unit": false,
+   "latest_stop_step": 2300,
+   "median_stop_step": 1100.0,
+   "never_fired": 1,
+   "regret_max": 17.871903666242375,
+   "regret_q95": 9.53531621391721
+  }
+ },
+ "pass": false,
+ "patience": null,
+ "rule": "smallest P in [5, 10, 20, 40] firing on every unit with q95 regret <= 0.01; ceiling = 2 x latest stop step, rounded up to 1000",
+ "step_budget": null,
+ "units": 330
+}

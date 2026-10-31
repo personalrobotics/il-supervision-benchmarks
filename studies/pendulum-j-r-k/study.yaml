@@ -1,0 +1,31 @@
+# J(r, K | alpha = 0.5) on Pendulum (docs/studies/pendulum-j-r-k.md). Study seeds 1301-1339 (n = 39) at K = 0 and
+# K_max = 20, which carry the primary contrasts; the first 10 (surface_seeds) at K = 1 and 4, the descriptive response
+# surface. sigma is fixed per (r, K) by tools/pilot.py sigma on pilot 2's validation errors
+# (docs/studies/evidence/pendulum-j-r-k/pilot-sigma.json). The final-test starts are eval_seed 2201. The learner is the
+# accepted convergence rule with pilot 2's ceiling (260,000 steps; pilot 2's latest stop was 129,480).
+study: pendulum-j-r-k
+task: {variant: continuous, action_bound: 3.0, horizon: 500, eval_episodes: 100, eval_seed: 2201}
+data: {path: ../../data/pendulum_cont_corrected.npz,
+       sha256: 59c332bc829db9c9da40d9c1bd9ebbf808965aca6a167be48dc0f2ade52cf43c}
+split: {validation_fraction: 0.2}
+real_fractions: [0.1, 0.25, 1.0]
+synthetic_doses: [1, 4, 20]
+arms: [bc, ccil_learned, ccil_exact]
+surface_seeds: [1301, 1302, 1303, 1304, 1305, 1306, 1307, 1308, 1309, 1310]
+seeds: [1301, 1302, 1303, 1304, 1305, 1306, 1307, 1308, 1309, 1310, 1311, 1312, 1313, 1314, 1315, 1316, 1317, 1318, 1319, 1320, 1321, 1322, 1323, 1324, 1325, 1326, 1327, 1328, 1329, 1330, 1331, 1332, 1333, 1334, 1335, 1336, 1337, 1338, 1339]
+dynamics: {hidden_layers: [512, 512], activation: relu, lipschitz_type: soft_sampling, lipschitz_constraint: 2.0,
+           lipschitz_coordinates: model_normalized, soft_penalty_weight: 0.001, soft_sampling_eps: 0.0003,
+           soft_samples: 5, learning_rate: 0.001, weight_decay: 1.0e-05, epochs: 100, batch_size: 512}
+# sigma in normalized action units (a fraction of the action bound, 3), fixed per (r, K); proposals truncated to the bound.
+generation: {generator: noisy_action_preimage,
+             sigma: {r0.1/k1: 1.0e-05, r0.1/k20: 1.0e-03, r0.1/k4: 1.0e-05, r0.25/k1: 1.0e-03, r0.25/k20: 1.0e-05, r0.25/k4: 1.0e-05, r1.0/k1: 1.0e-03, r1.0/k20: 1.0e-04, r1.0/k4: 1.0e-02},
+             max_failure: 0.05, support_radius: 1.0, max_iterations: 30, tolerance: 0.0001}
+learner: {hidden_layers: [256, 256], learning_rate: 0.001, batch_size: 512, epochs: 1,
+          observation_scaler: standard, action_scaler: min_max, balance_labels: null,
+          step_budget: 260000, checkpoint_selection: validation,
+          validation_interval_epochs: 1, validation_min_steps: 100,
+          lr_schedule: plateau, lr_factor: 0.2, lr_patience: 20, min_lr: 1.0e-06, patience: 20,
+          synthetic_fraction: 0.5, synthetic_coverage_before_stop: true}
+analysis: {metric: upright_occupancy, confidence: 0.991667, min_pairs: 2,
+           contrasts: [[ccil_learned, bc], [ccil_exact, ccil_learned]], derived: [[ccil_exact, bc]]}
+compute: {device: cuda}

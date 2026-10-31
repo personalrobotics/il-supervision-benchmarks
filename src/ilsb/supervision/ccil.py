@@ -53,9 +53,11 @@ def generate(store: Store, subset: Path, model, model_sha256: str, generation: d
 
     def write(d: Path):
         g = generation
+        bounds = ([-g["action_bound"]], [g["action_bound"]])  # proposals truncated to the actuator range
         gen = (NoisyActionPreimage(g["k_max"], g["action_noise_std"], max_iterations=g["max_iterations"],
-                                   tolerance=g["tolerance"])
-               if g["generator"] == "noisy_action_preimage" else NoisyAction(g["k_max"], g["action_noise_std"]))
+                                   tolerance=g["tolerance"], action_bounds=bounds)
+               if g["generator"] == "noisy_action_preimage"
+               else NoisyAction(g["k_max"], g["action_noise_std"], action_bounds=bounds))
         validators = [Finite(), GenerationFailed(), SupportRadius(g["support_radius"]),
                       ActionBounds([-g["action_bound"]], [g["action_bound"]])]
         cands = generate_labels(read_trajectories(subset), _rep(), model, gen, validators, run_id="candidates",

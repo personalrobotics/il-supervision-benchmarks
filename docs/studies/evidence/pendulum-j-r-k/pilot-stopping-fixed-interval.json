@@ -1,0 +1,65 @@
+{
+ "pass": false,
+ "rule": "the first rung (cheapest first) whose rule fires on every unit and whose extension to twice the stop step gains at most 0.02 relative validation loss on every unit; ceiling = 3 x its latest stop step, rounded up to 10000",
+ "rungs": [
+  {
+   "fired": 330,
+   "gain_max": 0.12385846269876186,
+   "gain_q95": 0.09816206171120907,
+   "latest_stop_step": 7900,
+   "median_stop_step": 4200.0,
+   "pass": false,
+   "root": "runs/20261030T235610Z-pilot-stopping-1",
+   "settings": {
+    "lr_factor": 0.5,
+    "lr_patience": 5,
+    "lr_schedule": "plateau",
+    "min_lr": 1e-05,
+    "patience": 5,
+    "validation_interval_steps": 50
+   },
+   "steps_trained": 2813900,
+   "units": 330
+  },
+  {
+   "fired": 330,
+   "gain_max": 0.17221656719319137,
+   "gain_q95": 0.14632417981081597,
+   "latest_stop_step": 19700,
+   "median_stop_step": 8825.0,
+   "pass": false,
+   "root": "runs/20261030T235610Z-pilot-stopping-2",
+   "settings": {
+    "lr_factor": 0.5,
+    "lr_patience": 10,
+    "lr_schedule": "plateau",
+    "min_lr": 1e-05,
+    "patience": 10,
+    "validation_interval_steps": 50
+   },
+   "steps_trained": 6082400,
+   "units": 330
+  },
+  {
+   "fired": 330,
+   "gain_max": 0.09446005598156677,
+   "gain_q95": 0.03921225531268992,
+   "latest_stop_step": 104200,
+   "median_stop_step": 15750.0,
+   "pass": false,
+   "root": "runs/20261030T235610Z-pilot-stopping-3",
+   "settings": {
+    "lr_factor": 0.2,
+    "lr_patience": 10,
+    "lr_schedule": "plateau",
+    "min_lr": 1e-06,
+    "patience": 20,
+    "validation_interval_steps": 100
+   },
+   "steps_trained": 12188200,
+   "units": 330
+  }
+ ],
+ "settings": null,
+ "step_budget": null
+}

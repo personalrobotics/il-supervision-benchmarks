@@ -4,14 +4,18 @@
     uv run python tools/fixture.py --work NEW_DIR [--out docs/fixtures/evidence/vertical-slice-fixture.json]
 
 On a 12-episode demonstration file from the corrected demonstrator (120 steps), a tiny study with every arm
-(BC, learned-dynamics CCIL, exact-dynamics CCIL), two real fractions, two synthetic doses and three seeds runs
-through the whole state machine, on CPU. Then:
+(BC, learned-dynamics CCIL, exact-dynamics CCIL), two real fractions and two synthetic doses runs through the whole
+state machine, on CPU, in the study's design: three seeds at K = 0 and K_max, the first two (the surface seeds) at the
+dose between, and a fixed sigma per (r, K) (normalized action units; proposals truncated to the action bound) at which
+both CCIL arms train. Then:
 - resume: the same command on the same root reruns no stage and trains nothing;
 - reuse: a second study root on the same store trains nothing and reports identically;
 - refusals, each on a copy: a wrong dataset hash (preflight), a corrupted rollout (evaluation audit), a mismatched
   store entry (train), and an evaluation before any training (out of order);
 - a changed implementation (a copy of the harness source with one added comment) reuses no policy from the store;
-- a step ceiling the patience rule never reaches fails the train stage (incomplete fit), and the audit refuses.
+- a step ceiling the patience rule never reaches fails the train stage (incomplete fit), and the audit refuses;
+- with a sigma grid selected per (r, K, seed) and no genuine generation failure tolerated, every sigma with any
+  failure is skipped untrained, and a coordinate left with no feasible sigma fails the train stage.
 The written evidence holds no paths, times or commits, so a rerun on the same host reproduces it byte for byte.
 """
 from __future__ import annotations
@@ -39,16 +43,20 @@ SPEC = {
     "synthetic_doses": [1, 2],
     "arms": ["bc", "ccil_learned", "ccil_exact"],
     "seeds": [1, 2, 3],
+    "surface_seeds": [1, 2],
     "dynamics": {"hidden_layers": [32, 32], "activation": "relu", "lipschitz_type": "none", "learning_rate": 1e-3,
                  "weight_decay": 0.0, "epochs": 3, "batch_size": 64},
-    "generation": {"generator": "noisy_action_preimage", "action_noise_std": 0.05, "support_radius": 0.5,
-                   "max_iterations": 30, "tolerance": 1e-8},
+    "generation": {"generator": "noisy_action_preimage", "max_failure": 0.05,
+                   "sigma": {"r0.5/k1": 0.005, "r0.5/k2": 0.02, "r1.0/k1": 0.02, "r1.0/k2": 1.0},
+                   "support_radius": 0.5, "max_iterations": 30, "tolerance": 1e-8},
     "learner": {"hidden_layers": [32, 32], "learning_rate": 1e-3, "batch_size": 32, "epochs": 1,
                 "observation_scaler": "standard", "action_scaler": "min_max", "balance_labels": None,
-                "step_budget": 1500, "checkpoint_selection": "validation", "validation_interval_steps": 20,
-                "patience": 3, "synthetic_fraction": 0.5},
+                "step_budget": 4000, "checkpoint_selection": "validation", "validation_interval_steps": 20,
+                "patience": 3, "lr_schedule": "plateau", "lr_factor": 0.5, "lr_patience": 2, "min_lr": 2.5e-4,
+                "synthetic_fraction": 0.5, "synthetic_coverage_before_stop": True},
     "analysis": {"metric": "upright_occupancy", "confidence": 0.95, "min_pairs": 2,
-                 "contrasts": [["ccil_learned", "bc"], ["ccil_exact", "bc"], ["ccil_exact", "ccil_learned"]]},
+                 "contrasts": [["ccil_learned", "bc"], ["ccil_exact", "ccil_learned"]],
+                 "derived": [["ccil_exact", "bc"]]},
     "compute": {"device": "cpu"},
 }
 
@@ -95,9 +103,13 @@ def main() -> int:
     ev["realized_synthetic_row_fractions"] = sorted({u["exposure"]["realized_synthetic_row_fraction"]
                                                      for u in tr["units"].values()})
     ev["audits"] = {s: stage(root, s)["all_pass"] for s in ("audit", "evaluation_audit")}
+    ev["selection"] = {"feasibility": tr["feasibility"], "selected_sigmas": rep["selected_sigmas"],
+                       "learned_candidates": sum(u["arm"] == "ccil_learned" for u in tr["units"].values())}
     ev["report"] = {"cells": {k: v["mean"] for k, v in rep["cells"].items()},
-                    "contrasts": {k: {"mean": v["mean"], "interval": v["interval"], "outcome": v["outcome"]}
-                                  for k, v in rep["contrasts"].items()}}
+                    **{part: {k: {"mean": v["mean"], "interval": v["interval"], "outcome": v["outcome"]}
+                              for k, v in rep[part].items()} for part in ("contrasts", "derived")}}
+    ev["design"] = {"planned_units": stage(root, "preflight")["planned_units"],
+                    "seeds_by_cell": {k: v["n"] for k, v in rep["cells"].items()}}
 
     # 2. Resume: the same command reruns no stage and trains nothing.
     p = ilsb("run", str(work / "spec.yaml"), "--root", str(root), "--store", str(store), allow_dirty=dirty)
@@ -180,10 +192,28 @@ def main() -> int:
                             "incomplete_units": len(tr6["incomplete_fit"]), "units": len(tr6["units"]),
                             "audit_refused": p2.returncode != 0 and "needs a completed train stage" in p2.stderr + p2.stdout}
 
+    # 7. The feasibility gate, with a sigma grid selected per (r, K, seed): with no genuine failure tolerated, every
+    # sigma with any failure is skipped untrained, and a coordinate left with no feasible sigma fails the train stage.
+    grid = {k: v for k, v in spec["generation"].items() if k != "sigma"}
+    gate = {**spec, "generation": {**grid, "sigma_grid": [0.005, 0.02, 1.0], "max_failure": 0.0}}
+    (work / "spec-gate.yaml").write_text(yaml.safe_dump(gate, sort_keys=True))
+    root7 = work / "r-gate"
+    p = ilsb("run", str(work / "spec-gate.yaml"), "--root", str(root7), "--store", str(store), allow_dirty=dirty)
+    tr7 = stage(root7, "train")
+    infeasible = sorted(k_ for k_, v in tr7["feasibility"].items() if not v["feasible"])
+    trained_infeasible = [k_ for k_ in infeasible for u in tr7["units"].values() if u["arm"] == "ccil_learned"
+                          and k_ == f"ccil_learned/r{u['r']}/s{u['seed']}/sigma{u['sigma']}"]
+    ev["failure_gate"] = {"run_exit": p.returncode, "infeasible": len(infeasible), "unselectable": tr7["unselectable"],
+                          "trained_infeasible": len(trained_infeasible),
+                          "pass": bool(p.returncode != 0 and infeasible and not trained_infeasible
+                                       and all(v["failure"] > 0 for k_, v in tr7["feasibility"].items()
+                                               if k_ in infeasible) and tr7["unselectable"])}
+
     ev["all_pass"] = bool(ev["first_run"]["exit"] == 0 and all(ev["audits"].values())
                           and ev["resume"]["exit"] == 0 and set(ev["resume"]["stages"].values()) == {"resumed"}
                           and ev["reuse"]["exit"] == 0 and ev["reuse"]["trained"] == 0 and ev["reuse"]["report_identical"]
                           and all(r["refused"] for r in refusals.values())
+                          and ev["failure_gate"]["pass"]
                           and ev["implementation_change"]["exit"] == 0 and ev["implementation_change"]["source_differs"]
                           and ev["implementation_change"]["trained"] == ev["implementation_change"]["units"] == ev["units"]
                           and ev["incomplete_fit"]["run_exit"] != 0 and ev["incomplete_fit"]["train_all_pass"] is False
