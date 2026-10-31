@@ -26,9 +26,11 @@ The exact-dynamics arm isolates dynamics-model error: it uses the same generator
 | Evaluation | 100 fixed final-test starts (`eval_seed` 2201), used only by the study's evaluate stage. |
 | Host | siddh, CUDA, is the canonical execution host. Store entries are scoped to it, and no numerical artifact is reused from another environment. |
 
-## σ
+## σ: supervised-validation-selected
 
-σ is a hyperparameter of CCIL. It is fixed once per (r, K) for every study seed, from the precision pilot's validation data only. It is not retuned per study seed.
+σ is a hyperparameter of CCIL. It is fixed once per (r, K) for every study seed, from the precision pilot's validation data only. It is not retuned per study seed. Reports call it the **supervised-validation-selected σ**, never the "optimal σ".
+
+**What this study answers, and what it does not.** It answers: how does the synthetic dose affect performance when σ is selected by held-out imitation loss? Held-out demonstrations reward fidelity to the demonstrated distribution, so this selection favors σ near zero (1e-5 to 1e-2 here). At those values the synthetic labels mostly resample or reweight the existing supervision. So the study does not settle whether genuinely corrective CCIL labels help. A null result at these σ would not show that corrective supervision fails. Automatic parameter selection needs a criterion for both fidelity and novelty: with prediction error alone, the trivial identity augmentation usually looks best (#167).
 - **Pilot grid,** in normalized action units (a fraction of the bound 3): 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1. Pilot 2 trained the learned arm at every feasible σ on its 10 non-study seeds (`docs/harness.md`, "Selecting σ").
 - **Rule** (`tools/pilot.py sigma`): among the σ feasible on every pilot seed, the one with the least mean validation error over the pilot seeds; ties go to the smaller σ. The validation error is the mean squared action error in raw torque units, on each unit's held-out demonstration episodes. All six σ were feasible on every pilot seed.
 - **Chosen** (`docs/studies/evidence/pendulum-j-r-k/pilot-sigma.json`):
@@ -44,6 +46,20 @@ The exact-dynamics arm isolates dynamics-model error: it uses the same generator
 - **Both CCIL arms** train at the same σ(r, K), so exact − learned compares two dynamics models under one σ.
 
 `tools/sigma_geometry.py` reports what each σ produces under exact dynamics, as a committed diagnostic. It does not select.
+
+## Label diagnostics (descriptive)
+
+These are frozen before any study outcome was read (the amendment is described below). They describe what the synthetic supervision is at every (r, K), so that a performance change can be attributed to correction, duplication, weighting or model error. They involve no hypothesis test. `tools/diagnostics.py SPEC STORE --root NEW_DIR` reads the study's own candidate sets from its store by the harness's identities. It generates nothing, and it refuses if a lookup would create a store entry. For each seed of the dose, on the K view each CCIL arm trains on (training episodes only), it reports:
+- **Displacement from the source demonstration:** action |ã − a| in N·m, and state ‖z̃ − z‖ standardized by the training demonstrations' per-coordinate standard deviation.
+- **Nearest-demonstration distance:** the standardized distance from each accepted synthetic state to the nearest training demonstration state.
+- **Accepted-label fraction.**
+- **Effective number of distinct synthetic examples:** the number of δ-grid cells of standardized (state, action / bound) space that accepted synthetic rows occupy and no training demonstration does, for δ ∈ {1e-3, 1e-2, 1e-1}. Also the Kish effective count of the accepted rows' weights.
+- **Exact versus learned disagreement,** on identical proposals row for row:
+  - the fraction of rows whose acceptance differs;
+  - the standardized distance between the two arms' accepted states;
+  - that distance over the exact arm's own state displacement, which compares model error with the correction itself.
+
+Distributions over rows are given as median, 90th percentile and maximum per seed. Every quantity is summarized over seeds by its median and range. The output is committed beside the study's report.
 
 ## Analysis
 
@@ -101,6 +117,8 @@ uv run python -m ilsb run studies/pendulum-j-r-k/study.yaml --root runs/<timesta
 The run proceeds through preflight, train, audit, evaluate, evaluation audit and report, and stops at the first failed check. Any undeclared decision stops the run, and the protocol is amended in a new pull request.
 
 ### Run history
+
+- **Diagnostics amendment.** The label diagnostics above, and the σ wording, were added while `runs/20261031T141026Z-j-r-k` was running from the merge commit `5647117`, before any of its outcomes was read. They change nothing that run computes; they only read its candidate sets afterwards.
 
 - **`runs/20261031T134157Z-j-r-k`, aborted.** It started at 13:41:57 UTC from the clean, public PR-head commit `c154bb6`, not a merge commit, with the earlier design: σ selected per (r, K, seed), and 39 seeds at every K (about 2,574 policy units, roughly 11 hours). It was stopped at 13:45:42 UTC solely for design efficiency, before any outcome was read: only preflight had completed, and nothing was evaluated. Its log is kept on siddh, and its root is excluded from every analysis. The study was redesigned as above and restarted clean on a new root.
 
