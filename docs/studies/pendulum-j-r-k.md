@@ -1,6 +1,6 @@
 # J(r, K | α = 0.5) on Pendulum: protocol
 
-Status: **draft, pilots pending.** Merging this protocol freezes it. Until then nothing here has been run on study seeds or on the final-test starts.
+Status: **draft. One decision is open: whether the sentinel's result is accepted (below).** Merging this protocol freezes it. Until then nothing here has been run on study seeds or on the final-test starts.
 
 ## Question
 
@@ -56,6 +56,18 @@ The traces showed why. The gaps between successive improvements were about 1,500
    - **Pass:** the rule fires on every unit, and no extension improves a unit's selected validation loss by more than 2%.
    - **Ceiling:** three times the latest stop step, rounded up to 10,000.
    - **Then:** the rule is frozen and applies to every study unit.
+
+   **Result** (`docs/studies/evidence/pendulum-j-r-k/pilot-stopping-sentinel.json`): **fails the 2% criterion.** The rule fired on all 12 units, and every CCIL unit had drawn all its synthetic rows before it stopped (6–57 draws per row). The extension gains, by unit:
+
+   | Unit | Gain from the extension | Selected validation loss (scaled) |
+   |---|---|---|
+   | CCIL, r = 10% and 100% (6 units) | 0 | 2.6e-2 – 3.7e-2 |
+   | BC, r = 10% (3 units) | 0 – 1.9% | 8.0e-4 – 2.4e-3 |
+   | BC, r = 100% (3 units) | 1.6%, 2.7%, 6.8% | 3.6e-5 – 6.8e-5 |
+
+   Every failure is BC on the full dataset. There the validation loss is near zero, and it keeps creeping down at the learning-rate floor. The largest gain, 6.8% of 3.6e-5, is about 2.4e-6 in scaled MSE, or roughly 0.0006 N·m of RMS torque error.
+
+   **Open decision.** Either accept the rule as converged in practice (for example, a gain criterion with an absolute floor), or change the rule for near-zero-loss fits. Pilot 2 ran provisionally under this rule and with its ceiling of 260,000 steps, so its seed count is usable if the rule is accepted.
 2. **Precision** (seeds 9511–9520, with the frozen rule and ceiling): the standard deviation of each primary contrast's paired differences. The study uses the smallest n with z_c · sd / √n ≤ 0.05 for every primary contrast, clipped to [20, 50]. Study seeds are 1301 onward.
 
 ## Execution
