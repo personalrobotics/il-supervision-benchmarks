@@ -1,0 +1,18 @@
+{
+ "all_pass": true,
+ "code": {
+  "ccil": {
+   "commit": "cc711b5961c2ccfbef8a330f7ab784757886411e",
+   "url": "https://github.com/personalrobotics/CCIL",
+   "version": "0.1.0.dev0"
+  },
+  "dirty": [],
+  "harness_commit": "5647117e049c30c632b504dd6cb291eabfe8ad10",
+  "uv_lock_sha256": "63ccc463d009e56516ead89768e82786e9314192a6e973d03c1464c92d22c136"
+ },
+ "dataset_sha256": "59c332bc829db9c9da40d9c1bd9ebbf808965aca6a167be48dc0f2ade52cf43c",
+ "plan_sha256": "86b0a8c035e93487d312027eb98dd837a08a05b2fe8a8bf62c3980dea6de719d",
+ "planned_units": 471,
+ "protocol_sha256": "e45a5abc43998d85df5d8aadcfe175a2a6aeca50b4782f7d3a3cc42bfba934f4",
+ "stage": "preflight"
+}
