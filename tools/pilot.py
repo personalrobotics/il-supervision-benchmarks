@@ -3,6 +3,7 @@
 
     uv run python tools/pilot.py stopping ROOT [--out FILE]    # the convergence check and the step ceiling
     uv run python tools/pilot.py precision ROOT [--out FILE]   # the number of study seeds
+    uv run python tools/pilot.py sigma ROOT [--out FILE]       # the study's sigma per (r, K)
 
 The pilots use non-study seeds and non-study evaluation starts, and choose only the training procedure's convergence
 settings, the failure ceiling and the seed count. Neither output carries an arm mean or a contrast mean.
@@ -20,6 +21,10 @@ is an incomplete fit).
 precision: for each primary contrast (every contrast at K = K_max, at every real fraction), the standard deviation
 of the paired per-seed differences. The seed count is the smallest n whose normal-approximation half-width
 z_c * sd / sqrt(n) is at most 0.05 upright occupancy for every primary contrast, clipped to [20, 50].
+
+sigma: from the precision pilot's train stage (validation data only, no evaluation), one sigma per (r, K) for every
+study seed: among the grid's sigmas feasible on every pilot seed, the one with the least mean validation error over
+the pilot seeds; ties go to the smaller sigma.
 """
 from __future__ import annotations
 
@@ -111,14 +116,30 @@ def precision(root: Path) -> dict:
             "n_required": need, "seeds": min(max(need, N_MIN), N_MAX), "capped": need > N_MAX}
 
 
+def sigma(root: Path) -> dict:
+    spec = json.loads((root / "root.json").read_text())["spec"]
+    sel = json.loads((root / "stages" / "train.json").read_text())["selection"]
+    seeds, out = spec["seeds"], {}
+    for r in spec["real_fractions"]:
+        for k in sorted(spec["synthetic_doses"]):
+            per_seed = [sel[f"r{r}/k{k}/s{s}"]["candidates"] for s in seeds]
+            common = sorted(set.intersection(*(set(c) for c in per_seed)), key=float)
+            mean = {s_: float(np.mean([c[s_] for c in per_seed])) for s_ in common}
+            out[f"r{r}/k{k}"] = {"mean_validation_mse": mean,
+                                 "sigma": float(min(common, key=lambda s_: (mean[s_], float(s_)))) if common else None}
+    return {"rule": "per (r, K): among sigmas feasible on every pilot seed, the least mean validation error over the "
+                    "pilot seeds; ties go to the smaller sigma", "pilot_seeds": seeds, "selection": out}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("part", choices=("stopping", "precision"))
+    ap.add_argument("part", choices=("stopping", "precision", "sigma"))
     ap.add_argument("root", type=Path)
     ap.add_argument("--store", type=Path)
     ap.add_argument("--out", type=Path)
     a = ap.parse_args()
-    out = stopping(a.root, a.store or a.root / "store") if a.part == "stopping" else precision(a.root)
+    out = (stopping(a.root, a.store or a.root / "store") if a.part == "stopping"
+           else precision(a.root) if a.part == "precision" else sigma(a.root))
     text = json.dumps(out, indent=1, sort_keys=True) + "\n"
     if a.out:
         a.out.parent.mkdir(parents=True, exist_ok=True)

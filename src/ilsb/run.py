@@ -43,8 +43,9 @@ def load_spec(path: Path) -> dict:
     spec = yaml.safe_load(Path(path).read_text())
     need = {"study", "task", "data", "split", "real_fractions", "synthetic_doses", "arms", "seeds", "generation",
             "learner", "analysis", "compute"}
-    if set(spec) - need - {"dynamics"} or need - set(spec):
-        raise Refused(f"refused: specification keys {sorted(spec)} differ from {sorted(need)} (+ dynamics)")
+    if set(spec) - need - {"dynamics", "surface_seeds"} or need - set(spec):
+        raise Refused(f"refused: specification keys {sorted(spec)} differ from {sorted(need)} "
+                      "(+ dynamics, surface_seeds)")
     if not set(spec["arms"]) <= set(sup.ARMS) or "bc" not in spec["arms"]:
         raise Refused(f"refused: arms must include bc and be among {sup.ARMS}")
     if "ccil_learned" in spec["arms"] and "dynamics" not in spec:
@@ -54,16 +55,29 @@ def load_spec(path: Path) -> dict:
         raise Refused("refused: real fractions must be in (0, 1] and synthetic doses integers >= 1")
     if len(set(spec["seeds"])) != len(spec["seeds"]):
         raise Refused("refused: seeds repeat")
+    surface = spec.get("surface_seeds")
+    if surface is not None and (not surface or surface != spec["seeds"][:len(surface)]):
+        raise Refused("refused: surface_seeds must be a non-empty prefix of seeds")
     if "ccil_exact" in spec["arms"] and "ccil_learned" not in spec["arms"]:
         raise Refused("refused: ccil_exact takes its sigma from the learned arm's selection, so it needs ccil_learned")
     g = spec["generation"]
-    grid = g.get("sigma_grid")
-    if (not isinstance(grid, list) or not grid or grid != sorted(set(grid))
-            or any(isinstance(x, bool) or not isinstance(x, (int, float)) or not x > 0 for x in grid)):
+    grid, fixed = g.get("sigma_grid"), g.get("sigma")
+    if (grid is None) == (fixed is None):
+        raise Refused("refused: generation declares exactly one of sigma_grid (selected per (r, K, seed)) and sigma "
+                      "(fixed per (r, K))")
+    def positive(x):
+        return not isinstance(x, bool) and isinstance(x, (int, float)) and x > 0
+    if grid is not None and (not isinstance(grid, list) or not grid or grid != sorted(set(grid))
+                             or not all(map(positive, grid))):
         raise Refused("refused: generation.sigma_grid must be a non-empty increasing list of positive numbers")
+    coords = {f"r{r}/k{k}" for r in spec["real_fractions"] for k in spec["synthetic_doses"]}
+    if fixed is not None and (not isinstance(fixed, dict) or set(fixed) != coords
+                              or not all(map(positive, fixed.values()))):
+        raise Refused(f"refused: generation.sigma must give a positive sigma for exactly the coordinates "
+                      f"{sorted(coords)}")
     if "action_noise_std" in g or not 0 <= g.get("max_failure", -1) <= 1:
-        raise Refused("refused: sigma is selected from generation.sigma_grid (no action_noise_std), and "
-                      "generation.max_failure must be in [0, 1]")
+        raise Refused("refused: sigma is declared in normalized units by sigma_grid or sigma (no action_noise_std), "
+                      "and generation.max_failure must be in [0, 1]")
     lr = spec["learner"]
     if (not lr.get("patience") or lr.get("checkpoint_selection") != "validation" or lr.get("lr_schedule") != "plateau"
             or not lr.get("step_budget")):
@@ -143,6 +157,12 @@ class Context:
                     for k in k_doses:
                         yield arm, r, k
 
+    def seeds(self, k: int) -> list:
+        """The seeds of dose k: every seed at K = 0 and K_max, the surface seeds (a prefix) at the doses between."""
+        if k in (0, max(self.spec["synthetic_doses"])):
+            return self.spec["seeds"]
+        return self.spec.get("surface_seeds") or self.spec["seeds"]
+
     def dataset(self) -> Path:
         p = Path(self.spec["data"]["path"])
         p = p if p.is_absolute() else self.spec_path.parent / p
@@ -159,7 +179,7 @@ class Context:
 
     def generation(self, sigma: float) -> dict:
         """sigma is in normalized action units (a fraction of the action bound); the generator takes action units."""
-        g = {k: v for k, v in self.spec["generation"].items() if k not in ("sigma_grid", "max_failure")}
+        g = {k: v for k, v in self.spec["generation"].items() if k not in ("sigma_grid", "sigma", "max_failure")}
         return {**g, "sigma_normalized": sigma, "action_noise_std": sigma * self.task.action_bound,
                 "k_max": max(self.spec["synthetic_doses"]), "action_bound": self.task.action_bound}
 
@@ -255,25 +275,30 @@ def unit(ctx, arm, r, k, seed, sigma=None, full=None) -> dict:
 def plan(ctx, selection: dict | None = None) -> tuple[dict, dict]:
     """The policy groups, each trained together, and every candidate set's genuine-failure fraction with whether it is
     feasible (an infeasible sigma is never trained). Without a selection: BC, and the learned arm at every feasible
-    sigma of the grid. With one: the exact arm at each coordinate's selected sigma."""
+    sigma of the grid, or at each coordinate's fixed sigma. With one: the exact arm at each coordinate's selected sigma.
+    Each dose takes its own seeds (ctx.seeds)."""
     sp, g = ctx.spec, ctx.spec["generation"]
     groups, feasibility = {}, {}
+    fixed = g.get("sigma")
     for r in sp["real_fractions"]:
         for seed in sp["seeds"]:
+            doses = [k for k in sorted(sp["synthetic_doses"]) if seed in ctx.seeds(k)]
             if selection is None:
                 groups.setdefault(("bc", r, 0, None), []).append(unit(ctx, "bc", r, 0, seed))
-                for sigma in g["sigma_grid"] if "ccil_learned" in sp["arms"] else ():
+                sigmas = g["sigma_grid"] if fixed is None else sorted({fixed[f"r{r}/k{k}"] for k in doses})
+                for sigma in sigmas if "ccil_learned" in sp["arms"] else ():
                     full = full_candidates(ctx, "ccil_learned", r, seed, sigma)
                     fail = failure(full)
                     feasibility[f"ccil_learned/r{r}/s{seed}/sigma{sigma}"] = {
                         "failure": fail, "feasible": fail <= g["max_failure"]}
                     if fail > g["max_failure"]:
                         continue
-                    for k in sorted(sp["synthetic_doses"]):
-                        groups.setdefault(("ccil_learned", r, k, sigma), []).append(
-                            unit(ctx, "ccil_learned", r, k, seed, sigma, full))
+                    for k in doses:
+                        if fixed is None or fixed[f"r{r}/k{k}"] == sigma:
+                            groups.setdefault(("ccil_learned", r, k, sigma), []).append(
+                                unit(ctx, "ccil_learned", r, k, seed, sigma, full))
             elif "ccil_exact" in sp["arms"]:
-                for k in sorted(sp["synthetic_doses"]):
+                for k in doses:
                     sigma = selection[f"r{r}/k{k}/s{seed}"]["selected_sigma"]
                     full = full_candidates(ctx, "ccil_exact", r, seed, sigma)
                     fail = failure(full)
@@ -315,11 +340,12 @@ def row_of(u, d: Path) -> dict:
 
 
 def select(ctx, rows: dict) -> dict:
-    """Per (r, K, seed): the learned arm's sigma with the least validation error; ties go to the smaller sigma."""
+    """Per (r, K, seed): the learned arm's sigma with the least validation error; ties go to the smaller sigma. With a
+    fixed sigma per (r, K), the only candidate is that sigma (none if it was infeasible)."""
     out = {}
     for r in ctx.spec["real_fractions"]:
         for k in sorted(ctx.spec["synthetic_doses"]):
-            for seed in ctx.spec["seeds"]:
+            for seed in ctx.seeds(k):
                 c = {x["sigma"]: x["validation_mse"] for x in rows.values()
                      if x["arm"] == "ccil_learned" and (x["r"], x["k"], x["seed"]) == (r, k, seed)}
                 out[f"r{r}/k{k}/s{seed}"] = {"candidates": {str(s_): v for s_, v in sorted(c.items())},
@@ -331,7 +357,7 @@ def analysis_units(ctx, selection: dict) -> dict:
     """Each analysis unit's policy row: the learned arm's is the selected sigma's."""
     out = {}
     for arm, r, k in ctx.cells():
-        for seed in ctx.spec["seeds"]:
+        for seed in ctx.seeds(k):
             key_ = f"{arm}/r{r}/k{k}/s{seed}"
             out[key_] = (f"{key_}/sigma{selection[f'r{r}/k{k}/s{seed}']['selected_sigma']}"
                          if arm == "ccil_learned" else key_)
@@ -341,7 +367,7 @@ def analysis_units(ctx, selection: dict) -> dict:
 # --- stages -----------------------------------------------------------------------------------------------------------
 def preflight(ctx) -> dict:
     ctx.dataset()
-    plan = [f"{a}/r{r}/k{k}/s{s}" for a, r, k in ctx.cells() for s in ctx.spec["seeds"]]
+    plan = [f"{a}/r{r}/k{k}/s{s}" for a, r, k in ctx.cells() for s in ctx.seeds(k)]
     return {"all_pass": True, "dataset_sha256": ctx.spec["data"]["sha256"], "planned_units": len(plan),
             "plan_sha256": digest(plan), "code": ctx.protocol["code"]}
 
@@ -486,21 +512,24 @@ def report(ctx) -> dict:
     scores = prior["evaluate"]["units"]
 
     def values(arm, r, k):
-        return {s: scores[f"{arm}/r{r}/k{k}/s{s}"]["scores"][a["metric"]] for s in ctx.spec["seeds"]}
-    cells, contrasts = {}, {}
-    for arm, r, k in ctx.cells():
+        return {s: scores[f"{arm}/r{r}/k{k}/s{s}"]["scores"][a["metric"]] for s in ctx.seeds(k)}
+    cells, contrasts, derived = {}, {}, {}
+    for arm, r, k in ctx.cells():  # the response surface, descriptive: each cell over its own dose's seeds
         v = values(arm, r, k)
-        cells[f"{arm}/r{r}/k{k}"] = {"mean": float(np.mean(list(v.values()))), "per_seed": v}
-    for A, B in a["contrasts"]:
-        for r in ctx.spec["real_fractions"]:
-            for k in sorted(ctx.spec["synthetic_doses"]):
-                kb = 0 if B == "bc" else k
-                contrasts[f"{A}-{B}/r{r}/k{k}"] = analysis.paired(values(A, r, k), values(B, r, kb), a["confidence"],
-                                                                  a["min_pairs"])
+        cells[f"{arm}/r{r}/k{k}"] = {"mean": float(np.mean(list(v.values()))), "n": len(v), "per_seed": v}
+    k_max = max(ctx.spec["synthetic_doses"])
+    # The primary contrasts and the derived ones, at K_max over every seed; derived contrasts are not a test family.
+    for out, pairs in ((contrasts, a["contrasts"]), (derived, a.get("derived", []))):
+        for A, B in pairs:
+            for r in ctx.spec["real_fractions"]:
+                out[f"{A}-{B}/r{r}/k{k_max}"] = analysis.paired(values(A, r, k_max),
+                                                                values(B, r, 0 if B == "bc" else k_max),
+                                                                a["confidence"], a["min_pairs"])
     sel = prior["train"]["selection"]
-    chosen = {f"r{r}/k{k}": sorted(sel[f"r{r}/k{k}/s{s_}"]["selected_sigma"] for s_ in ctx.spec["seeds"])
+    chosen = {f"r{r}/k{k}": sorted(sel[f"r{r}/k{k}/s{s_}"]["selected_sigma"] for s_ in ctx.seeds(k))
               for r in ctx.spec["real_fractions"] for k in sorted(ctx.spec["synthetic_doses"])} if sel else {}
-    return {"all_pass": True, "metric": a["metric"], "cells": cells, "contrasts": contrasts, "selected_sigmas": chosen}
+    return {"all_pass": True, "metric": a["metric"], "cells": cells, "contrasts": contrasts, "derived": derived,
+            "selected_sigmas": chosen}
 
 
 RUNNERS = {"preflight": preflight, "train": train, "audit": audit, "evaluate": evaluate,
