@@ -49,15 +49,15 @@ So work done by other code, another lock or another environment is never reused.
 | Stage | What it checks or produces |
 |---|---|
 | preflight | The dataset matches its declared hash; the plan of units. |
-| train | Every policy unit, each group of seeds trained together through the learner adapter, in three steps (below): BC and the learned arm at every feasible σ; the σ selection; the exact arm at the selected σ. Every unit must stop by the validation rule (patience at the plateau schedule's floor); a unit that reaches the step ceiling is an incomplete fit, and the stage fails. So does a coordinate with no feasible σ. |
+| train | Every policy unit, each group of seeds trained together through the learner adapter, in three steps (below): BC and the learned arm at every feasible σ of the grid, or at each coordinate's fixed σ; the σ selection; the exact arm at the selected σ. Each dose takes its own seeds: every seed at K = 0 and K_max, and the `surface_seeds` prefix at the doses between, when it is declared. Every unit must stop by the validation rule (patience at the plateau schedule's floor); a unit that reaches the step ceiling is an incomplete fit, and the stage fails. So does a coordinate with no feasible σ. |
 | audit | Every trained unit is a verified entry. Its training identity, which hashes the supervision manifest with the dataset, split and candidate hashes, recomputes from the unit's own inputs. Its weights hash to the record, and its reported row (stopping, exposure, validation error) recomputes. Feasibility, the σ selection and the analysis units recompute to the reported ones. |
 | evaluate | One rollout per analysis unit from the task's fixed final-test starts, with its scores. Unselected σ candidates are never evaluated. |
 | evaluation_audit | Every rollout reopened. It checks hashes, shapes, starts and the action bound, replays every transition through the task map, and recomputes every score exactly. |
-| report | The predeclared paired contrasts (union BCa/t interval) over seeds. |
+| report | Each (arm, r, K) cell's mean over its dose's seeds (descriptive), and the predeclared primary and derived paired contrasts at K_max (union BCa/t interval) over every seed. |
 
 ## Selecting σ
 
-The action-noise scale σ is a hyperparameter of CCIL: it sets the distribution and locality of the synthetic supervision. The study does not fix it. It selects it the way a user of the method would, from validation data only:
+The action-noise scale σ is a hyperparameter of CCIL: it sets the distribution and locality of the synthetic supervision. A specification declares either `generation.sigma_grid`, selected per (r, K, seed) as below, or `generation.sigma`, one fixed σ per (r, K) chosen beforehand (for example by a pilot from validation data). With a fixed σ, step 2 trains only that σ, so the selection in step 3 is that σ, or none if it is infeasible, which fails the train stage. With a grid, σ is selected the way a user of the method would, from validation data only:
 
 1. **Proposals and feasibility, before training.** σ is declared in normalized action units (a fraction of the action bound). Proposals are drawn from a Gaussian truncated to the actuator range (`action_bounds` of the CCIL generator): the first K_max feasible proposals of each transition's stream, so at a saturated action the perturbations point inward, and a nested K view is the first K of them. For each (r, seed) and each σ of the grid, the learned arm's K_max candidate set is generated. A σ whose genuine-failure fraction (non-finite, a failed solve, or a state outside the support) exceeds `generation.max_failure` is infeasible and never trained. The action-bound validator stays: after bounded proposals, any rejection by it is an implementation error and stops the run.
 2. **Candidates.** The learned arm trains at every feasible σ and every K.
@@ -90,12 +90,12 @@ A benchmark contributes adapters, not a runner.
 
 - `tools/port_check.py --ccil CCIL_CHECKOUT` gives the Pendulum map, scorer and starts against CCIL, written to `docs/fixtures/evidence/pendulum-port-check.json`.
 - `tools/fixture.py --work NEW_DIR` is the compact end-to-end fixture, written to `docs/fixtures/evidence/vertical-slice-fixture.json`:
-  - every arm, two fractions, two doses and three seeds, through every stage on CPU, with a three-point σ grid;
+  - every arm, two fractions and two doses through every stage on CPU, in a study's design: three seeds at K = 0 and K_max, two surface seeds at the dose between, and a fixed σ per (r, K);
   - a resume that reruns nothing;
   - a second study that reuses every unit and reports identically;
   - refusals of a wrong dataset hash, a corrupted rollout, a report after a failed audit, a mismatched store entry, and an out-of-order stage;
   - a copy of the harness whose source differs by one comment, which retrains every unit instead of reusing the store's;
   - a step ceiling below any patience stop, which fails the train stage on every unit, after which the audit refuses;
-  - no genuine generation failure tolerated, which skips every σ with any failure untrained and fails the train stage on the coordinates left without a feasible σ.
+  - a three-point σ grid with no genuine generation failure tolerated, which skips every σ with any failure untrained and fails the train stage on the coordinates left without a feasible σ.
 
   The evidence holds no paths, times or commits, so a rerun on the same host reproduces it byte for byte.

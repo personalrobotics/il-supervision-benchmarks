@@ -1,12 +1,12 @@
 # J(r, K | α = 0.5) on Pendulum: protocol
 
-Status: **draft; the pilots are complete.** Merging this protocol freezes it. Until then nothing here has been run on study seeds or on the final-test starts.
+Status: **frozen at a public commit before execution.** The governing protocol for a study run is the clean, public commit it executes from, recorded in the run's log and root. One earlier run was aborted before any outcome was read (see "Run history").
 
 ## Question
 
 How do the amount of real data r and the synthetic dose K change the performance of a policy trained by behavior cloning (BC), by CCIL with learned dynamics, and by CCIL with the task's exact dynamics, when each minibatch is half real and half synthetic (α = 0.5)?
 
-The exact-dynamics arm isolates dynamics-model error: it uses the same generator, the same selected σ and the same learner as learned-dynamics CCIL, and differs only in the transition model. It is not a task-optimal oracle (#145 remains a separate analysis).
+The exact-dynamics arm isolates dynamics-model error: it uses the same generator, the same σ and the same learner as learned-dynamics CCIL, and differs only in the transition model. It is not a task-optimal oracle (#145 remains a separate analysis).
 
 ## Design
 
@@ -15,8 +15,9 @@ The exact-dynamics arm isolates dynamics-model error: it uses the same generator
 | Task | Continuous Pendulum swing-up through the evaluator's discrete 0.02 s transition map (`ilsb.tasks.pendulum`), applied torque clipped at ±3, horizon 500. Commanded, applied and saturation diagnostics are kept. |
 | Data | The canonical corrected continuous dataset: 100 episodes × 500 steps, SHA-256 `59c332bc…f43c` (CCIL release `data/pendulum-corrected-demonstrator-v1`). Every transition replays through the task map to within 9e-16; every action is within ±3. |
 | Real fractions r | 10%, 25%, 100% of the episodes: nested prefixes of a seed-keyed permutation, the same for every arm. |
-| Validation | 20% of each subset's episodes, seed-keyed, held out from training; used for checkpoint selection, patience and σ selection. |
+| Validation | 20% of each subset's episodes, seed-keyed, held out from training; used for checkpoint selection and patience. |
 | Synthetic doses K | 0 (BC), 1, 4, 20 = K_max: nested views of one K_max candidate set per (r, seed, dynamics, σ). |
+| Seeds | 39 study seeds, 1301–1339, at K = 0 and K_max = 20, which carry the primary contrasts. The first 10 (1301–1310) at K = 1 and 4, which give the descriptive response surface. 471 policy units in all. |
 | Arms | `bc`; `ccil_learned` (dynamics fitted on the subset's training episodes); `ccil_exact` (the task's transition map). |
 | Generator | Newton preimage (`noisy_action_preimage`) for both CCIL arms, 30 iterations, tolerance 1e-4, proposals truncated to ±3 (the first K feasible draws of each transition's stream, with the raw attempt index recorded); validators: finite, solver success, support radius 1.0, action bound ±3. |
 | Dynamics | The corrected recipe: MLP 512×512, soft-sampling Lipschitz (constraint 2.0, weight 1e-3, ε 3e-4, 5 samples, model-normalized coordinates), learning rate 1e-3, weight decay 1e-5, 100 epochs, batch 512. |
@@ -25,13 +26,22 @@ The exact-dynamics arm isolates dynamics-model error: it uses the same generator
 | Evaluation | 100 fixed final-test starts (`eval_seed` 2201), used only by the study's evaluate stage. |
 | Host | siddh, CUDA, is the canonical execution host. Store entries are scoped to it, and no numerical artifact is reused from another environment. |
 
-## σ selection
+## σ
 
-σ is a hyperparameter of CCIL and is selected per (r, K, seed) from validation data only (`docs/harness.md`, "Selecting σ"):
-- **Grid,** in normalized action units (a fraction of the bound 3): 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.
-- **Feasibility before training:** a σ is not trained when more than 5% of its learned-dynamics candidates fail genuinely (non-finite, failed solve, or outside the support). The action bound cannot reject a bounded proposal; if it does, the run stops.
-- **Selection:** the least mean squared action error, in raw torque units, on the unit's held-out demonstration episodes; ties go to the smaller σ.
-- **The exact arm** uses the selected σ of the same (r, K, seed). If more than 5% of its own candidates at that σ fail, the run stops.
+σ is a hyperparameter of CCIL. It is fixed once per (r, K) for every study seed, from the precision pilot's validation data only. It is not retuned per study seed.
+- **Pilot grid,** in normalized action units (a fraction of the bound 3): 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1. Pilot 2 trained the learned arm at every feasible σ on its 10 non-study seeds (`docs/harness.md`, "Selecting σ").
+- **Rule** (`tools/pilot.py sigma`): among the σ feasible on every pilot seed, the one with the least mean validation error over the pilot seeds; ties go to the smaller σ. The validation error is the mean squared action error in raw torque units, on each unit's held-out demonstration episodes. All six σ were feasible on every pilot seed.
+- **Chosen** (`docs/studies/evidence/pendulum-j-r-k/pilot-sigma.json`):
+
+  | r | K = 1 | K = 4 | K = 20 |
+  |---|---|---|---|
+  | 10% | 1e-5 | 1e-5 | 1e-3 |
+  | 25% | 1e-3 | 1e-5 | 1e-5 |
+  | 100% | 1e-3 | 1e-2 | 1e-4 |
+
+  The evidence file gives every σ's mean validation error per (r, K).
+- **Feasibility before training:** if more than 5% of a study unit's candidates at its σ fail genuinely (non-finite, failed solve, or outside the support), under either dynamics, the run stops. The action bound cannot reject a bounded proposal; if it does, the run stops.
+- **Both CCIL arms** train at the same σ(r, K), so exact − learned compares two dynamics models under one σ.
 
 `tools/sigma_geometry.py` reports what each σ produces under exact dynamics, as a committed diagnostic. It does not select.
 
@@ -39,8 +49,9 @@ The exact-dynamics arm isolates dynamics-model error: it uses the same generator
 
 - **Metric:** upright occupancy (fraction of steps within 8° of upright), per seed the mean over the 100 final-test episodes. Normalized height, final hold, effort and saturation are secondary.
 - **Interval:** the union of BCa and paired t over seeds, paired by seed.
-- **Primary family (9):** learned − BC, exact − BC and exact − learned at K = K_max, at each r. Bonferroni: c = 1 − 0.05/9 ≈ 0.9944.
-- **Secondary:** the same contrasts at K = 1 and 4 (uncorrected, reported as description), the selected σ distribution per (r, K), and the candidates' acceptance.
+- **Primary family (6):** learned − BC and exact − learned at K = K_max, at each r, over the 39 seeds. Bonferroni: c = 1 − 0.05/6 ≈ 0.99167.
+- **Derived:** exact − BC at K = K_max, at each r, with the same interval. It is reported, but is not a third primary family: it follows from the two primary contrasts.
+- **Response surface (descriptive):** every (arm, r, K) cell's mean over its own seeds (39 at K = 0 and 20, 10 at K = 1 and 4), with per-seed values, and the candidates' acceptance. It describes shape and saturation; no test is made on it.
 - **Outcomes:** "improves" when the lower endpoint is above 0, "worse" when the upper endpoint is below 0, otherwise "no detectable difference", reported with its interval and no claim of absence.
 
 ## Pilots
@@ -72,11 +83,14 @@ The traces showed why. The gaps between successive improvements were about 1,500
    **Decision.** The convergence procedure is accepted unchanged, and the sentinel's audit uses the mixed criterion above. The absolute tolerance of 10⁻³ N·m was chosen after this non-study sentinel and before the study. It changes only the pilot's audit, not training, stopping, checkpoint selection, the ceiling or the study. Recomputed from the sentinel's existing artifacts (`docs/studies/evidence/pendulum-j-r-k/pilot-stopping-sentinel-mixed.json`, `tools/pilot.py stopping` at 103259f), it **passes**: no unit fails both arms. The largest raw RMSE gain on any unit is 8.0e-4 N·m (BC, r = 10%, which passes the relative arm at 1.9%). The ceiling is unchanged at 260,000 steps. The relative-only result above stays as recorded.
 2. **Precision** (seeds 9511–9520, with the frozen rule and ceiling): the standard deviation of each primary contrast's paired differences. The study uses the smallest n with z_c · sd / √n ≤ 0.05 for every primary contrast, clipped to [20, 50]. Study seeds are 1301 onward.
 
-   **Result** (`studies/pendulum-j-r-k/pilot-precision.yaml`, preflight through evaluation audit, no report; `docs/studies/evidence/pendulum-j-r-k/pilot-precision.json`). All 660 units stopped by the rule; none reached the ceiling, and the latest stop was at 129,480 of 260,000 steps. The largest paired-difference standard deviation is 0.112 (`ccil_exact − ccil_learned`, r = 10%, K = 20). With z_c = 2.77 this gives **n = 39**, so the study uses seeds 1301–1339 (`studies/pendulum-j-r-k/study.yaml`). It ran under the accepted rule, so no unit is rerun.
+   **Result** (`studies/pendulum-j-r-k/pilot-precision.yaml`, preflight through evaluation audit, no report; `docs/studies/evidence/pendulum-j-r-k/pilot-precision.json`). All 660 units stopped by the rule; none reached the ceiling, and the latest stop was at 129,480 of 260,000 steps. The largest paired-difference standard deviation is 0.112 (`ccil_exact − ccil_learned`, r = 10%, K = 20). Over the then-declared family of 9 (z_c = 2.77) this gives **n = 39**, so the study uses seeds 1301–1339 (`studies/pendulum-j-r-k/study.yaml`). It ran under the accepted rule, so no unit is rerun.
+
+   With the family narrowed to the 6 primary contrasts (z_c = 2.64), the same rule gives n = 35. The study keeps 39 at K = 0 and K_max, which meets the target half-width with margin; this was decided before any study outcome.
+3. **σ** (no new training): `tools/pilot.py sigma` on pilot 2's train stage chooses σ per (r, K) (see "σ" above).
 
 ## Execution
 
-From a clean checkout of the merged protocol on siddh:
+From a clean checkout of the public frozen protocol commit on siddh:
 
 ```bash
 mkdir -p data && curl -fL -o data/pendulum_cont_corrected.npz https://github.com/personalrobotics/CCIL/releases/download/data/pendulum-corrected-demonstrator-v1/pendulum_cont_corrected-sha256-59c332bc829db9c9da40d9c1bd9ebbf808965aca6a167be48dc0f2ade52cf43c.npz
@@ -85,6 +99,10 @@ uv run python -m ilsb run studies/pendulum-j-r-k/study.yaml --root runs/<timesta
 ```
 
 The run proceeds through preflight, train, audit, evaluate, evaluation audit and report, and stops at the first failed check. Any undeclared decision stops the run, and the protocol is amended in a new pull request.
+
+### Run history
+
+- **`runs/20261031T134157Z-j-r-k`, aborted.** It started at 13:41:57 UTC from the clean, public PR-head commit `c154bb6`, not a merge commit, with the earlier design: σ selected per (r, K, seed), and 39 seeds at every K (about 2,574 policy units, roughly 11 hours). It was stopped at 13:45:42 UTC solely for design efficiency, before any outcome was read: only preflight had completed, and nothing was evaluated. Its log is kept on siddh, and its root is excluded from every analysis. The study was redesigned as above and restarted clean on a new root.
 
 ## Deferred
 
