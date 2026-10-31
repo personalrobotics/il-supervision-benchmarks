@@ -1,7 +1,7 @@
 # J(r, K | alpha = 0.5) on Pendulum (docs/studies/pendulum-j-r-k.md). Study seeds 1301-1339 (n = 39, from pilot 2:
 # docs/studies/evidence/pendulum-j-r-k/pilot-precision.json) and the final-test starts (eval_seed 2201). Every other
 # setting is pilot 2's: the sentinel's convergence rule and its ceiling (260,000 steps; pilot 2's latest stop was
-# 129,480). Provisional until the convergence decision in the protocol is made.
+# 129,480), accepted with the sentinel's mixed extension criterion.
 study: pendulum-j-r-k
 task: {variant: continuous, action_bound: 3.0, horizon: 500, eval_episodes: 100, eval_seed: 2201}
 data: {path: ../../data/pendulum_cont_corrected.npz,
