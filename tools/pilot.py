@@ -10,8 +10,8 @@ settings, the failure ceiling and the seed count. Neither output carries an arm 
 stopping: ROOT is the convergence sentinel (studies/pendulum-j-r-k/pilot-stopping.yaml): the extremes of the design
 (the smallest and the full real fraction; BC and CCIL at K_max and the largest sigma) on a few non-study seeds,
 trained with the study's convergence rule and then on to twice each unit's stop step (extend_after_stop). It passes
-when the rule fired on every unit before the ceiling and no unit's extension improved its selected validation loss
-by more than 2%. The step ceiling is three times the latest stop step, rounded up to a multiple of 10,000 (a safety
+when the rule fired on every unit before the ceiling, every CCIL unit had drawn each of its synthetic rows by its
+stop, and no unit's extension improved its selected validation loss by more than 2%. The step ceiling is three times the latest stop step, rounded up to a multiple of 10,000 (a safety
 limit only: a study unit that reaches it is an incomplete fit).
 
 precision: for each primary contrast (every contrast at K = K_max, at every real fraction), the standard deviation
@@ -38,7 +38,7 @@ HALF_WIDTH, N_MIN, N_MAX = 0.05, 20, 50
 def rung(root: Path, store: Path) -> dict:
     spec = json.loads((root / "root.json").read_text())["spec"]
     units = json.loads((root / "stages" / "train.json").read_text())["units"]
-    fired, gains, stops, steps = [], [], [], []
+    fired, gains, stops, steps, coverage = [], [], [], [], {}
     for key, u in units.items():
         st = json.loads((store / "policy" / u["entry"] / "training.json").read_text())["stopping"]
         steps.append(st["steps"])
@@ -47,12 +47,18 @@ def rung(root: Path, store: Path) -> dict:
         fired.append(key)
         gains.append(st["extension"]["relative_gain"])
         stops.append(st["stopped_at_step"])
-    ok = len(fired) == len(units) and max(gains) <= GAIN_MAX
+        rec = json.loads((store / "policy" / u["entry"] / "training.json").read_text())["exposure"]
+        coverage[key] = {"demonstration_epoch_steps": rec["demonstration_epoch_steps"],
+                         "demonstration_epochs": rec["demonstration_epochs"],
+                         "synthetic_at_stop": (rec.get("synthetic_coverage") or {}).get("at_stop")}
+    ok = (len(fired) == len(units) and max(gains) <= GAIN_MAX
+          and all(c["synthetic_at_stop"] is None or c["synthetic_at_stop"]["all_rows_drawn"] for c in coverage.values()))
     return {"root": str(root), "settings": {k: spec["learner"].get(k) for k in CONVERGENCE_KEYS},
             "units": len(units), "fired": len(fired), "gain_max": max(gains) if gains else None,
             "gain_q95": float(np.quantile(gains, 0.95)) if gains else None,
             "latest_stop_step": max(stops) if stops else None,
             "median_stop_step": float(np.median(stops)) if stops else None, "steps_trained": int(sum(steps)),
+            "exposure": coverage,
             "pass": ok}
 
 

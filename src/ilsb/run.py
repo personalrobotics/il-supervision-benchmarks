@@ -69,6 +69,9 @@ def load_spec(path: Path) -> dict:
             or not lr.get("step_budget")):
         raise Refused("refused: the learner needs the convergence-driven rule (checkpoint_selection: validation, "
                       "lr_schedule: plateau, patience) and a step_budget, which is only a failure ceiling")
+    if set(spec["arms"]) - {"bc"} and lr.get("synthetic_coverage_before_stop") is not True:
+        raise Refused("refused: CCIL arms need synthetic_coverage_before_stop, so no unit stops before drawing every "
+                      "selected synthetic row")
     return spec
 
 
@@ -150,7 +153,8 @@ class Context:
     def learner_settings(self, arm: str) -> dict:
         s = dict(self.spec["learner"])
         if arm == "bc":
-            s.pop("synthetic_fraction", None)  # BC has no synthetic rows; everything else is identical
+            for k in ("synthetic_fraction", "synthetic_coverage_before_stop"):
+                s.pop(k, None)  # BC has no synthetic rows; everything else is identical
         return s
 
     def generation(self, sigma: float) -> dict:

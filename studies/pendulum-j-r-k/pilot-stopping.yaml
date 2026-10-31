@@ -23,7 +23,7 @@ learner: {hidden_layers: [256, 256], learning_rate: 0.001, batch_size: 512, epoc
           step_budget: 400000, checkpoint_selection: validation,
           validation_interval_epochs: 1, validation_min_steps: 100,
           lr_schedule: plateau, lr_factor: 0.2, lr_patience: 20, min_lr: 1.0e-06, patience: 20,
-          extend_after_stop: 2, synthetic_fraction: 0.5}
+          extend_after_stop: 2, synthetic_fraction: 0.5, synthetic_coverage_before_stop: true}
 analysis: {metric: upright_occupancy, confidence: 0.99444, min_pairs: 2,
            contrasts: [[ccil_learned, bc]]}
 compute: {device: cuda}

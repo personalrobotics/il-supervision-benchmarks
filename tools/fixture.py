@@ -51,7 +51,7 @@ SPEC = {
                 "observation_scaler": "standard", "action_scaler": "min_max", "balance_labels": None,
                 "step_budget": 4000, "checkpoint_selection": "validation", "validation_interval_steps": 20,
                 "patience": 3, "lr_schedule": "plateau", "lr_factor": 0.5, "lr_patience": 2, "min_lr": 2.5e-4,
-                "synthetic_fraction": 0.5},
+                "synthetic_fraction": 0.5, "synthetic_coverage_before_stop": True},
     "analysis": {"metric": "upright_occupancy", "confidence": 0.95, "min_pairs": 2,
                  "contrasts": [["ccil_learned", "bc"], ["ccil_exact", "bc"], ["ccil_exact", "ccil_learned"]]},
     "compute": {"device": "cpu"},
