@@ -2,6 +2,27 @@
 
 **Status: version 1.1 (a label-check amendment, below); version 1 was pushed before any policy in this document is trained.** The outcome is reported as it falls. If it is ambiguous, the result is "positive control not established". Replication is not increased.
 
+## Result (version 1.1: run 20261101T230010Z from `b3f1114`)
+
+**Decision: not established.** The relabel arm fits the demonstrator at held-out off-support states, but its closed loop is no better than BC's or the duplication control's. The evidence is in `docs/studies/evidence/pendulum-positive-control/`: `positive-control.json`, the run log and the phase plot.
+
+- **Selection:** all 10 seeds qualify, with 1,250–4,000 relabeled collection states each.
+  - The demonstrator recovers from every off-support state.
+  - Every label is within the bounds, and every labeled transition adds no manifold drift. The selected states' own drift is at most 2.4e-7.
+  - The states are mostly in pumping. Only seeds 3302, 3304 and 3310 contribute overshoot states.
+- **Primary, held-out action error:** the relabel arm's mean is 0.021 rad/s², against 0.743 for BC and 0.740 for duplication.
+  - Relabel − BC: −0.722, 95% interval [−1.412, −0.153], decreases.
+  - Relabel − Duplication: −0.719, [−1.404, −0.134], decreases.
+- **Closed loop, upright occupancy on the final starts:** the means are 0.271 for BC, 0.323 for duplication and 0.322 for relabel.
+  - Relabel − BC: +0.051, [−0.022, +0.145], no detectable difference.
+  - Relabel − Duplication: −0.001, [−0.053, +0.050], no detectable difference.
+- **Secondary, final hold:** 0.077 for BC, 0.205 for duplication and 0.197 for relabel. The duplication control moves as far as the relabel arm.
+- **Conclusion, per the stop rule:** missing-state supervision at BC-visited off-support states does not improve closed-loop behavior on this task under the current learner and task distribution. A multi-step CCIL generator is not justified by this experiment.
+- **Not tested here (exploratory observation, not a finding):**
+  - The selection excluded the LQR window (|e| < 0.1). In the phase plot, the relabel arm's rollouts reach the approach to upright and pass through it without capture.
+  - The duplication control gains as much as the relabel arm over BC. That suggests the 50/50 mixed-batch training procedure, not the relabels, carries the change.
+  - Both would need their own predeclared study.
+
 ## Question
 
 Does supervising a learner at the states it actually reaches off the demonstrations improve it on the Pendulum, under the current learner and task distribution? The test is a one-shot, DAgger-style experiment:
