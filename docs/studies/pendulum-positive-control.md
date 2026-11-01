@@ -1,6 +1,6 @@
-# Pendulum missing-state positive control: predeclaration, version 1 (#12)
+# Pendulum missing-state positive control: predeclaration, version 1.1 (#12)
 
-**Status: version 1, pushed before any policy in this document is trained.** The outcome is reported as it falls. If it is ambiguous, the result is "positive control not established". Replication is not increased.
+**Status: version 1.1 (a label-check amendment, below); version 1 was pushed before any policy in this document is trained.** The outcome is reported as it falls. If it is ambiguous, the result is "positive control not established". Replication is not increased.
 
 ## Question
 
@@ -61,7 +61,8 @@ The run refuses to proceed if any two sets share a start.
 
 The label at a selected state x is π_D(x), the corrected demonstrator (`ilsb.tasks.pendulum.expert`, clipped to ±3). Each relabel set reports:
 - **Action bounds:** every |π_D(x)| ≤ 3.
-- **Exact transitions:** F(x, π_D(x)) through the exact map is finite and on the manifold, with |sin² + cos² − 1| ≤ 6.7e-7.
+- **Exact transitions:** F(x, π_D(x)) through the exact map is finite, and the transition adds at most 6.7e-7 to the manifold error |sin² + cos² − 1|. The largest manifold error among the selected states is reported too.
+  - *Amended in version 1.1, before any official run.* The exact map carries sin and cos separately. In the off-protocol smoke test, one BC policy spun at up to |ω| = 9.45, and over 500 steps its visited states drifted up to 1.8e-6. That is above the bound calibrated on the dataset (6.7e-7), while the labeled transitions added no drift. An absolute bound would have reported the BC rollouts' own drift as a label failure.
 - **Recovery:** it holds by selection; the fraction of off-support states it removed is reported.
 - **Coverage:**
   - counts by region: pumping (H < 0) and overshoot (H ≥ 0), where H = ½ω² − g(1 − cos e);
