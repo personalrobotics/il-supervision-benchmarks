@@ -16,7 +16,7 @@
 - **Secondary:**
   - Relabel − BC: action error −0.588 [−1.037, −0.150]; final hold +0.600 [+0.288, +0.913].
   - Upright occupancy: relabel 0.628, BC 0.417, duplication 0.396. Relabel − Duplication +0.232 [+0.098, +0.366]; Relabel − BC +0.210 [+0.091, +0.330].
-  - Duplication does not move final hold relative to BC here (0.398 against 0.400).
+  - The point estimates of final hold for duplication and BC are 0.398 and 0.400. That contrast was not part of the decision rule and was not tested.
 - **Descriptive, from the phase plot (seed 3311):** inside the LQR branch the relabel arm's action field matches π_D. Just outside it (|e| from 0.1 to 0.5, |ω| up to about 2), the relabel arm disagrees with π_D more than BC does. The capture labels sharpen the branch interior and distort the field across its boundary. Rollouts still enter the branch and hold.
 - **Naming (recorded after the run; the definition is unchanged and nothing is rerun):** the region is the **demonstrator LQR-branch capture region**: |e| < 0.1, intersected with the states from which π_D captures. It is not the oracle's verified LQR terminal set Ω_c = {xᵀPx ≤ c} (CCIL `docs/experiments/pendulum-oracle.md`).
   - Ω_c is an ellipse in (e, ω) from the DARE on the exact map, verified invariant under its own LQR gain.

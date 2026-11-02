@@ -4,7 +4,7 @@
 
 ## Result (version 1.1: run 20261101T230010Z from `b3f1114`)
 
-**Decision: not established.** The relabel arm fits the demonstrator at held-out off-support states, but its closed loop is no better than BC's or the duplication control's. The evidence is in `docs/studies/evidence/pendulum-positive-control/`: `positive-control.json`, the run log and the phase plot.
+**Decision: not established.** The relabel arm fits the demonstrator at held-out off-support states. This experiment did not establish a closed-loop improvement over BC or the duplication control: both occupancy intervals include zero and also admit a positive effect, up to +0.145 against BC and +0.050 against duplication. The evidence is in `docs/studies/evidence/pendulum-positive-control/`: `positive-control.json`, the run log and the phase plot.
 
 - **Selection:** all 10 seeds qualify, with 1,250–4,000 relabeled collection states each.
   - The demonstrator recovers from every off-support state.
@@ -17,7 +17,8 @@
   - Relabel − BC: +0.051, [−0.022, +0.145], no detectable difference.
   - Relabel − Duplication: −0.001, [−0.053, +0.050], no detectable difference.
 - **Secondary, final hold:** 0.077 for BC, 0.205 for duplication and 0.197 for relabel. The duplication control moves as far as the relabel arm.
-- **Conclusion, per the stop rule:** missing-state supervision at BC-visited off-support states does not improve closed-loop behavior on this task under the current learner and task distribution. A multi-step CCIL generator is not justified by this experiment.
+- **Conclusion:** this experiment did not establish that missing-state supervision at BC-visited off-support states improves closed-loop behavior on this task, under the current learner and task distribution. It does not show the absence of an effect: the intervals admit a positive occupancy effect.
+- **Stop rule:** the predeclared stop rule requires an established positive control, so this result does not justify the multi-step CCIL follow-up.
 - **Not tested here (exploratory observation, not a finding):**
   - The selection excluded the LQR window (|e| < 0.1). In the phase plot, the relabel arm's rollouts reach the approach to upright and pass through it without capture.
   - The duplication control gains as much as the relabel arm over BC. That suggests the 50/50 mixed-batch training procedure, not the relabels, carries the change.
