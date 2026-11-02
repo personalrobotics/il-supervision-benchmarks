@@ -18,7 +18,15 @@
   - Upright occupancy: relabel 0.628, BC 0.417, duplication 0.396. Relabel − Duplication +0.232 [+0.098, +0.366]; Relabel − BC +0.210 [+0.091, +0.330].
   - Duplication does not move final hold relative to BC here (0.398 against 0.400).
 - **Descriptive, from the phase plot (seed 3311):** inside the LQR branch the relabel arm's action field matches π_D. Just outside it (|e| from 0.1 to 0.5, |ω| up to about 2), the relabel arm disagrees with π_D more than BC does. The capture labels sharpen the branch interior and distort the field across its boundary. Rollouts still enter the branch and hold.
-- **Scope:** exploratory, because the region was chosen after inspecting the pumping-region control. It shows that demonstrator supervision at BC-visited capture states can improve this learner's closed loop on Pendulum. It is not evidence for CCIL. Per the decision rule, CCIL #171 may implement the data-only recovery-segment diagnostic. That diagnostic must cover the capture region from demonstrations alone before any CCIL learner arm runs.
+- **Naming (recorded after the run; the definition is unchanged and nothing is rerun):** the region is the **demonstrator LQR-branch capture region**: |e| < 0.1, intersected with the states from which π_D captures. It is not the oracle's verified LQR terminal set Ω_c = {xᵀPx ≤ c} (CCIL `docs/experiments/pendulum-oracle.md`).
+  - Ω_c is an ellipse in (e, ω) from the DARE on the exact map, verified invariant under its own LQR gain.
+  - This region is a band in e alone, defined by the demonstrator's switching rule and its fixed gains, and verified by rolling π_D out from each state.
+  - The two are related but are not the same set, and neither contains the other by construction. Where this document says "capture region", it means the demonstrator LQR-branch capture region.
+- **Conclusion:** for states visited by BC inside the demonstrator's LQR branch, corrected-demonstrator labels improve both held-out action accuracy and final capture, beyond exposure-matched duplication.
+- **Scope:** exploratory, because the region was chosen after inspecting the pumping-region control.
+  - It establishes that recovery supervision can matter on Pendulum.
+  - It does not establish that CCIL generates those states or labels.
+  - Per the decision rule, CCIL #171 may implement the data-only recovery-segment diagnostic. That diagnostic must cover this region's held-out capture states from demonstrations alone before any CCIL learner arm runs.
 
 ## Question
 
