@@ -2,6 +2,53 @@
 
 **Status: version 1.** This document is committed and pushed before any code for this study exists, any transition model is fitted, any policy is trained or any rollout is run. It fixes the gates, seed sets, start sets, stop rules and the pilot rule. Any later change is a numbered amendment (see "Amendments"), with its reason, made before the outcome it could affect is read.
 
+## Result, Stage A (run 20261102T221735Z from `60d8959`; exploratory)
+
+**Outcome: stop 1. No M passes for the exact arm, so no M is selected, the synthetic view is empty, and Stage B does not run.** Per this protocol, Pendulum stops here: the ladder is not extended and no threshold is relaxed. The diagnosis below is what the stop means. It is a statement about these targeted failure states on this task, not evidence that CCIL generally cannot help.
+
+**Evidence** (`docs/studies/evidence/pendulum-recovery-segments/`): `stage-a.json` (every gate per seed, M and arm; the selection; the discovery verdict; S; the sha256 of every run artifact), the run log and launch script, `check.json`, the phase portrait `pendulum-recovery-segments.svg`, and `archive.json`. The full run directory, with the row-level quality fields of all proposed labels, is 96 MB. It is kept as a reproducible archive whose sha256 is in `archive.json`, and is not in git.
+
+**Recheck:** with the archive extracted to DIR, `uv run python tools/recovery_segments_check.py --run DIR --stage-a docs/studies/evidence/pendulum-recovery-segments/stage-a.json`. It verifies every artifact hash, recomputes every gate and the selection with the tool's own functions, and checks the supervision-row schema. On the run host it passes every check (`check.json`, from `97fe999`).
+
+### Gates: design seeds passing, of 5 (an M needs ≥ 4 on every gate)
+
+| Arm | Gate | M = 1 | 2 | 4 | 8 | 16 |
+|---|---|---|---|---|---|---|
+| exact | G2 arrival | 2 | 2 | 3 | 3 | 3 |
+| exact | G3 coverage | 4 | 4 | 4 | 4 | 4 |
+| exact | **G4 novelty** | **0** | **0** | **0** | **0** | **0** |
+| exact | G7 labels | 3 | 3 | 3 | 4 | 3 |
+| learned | G1 exact replay | 3 | 3 | 1 | 0 | 0 |
+| learned | G2 arrival | 3 | 3 | 3 | 4 | 4 |
+| learned | G3 coverage | 4 | 4 | 4 | 4 | 4 |
+| learned | **G4 novelty** | **0** | **0** | **0** | **0** | **0** |
+| learned | G5 model agreement | 4 | 4 | 4 | 4 | 4 |
+| learned | G6 trusted exact replay | 3 | 3 | 1 | 0 | 0 |
+| learned | G7 labels | 0 | 0 | 2 | 3 | 2 |
+
+### Diagnosis
+
+- **The failures are on demonstration support (G4, decisive).** On every seed, at every M and for both arms, the median distance from a row state to the nearest training demonstration is 0.014–0.22 τ_demo; the gate requires ≥ 1. The provisional BC fails along the demonstrations' own approach to upright (the separatrix branches in panel (a)), not in a region the demonstrations miss. Targeted segments therefore add no coverage, at any horizon.
+- **Correct labels at those states exist and beat BC (exact arm, G7).** In the capture region the exact-arm labels' median error against π_D is 0–0.11, against the provisional BC's 0.04–1.25 at the same states. G7 passes on 3–4 seeds. Together with the capture control's result (relabeling BC-visited capture states fixes final hold), this points to a fitting or label-resolution deficit at covered states, not missing coverage.
+- **Arrival (G2):** seed 3322's exact arm reaches its target for only 20–27% of failure states. Seed 3323's provisional BC achieves final hold from every start in both design sets, so it has no failure states and fails G2 by definition.
+- **Learned dynamics (G1, G5, G6):** the check model agrees with the primary model (G5 passes on 4 seeds at every M), yet exact replay fails from M = 4 onward (G1 and G6 fall to 0–1 seeds). The two models agree with each other more than either agrees with the true map, so G5 alone would have admitted wrong segments. At M = 1–2 the learned labels miss G7 on every seed.
+- **Exposure and closed loop:** not reached; no policy beyond the provisional BC was trained.
+
+### Data-only discovery (diagnostic; no stop rule)
+
+Verdict: **discovery is a separate bottleneck** (3 of 5 seeds reproduce). Rolled out inside the learned model, the provisional BC fails where it really fails on seeds 3321, 3324 and 3325: ≥ 99.8% of the real held-out failures lie within ρ_cov of a model failure, although model and real rollouts diverge after a median of 39–57 steps. On seed 3322 the model rollout finds no failure while the real BC fails on 53 trajectories. Seed 3323 has no real failures, so its coverage is undefined and counts as not reproducing.
+
+### Stage B step budget
+
+S = 42,000 (2 × the median best-validation step of the five provisional BCs), recorded as the protocol requires. Unused, since Stage B does not run.
+
+### Process notes
+
+- **Smoke run on a study seed (disclosed).** Before the real run, my first smoke run (run 20261102T220937Z) used design seed 3321 with 20 starts from the design collection set 2401, at M ∈ {1, 2}. Its log showed that seed's gate outcomes there (no M passing) before Stage A ran. The gates were already frozen in `e869b67`, and no gate, threshold, seed or start set changed afterwards. The tool's smoke mode was then moved to non-study seed 3399 and start sets 2498 and 2499 (`60d8959`), checked disjoint from every study set.
+- The figure tool was changed after the run (`97fe999`) only to rasterize its dense layers. It reads the same records, and `--check` reproduces the committed SVG.
+
+## Scope
+
 This is a small **exploratory mechanism study**. It is an extension beyond the paper's one-step (M = 1) CCIL and is labeled as such everywhere it is reported. A favorable CCIL result is not required; the intended outcome is a clear answer about where the method succeeds or stops. A refusal or null outcome is not evidence that CCIL generally cannot help.
 
 ## Question

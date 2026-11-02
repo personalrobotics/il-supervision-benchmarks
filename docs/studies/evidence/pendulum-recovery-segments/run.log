@@ -1,0 +1,75 @@
+command: uv run python tools/recovery_segments.py --out runs/20261102T221735Z-recovery-segments
+commit: 60d89596dfecdb42c286c9e301b92476763b53ac dirty_tracked: 0
+host: siddh  14:17:35 up 10 days,  9:03,  2 users,  load average: 1.33, 1.53, 0.83
+NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition, 455 MiB, 97887 MiB
+NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition, 15 MiB, 97887 MiB
+               total        used        free      shared  buff/cache   available
+Mem:             125           6          60           0          59         118
+numpy 2.5.4 scipy 1.16.3 torch 2.14.1+cu130 ccil /home/siddh/code/il-supervision-benchmarks/.venv/lib/python3.12/site-packages/ccil/__init__.py
+14:17:37 run {"protocol": "docs/studies/pendulum-recovery-segments.md (version 1)", "commit": "60d89596dfecdb42c286c9e301b92476763b53ac", "smoke": false, "data_sha256": "59c332bc829db9c9da40d9c1bd9ebbf808965aca6a167be48dc0f2ade52cf43c", "tools_sha256": {"tools/recovery_segments.py": "75672d18c21b5011c12893d56aab8187a83d98fb5dd139fc5402dfb3f9fd6647", "tools/positive_control.py": "54bda696a7f52ad9af5279d027caac59c52aaa45df8b08747064a1982333ad7a", "src/ilsb/tasks/pendulum.py": "852685a122b114d3adf813e63e1587c82828b21becf30a176f5e2469606307bf", "src/ilsb/tasks/pendulum_map.py": "0b5b6d04dd688ffe93a7ad549e61d97045e1b94b5f9ffca56d12b37d23a657fe", "src/ilsb/learners/vector_bc.py": "6df5e59dd30b05bb9f926b6fb58398fc76507edd875f9c81ead601997173a4d4"}}
+14:17:37 data ready 5 seeds
+14:21:29 train bc (5 seeds) done, 232 s
+14:21:29 bc trained [3321, 3322, 3323, 3324, 3325]
+14:21:32 failures 3321 {"collection": {"eval_seed": 2401, "episodes": 100, "failure_trajectories": 100, "failure_states": 4000, "pi_d_recovers_fraction": 1.0}, "held_out": {"eval_seed": 2402, "episodes": 100, "failure_trajectories": 100, "failure_states": 4000, "pi_d_recovers_fraction": 1.0}}
+14:21:33 failures 3322 {"collection": {"eval_seed": 2401, "episodes": 100, "failure_trajectories": 53, "failure_states": 2120, "pi_d_recovers_fraction": 1.0}, "held_out": {"eval_seed": 2402, "episodes": 100, "failure_trajectories": 52, "failure_states": 2080, "pi_d_recovers_fraction": 1.0}}
+14:21:34 failures 3323 {"collection": {"eval_seed": 2401, "episodes": 100, "failure_trajectories": 0, "failure_states": 0, "pi_d_recovers_fraction": null}, "held_out": {"eval_seed": 2402, "episodes": 100, "failure_trajectories": 0, "failure_states": 0, "pi_d_recovers_fraction": null}}
+14:21:36 failures 3324 {"collection": {"eval_seed": 2401, "episodes": 100, "failure_trajectories": 100, "failure_states": 4000, "pi_d_recovers_fraction": 1.0}, "held_out": {"eval_seed": 2402, "episodes": 100, "failure_trajectories": 100, "failure_states": 4000, "pi_d_recovers_fraction": 1.0}}
+14:21:39 failures 3325 {"collection": {"eval_seed": 2401, "episodes": 100, "failure_trajectories": 97, "failure_states": 3880, "pi_d_recovers_fraction": 1.0}, "held_out": {"eval_seed": 2402, "episodes": 100, "failure_trajectories": 94, "failure_states": 3760, "pi_d_recovers_fraction": 1.0}}
+14:21:39 failures done, 10 s
+14:21:47 fit 10 transition models done, 8 s
+14:21:47 generate 3321 M=1 exact accepted 2934/4000 0.4 s
+14:21:47 generate 3321 M=1 learned accepted 2960/4000 0.1 s
+14:21:48 generate 3321 M=2 exact accepted 2996/4000 1.0 s
+14:21:49 generate 3321 M=2 learned accepted 3072/4000 0.3 s
+14:21:54 generate 3321 M=4 exact accepted 3024/4000 5.0 s
+14:21:54 generate 3321 M=4 learned accepted 3211/4000 0.7 s
+14:22:12 generate 3321 M=8 exact accepted 3092/4000 17.6 s
+14:22:14 generate 3321 M=8 learned accepted 3321/4000 2.2 s
+14:23:24 generate 3321 M=16 exact accepted 3357/4000 69.9 s
+14:23:32 generate 3321 M=16 learned accepted 3446/4000 8.2 s
+14:23:32 generate 3322 M=1 exact accepted 430/2120 0.2 s
+14:23:32 generate 3322 M=1 learned accepted 432/2120 0.1 s
+14:23:33 generate 3322 M=2 exact accepted 434/2120 0.6 s
+14:23:33 generate 3322 M=2 learned accepted 443/2120 0.2 s
+14:23:35 generate 3322 M=4 exact accepted 439/2120 1.9 s
+14:23:36 generate 3322 M=4 learned accepted 498/2120 0.4 s
+14:23:43 generate 3322 M=8 exact accepted 512/2120 7.1 s
+14:23:44 generate 3322 M=8 learned accepted 1330/2120 1.2 s
+14:24:15 generate 3322 M=16 exact accepted 579/2120 31.5 s
+14:24:20 generate 3322 M=16 learned accepted 1434/2120 4.5 s
+14:24:20 generate 3323 M=1 exact accepted 0/0 0.0 s
+14:24:20 generate 3323 M=1 learned accepted 0/0 0.0 s
+14:24:20 generate 3323 M=2 exact accepted 0/0 0.0 s
+14:24:20 generate 3323 M=2 learned accepted 0/0 0.0 s
+14:24:20 generate 3323 M=4 exact accepted 0/0 0.0 s
+14:24:20 generate 3323 M=4 learned accepted 0/0 0.0 s
+14:24:20 generate 3323 M=8 exact accepted 0/0 0.0 s
+14:24:20 generate 3323 M=8 learned accepted 0/0 0.0 s
+14:24:20 generate 3323 M=16 exact accepted 0/0 0.0 s
+14:24:20 generate 3323 M=16 learned accepted 0/0 0.0 s
+14:24:20 generate 3324 M=1 exact accepted 1947/4000 0.4 s
+14:24:20 generate 3324 M=1 learned accepted 2186/4000 0.1 s
+14:24:21 generate 3324 M=2 exact accepted 1999/4000 1.1 s
+14:24:22 generate 3324 M=2 learned accepted 2430/4000 0.3 s
+14:24:25 generate 3324 M=4 exact accepted 2035/4000 3.6 s
+14:24:26 generate 3324 M=4 learned accepted 2676/4000 0.7 s
+14:24:42 generate 3324 M=8 exact accepted 2100/4000 16.2 s
+14:24:44 generate 3324 M=8 learned accepted 2871/4000 2.3 s
+14:25:55 generate 3324 M=16 exact accepted 2438/4000 70.9 s
+14:26:04 generate 3324 M=16 learned accepted 3037/4000 8.2 s
+14:26:04 generate 3325 M=1 exact accepted 3105/3880 0.3 s
+14:26:04 generate 3325 M=1 learned accepted 3143/3880 0.1 s
+14:26:05 generate 3325 M=2 exact accepted 3151/3880 1.0 s
+14:26:05 generate 3325 M=2 learned accepted 3212/3880 0.3 s
+14:26:09 generate 3325 M=4 exact accepted 3185/3880 3.4 s
+14:26:09 generate 3325 M=4 learned accepted 3304/3880 0.7 s
+14:26:25 generate 3325 M=8 exact accepted 3242/3880 15.1 s
+14:26:27 generate 3325 M=8 learned accepted 3400/3880 2.1 s
+14:26:47 generate running, 300 s
+14:27:35 generate 3325 M=16 exact accepted 3460/3880 68.1 s
+14:27:43 generate 3325 M=16 learned accepted 3563/3880 7.8 s
+14:27:43 generate done, 356 s
+14:27:44 discovery done, 1 s
+14:27:44 selection {"passes": {"exact": {"1": false, "2": false, "4": false, "8": false, "16": false}, "learned": {"1": false, "2": false, "4": false, "8": false, "16": false}}, "selected_M": null, "stop": "stop 1: no M passes for the exact arm; the targeted geometry is inadequate"}
+14:27:44 discovery discovery is a separate bottleneck S 42000
+EXIT=0
