@@ -6,9 +6,19 @@
 
 **Outcome: stop 1. No M passes for the exact arm, so no M is selected, the synthetic view is empty, and Stage B does not run.** Per this protocol, Pendulum stops here: the ladder is not extended and no threshold is relaxed. The diagnosis below is what the stop means. It is a statement about these targeted failure states on this task, not evidence that CCIL generally cannot help.
 
-**Evidence** (`docs/studies/evidence/pendulum-recovery-segments/`): `stage-a.json` (every gate per seed, M and arm; the selection; the discovery verdict; S; the sha256 of every run artifact), the run log and launch script, `check.json`, the phase portrait `pendulum-recovery-segments.svg`, and `archive.json`. The full run directory, with the row-level quality fields of all proposed labels, is 96 MB. It is kept as a reproducible archive whose sha256 is in `archive.json`, and is not in git.
+**Evidence** (`docs/studies/evidence/pendulum-recovery-segments/`): `stage-a.json` (every gate per seed, M and arm; the selection; the discovery verdict; S; the sha256 of every run artifact), the run log and launch script, `check.json`, the phase portrait `pendulum-recovery-segments.svg`, and `archive.json`. The full run directory, with the row-level quality fields of all proposed labels, is 96 MB. It is not in git; it is published unchanged as the asset of the evidence-only tag `evidence-pendulum-recovery-segments-stage-a-v1`, with its sha256, run commit and URL in `archive.json`. The asset is never overwritten; a correction becomes a new evidence version.
 
-**Recheck:** with the archive extracted to DIR, `uv run python tools/recovery_segments_check.py --run DIR --stage-a docs/studies/evidence/pendulum-recovery-segments/stage-a.json`. It verifies every artifact hash, recomputes every gate and the selection with the tool's own functions, and checks the supervision-row schema. On the run host it passes every check (`check.json`, from `97fe999`).
+**Recheck from a clean clone:**
+
+```
+T=evidence-pendulum-recovery-segments-stage-a-v1; A=20261102T221735Z-recovery-segments.tar.gz
+curl -LO https://github.com/personalrobotics/il-supervision-benchmarks/releases/download/$T/$A
+echo "9d0f25d957fc612589f0889be421bf14929c44f0307b8a19d15d8de99bc11f69  $A" | sha256sum -c
+mkdir -p ev && tar -xzf $A -C ev
+uv run python tools/recovery_segments_check.py --run ev/20261102T221735Z-recovery-segments \
+    --stage-a docs/studies/evidence/pendulum-recovery-segments/stage-a.json
+```
+ It verifies every artifact hash, recomputes every gate and the selection with the tool's own functions, and checks the supervision-row schema. On the run host it passes every check (`check.json`, from `97fe999`).
 
 ### Gates: design seeds passing, of 5 (an M needs ≥ 4 on every gate)
 

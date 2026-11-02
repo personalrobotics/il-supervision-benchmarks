@@ -4,6 +4,11 @@
  "bytes": 96111122,
  "sha256": "9d0f25d957fc612589f0889be421bf14929c44f0307b8a19d15d8de99bc11f69",
  "built_with": "tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner -cf - -C runs 20261102T221735Z-recovery-segments | gzip -n",
- "location": "run host, ~/code/il-supervision-benchmarks/runs/; not yet published",
- "stage_a_sha256": "66100f2b3952a0ea9400914055165d27e89260584dfef4a69dcf9fc1420d8a10"
+ "location": "GitHub release asset of the evidence-only tag evidence-pendulum-recovery-segments-stage-a-v1 (published after this result is merged; never overwritten: a correction is a new evidence version, -v2, ...). Copies also kept on the run host and off it.",
+ "stage_a_sha256": "66100f2b3952a0ea9400914055165d27e89260584dfef4a69dcf9fc1420d8a10",
+ "tag": "evidence-pendulum-recovery-segments-stage-a-v1",
+ "url": "https://github.com/personalrobotics/il-supervision-benchmarks/releases/download/evidence-pendulum-recovery-segments-stage-a-v1/20261102T221735Z-recovery-segments.tar.gz",
+ "run_commit": "60d89596dfecdb42c286c9e301b92476763b53ac",
+ "checker_commit": "97fe999",
+ "reproduce": "curl -LO URL; sha256sum -c (expect sha256); tar -xzf ARCHIVE -C DIR; uv run python tools/recovery_segments_check.py --run DIR/20261102T221735Z-recovery-segments --stage-a docs/studies/evidence/pendulum-recovery-segments/stage-a.json"
 }
