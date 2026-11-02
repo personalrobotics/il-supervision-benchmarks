@@ -12,8 +12,9 @@ each decision block to match decision.json: outcomes, seeds and counts exactly, 
 libraries differ in the last bits across platforms; bitwise_equal reports which blocks are bit-identical here). Exit status 0 only when every check passes.
 
 replay runs where the study's run directory is (it reads the original checkpoints named in RUN/audit.json and the
-replay policies in RUN/matched/policies, both read-only) and writes, per seed, both files' sha256, their array keys,
-whether every array is equal, and the largest absolute difference.
+replay policies in RUN/matched/policies, both read-only) and writes, per seed, both files' sha256, the weight and
+scaler arrays, whether every one is equal, the largest absolute difference, and the metadata fields that differ (the
+files' hashes differ through the metadata string, which records the arm name and the training group's execution).
 """
 from __future__ import annotations
 
@@ -86,17 +87,20 @@ def replay(run: Path) -> dict:
         o_p = Path(units[f"continuous/ccil/s{s}"]["checkpoint"])
         r_p = run / "matched/policies/replay_ccil" / f"s{s}" / "policy.npz"
         o, r = np.load(o_p, allow_pickle=False), np.load(r_p, allow_pickle=False)
-        keys = sorted(set(o.files) | set(r.files))
-        same, worst = sorted(o.files) == sorted(r.files), 0.0
-        for k in sorted(set(o.files) & set(r.files)):
-            a, b = o[k], r[k]
-            eq = a.shape == b.shape and a.dtype == b.dtype and np.array_equal(a, b)
-            same &= bool(eq)
-            if a.dtype.kind in "fc" and a.shape == b.shape:
-                worst = max(worst, float(np.max(np.abs(a - b), initial=0.0)))
+        arrays = sorted(k for k in set(o.files) | set(r.files) if k != "meta")
+        same, worst = all(k in o.files and k in r.files for k in arrays), 0.0
+        for k in arrays:
+            if k in o.files and k in r.files:
+                a, b = o[k], r[k]
+                same &= bool(a.shape == b.shape and a.dtype == b.dtype and np.array_equal(a, b))
+                if a.dtype.kind in "fc" and a.shape == b.shape:
+                    worst = max(worst, float(np.max(np.abs(a - b), initial=0.0)))
+        mo, mr = json.loads(str(o["meta"])), json.loads(str(r["meta"]))
         seeds[str(s)] = {"original_sha256": rt.sha256_file(o_p), "replay_sha256": rt.sha256_file(r_p),
                          "original_checkpoint_sha256_in_audit": units[f"continuous/ccil/s{s}"]["checkpoint_sha256"],
-                         "keys": keys, "all_arrays_equal": same, "max_abs_difference": worst}
+                         "arrays": arrays, "all_arrays_equal": same, "max_abs_difference": worst,
+                         "meta_fields_differing": {k: [mo.get(k), mr.get(k)] for k in sorted(set(mo) | set(mr))
+                                                   if mo.get(k) != mr.get(k)}}
     return {"run": str(run), "seeds": seeds, "all_seeds_equal": all(v["all_arrays_equal"] for v in seeds.values()),
             "check_commit": rt.pc.git("rev-parse", "HEAD"), "check_dirty": bool(rt.pc.git("status", "--porcelain"))}
 
