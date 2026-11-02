@@ -52,12 +52,7 @@ Policies are compared only within a cohort. Eligibility is decided by the audit 
    - **Eligible** only if every file listed in the committed `docs/studies/evidence/pendulum-capture-control/artifact-manifest.json` exists and matches its sha256. That includes the selected-state files holding the held-out capture states. Every policy hash must also match `capture-control.json`.
    - **If excluded,** the study stops, because the evaluator cannot be validated.
 2. **Corrected-demonstrator study** (primary cohort): BC and CCIL, continuous variant, training seeds 1201–1220, from CCIL run `20261029T191145Z-corrected-study`.
-   - **Eligible** only if the hash chain reconciles for all 40 units:
-     1. the checkpoint's `policy.npz` sha256 equals the `files` entry of its `policy-train` stage manifest;
-     2. that stage is one of the units recorded as `ok` in the committed CCIL `study-audit.json`;
-     3. its `policy-evaluate` stage consumed that checkpoint hash at noise level 0.0;
-     4. that stage produced a rollout whose sha256 equals the entry `continuous/{arm}/s{seed}/0.0` in the committed CCIL `study-evaluate.json`.
-   - **CCIL inputs:** for each CCIL unit, the training stage's `candidates.npz` must match the hash its manifest records. The dataset must be `59c332bc…cf43c`.
+   - **Eligible** only if the checkpoint → record → committed-rollout hash chain reconciles for all 40 units, as set out in Amendment 1.
    - **Exclusion is all-or-nothing.** If any unit fails, the cohort is excluded. Seeds are not subset.
 3. **Response surface** (optional and descriptive only): run `20261031T141026Z-j-r-k`.
    - **Evaluated** only if its content-addressed store is internally complete:
@@ -212,6 +207,18 @@ The tests are sequential and each gates the next, so no multiplicity adjustment 
   3. recovery and failure maps per arm;
   4. the CCIL − control recovery difference;
   5. recovery versus achieved Δ, with q50, q95, the maximum and the τ★ reference line marked.
+
+## Amendments
+
+### Amendment 1 (2026-11-02, before any evaluator code or outcome): the corrected cohort's hash chain
+
+**Reason.** Version 1 said the `policy-evaluate` stage consumed the checkpoint and produced the committed rollout. That is wrong. At CCIL `6fbcce5`, `policy.evaluate` computes offline action-error metrics only. The committed rollouts in `study-evaluate.json` come from the separate evaluate step, `tools/pendulum_eval/corrected_study.py evaluate` at `e1ca5b5`, run as `20261030T013609Z-corrected-eval`. That step loads each checkpoint from the unit record's `policy.train` stage and refuses any checkpoint whose sha256 is not the record's `checkpoint_sha256`. Only the description of the mechanism changes. The all-or-nothing exclusion rule is unchanged.
+
+**The chain, for each of the 40 units (continuous; BC and CCIL; seeds 1201–1220):**
+1. **Record:** the run's unit record `results/study/continuous/{arm}/s{seed}.json` has status `ok`. The committed CCIL `study-audit.json` lists the same unit as `ok`.
+2. **Checkpoint:** the sha256 of `checkpoints/policy.npz` in the record's `policy.train` stage equals both the stage manifest's `files` entry and the record's `checkpoint_sha256`. That stage directory appears in the committed `study-audit.json` `stages` with `pass: true`.
+3. **Rollout:** in the evaluate run, the sha256 of `continuous/{arm}/s{seed}-0.0.npz` equals `rollout_sha256["continuous/{arm}/s{seed}/0.0"]` in the committed CCIL `study-evaluate.json`. The checkpoint-to-rollout link is the evaluate step's refusal rule above. No hash inside the rollout names the checkpoint, and this study does not re-create the rollouts.
+4. **CCIL inputs:** for each CCIL unit, the `labels.generate` stage's `labels/candidates.npz` has the sha256 recorded under `inputs.candidates` in the `policy.train` manifest. The dataset input is `59c332bc…cf43c`.
 
 ## Not done
 
