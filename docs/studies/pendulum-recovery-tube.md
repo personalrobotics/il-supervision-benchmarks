@@ -96,21 +96,21 @@ Everything in this phase depends only on the reconciled candidates, the dataset,
 - **The undisturbed case** starts the policy at the anchor itself. It measures tracking and is reported separately.
 - **Identical inputs:** every arm in the cohort gets the same 7,400 initial states: 200 anchors × (36 disturbances + 1 undisturbed). These states are for evaluation only. They select no setting, checkpoint or training data.
 
-### Dose bins and testability (from the pooled tube scale)
+### Dose bins and testability (from the pooled tube scale; as amended by Amendment 3)
 
-- **Inside:** 0 < Δ ≤ q95.
-- **Edge:** q95 < Δ ≤ 2·q95.
+- **Target tube for the corrected cohort:** radius ρ_c = q95, the pooled label-tube scale. Every bin of this cohort, and the response-surface cohort's descriptive curves, are scored against ρ_c.
+- **Inside** (retention, reported separately): 0 < Δ ≤ q95. These states start in the target tube, so success means staying there.
+- **Edge** (primary): q95 < Δ ≤ 2·q95. These states start outside the target tube, so success means returning to it.
 - **Beyond** (diagnostic): log₂ bins (2^j·q95, 2^(j+1)·q95] for j ≥ 1, up to the largest Δ. A bin is reported only if it holds at least 20 disturbed states.
-- **Testability:** the corrective-tube hypothesis is **testable with these checkpoints** only if both hold:
-  - the inside bin holds at least 200 disturbed states;
-  - the edge bin holds at least 200 disturbed states.
+- **Testability:** the corrective-tube hypothesis is **testable with these checkpoints** only if q95 > 0 and the edge bin holds at least 200 disturbed states.
 - **If it is not testable** (for example, because the label tube is effectively zero and no feasible disturbance resolves it), the study reports that, and decision 2 is not made. The full Δ curve is still reported as a diagnostic. That outcome by itself would explain why exposure, rather than corrective information, could account for the aggregate effect.
 
 ## Recovery (fixed)
 
 After the disturbance, the evaluated policy controls for H = 300 steps. Its commanded action is clipped to ±3 by `Task.step`.
 
-- **Recovered (as amended by Amendment 2):** there are a single lag s with |s| ≤ 25 steps (0.5 s) and an onset j ≤ 250 such that d(x_m, r_{m+s}) ≤ ρ for every m = j, …, 300. ρ = 0.1, the demonstrator's LQR-branch scale.
+- **Recovered (as amended by Amendment 2):** there are a single lag s with |s| ≤ 25 steps (0.5 s) and an onset j ≤ 250 such that d(x_m, r_{m+s}) ≤ ρ for every m = j, …, 300.
+  - The tube radius ρ is ρ_c = q95 for the corrected, duplication and response-surface cohorts (Amendment 3). It is ρ = 0.1, the demonstrator's LQR-branch scale, for the capture sensitivity gate.
   - The rollout enters the tube and stays there to the end of the horizon, which is at least 50 steps (1 s).
   - The lag is fixed from onset to the end, so the rollout follows one coherent continuation.
   - The selected (s, j) is recorded, taking the smallest j and then the smallest |s|, with negative s first on a tie.
@@ -128,7 +128,8 @@ After the disturbance, the evaluated policy controls for H = 300 steps. Its comm
 
 ## Outcomes
 
-- **Primary (corrected cohort): local recovery.** For each (arm, seed), take the recovery fraction in the inside bin and in the edge bin. The statistic is the **log-grid mean** of those two fractions.
+- **Primary (corrected cohort): local recovery (Amendment 3).** For each (arm, seed), the recovery fraction over the edge bin: states that start outside the target tube ρ_c = q95 and must return to it.
+- **Reported separately:** retention, the success fraction over the inside bin.
 - **Diagnostic:**
   - the full recovery curve over all reported bins;
   - its log-grid mean;
@@ -136,28 +137,40 @@ After the disturbance, the evaluated policy controls for H = 300 steps. Its comm
   - the per-stratum, per-k and per-sign breakdowns.
 - **Paired statistic:** per-seed differences, with a 95% interval that is the union of BCa and t (`ilsb.analysis.union_interval`). "Above 0" means the interval's lower end is > 0.
 
-## Evaluator fitness (capture cohort)
+## Evaluator sensitivity gate (capture cohort; as amended by Amendment 3)
 
-- **The intervention** is the one on which the capture effect was established: each seed's saved held-out capture states, the `diagnostic/x` array of `select/s{seed}.npz` in the capture run, identity-checked by the audit.
+- **This is a new sensitivity gate, not a reproduction.** The capture control established held-out action error on these states and final hold from fresh starts. It did not establish recovery from these states. The gate asks whether this evaluator registers the established capture supervision as recovery.
+- **The inputs** are each seed's saved held-out capture states, the `diagnostic/x` array of `select/s{seed}.npz` in the capture run, identity-checked by the audit.
 - **Each arm** starts from each such state undisturbed. Its reference continuation r is π_D from that state, and it is scored by the recovery rule above.
 - **The statistic** is the per-seed recovery fraction over those states. These states define this cohort's inputs. The anchors and disturbances above are reported for it descriptively only.
 
 ## Decision rules (sequential; each gates the next)
 
-1. **Evaluator fitness (capture cohort).**
+1. **Evaluator sensitivity (capture cohort).**
    - The evaluator is **fit** only if Relabel − Duplication recovery on the held-out capture states is above 0.
-   - Otherwise the study **stops**. It reports that the evaluator does not detect the established capture effect. The corrected cohort is not evaluated.
+   - Otherwise the study **stops**. It reports that this evaluator does not register the established capture supervision as recovery. The corrected cohort is not evaluated.
 2. **Local recovery signal (corrected cohort; only if testable).**
-   - CCIL − BC primary log-grid mean above 0 means **signal**: go to step 3.
+   - CCIL − BC primary (edge-bin recovery) above 0 means **signal**: go to step 3.
    - Otherwise the result is **"no local recovery-tube enlargement detected"**. The study stops and publishes it. No duplication arm is trained.
-3. **Attribution (only after a signal).**
-   - Train the exposure-matched duplication arm (next section) and evaluate it on the same inputs.
-   - CCIL − Duplication primary above 0 means **supervision-driven**. Otherwise the effect is **not attributable to corrective information**.
-   - Duplication − BC (exposure) and CCIL − BC (total recipe) are reported with the same intervals and do not decide.
+3. **Attribution (only after a signal; as amended by Amendment 3).**
+   - Train the matched pair (next section): replay-CCIL and duplication, in one group. Evaluate both on the same inputs.
+   - Replay-CCIL − Duplication primary above 0 means **supervision-driven**. Otherwise the effect is **not attributable to corrective information**.
+   - Reported with the same intervals, without deciding:
+     - original CCIL − replay-CCIL (retraining drift);
+     - Duplication − BC (exposure);
+     - original CCIL − BC (total recipe).
 
 The tests are sequential and each gates the next, so no multiplicity adjustment is applied. The diagnostic curves, the breakdowns and the response-surface cohort do not decide.
 
-## Exposure-matched duplication (step 3 only)
+## Matched replay and duplication (step 3 only; as amended by Amendment 3)
+
+- **Two arms are trained fresh, together:**
+  - **replay-CCIL:** the CCIL arm's supervision, rebuilt read-only and required to reproduce the unit's recorded supervision manifest and training identity;
+  - **duplication:** the training-only view below.
+- **Matching:** both arms of each seed are trained in one `train_group` call of 40 jobs (bucket 64, as in the original run). They share:
+  - the seed, so the same initialization (`torch.manual_seed(seed)`) and the same shuffling keys (seed, epoch) over the same row count;
+  - the settings, the device and the determinism flag;
+  - the execution shape.
 
 - **The original candidate artifacts stay immutable.**
 - **A training-only supervision view** is built per seed from the CCIL unit's reconciled `candidates.npz`:
@@ -169,14 +182,14 @@ The tests are sequential and each gates the next, so no multiplicity adjustment 
   - the mapping from slot to source row;
   - the fields kept and dropped;
   - the code commit.
-- **Training:** the CCIL policy trainer at the corrected study's frozen CCIL commit `6fbcce5`, with the CCIL arm's stage configuration unchanged, including:
+- **Training:** the CCIL policy trainer at the corrected study's frozen CCIL commit `6fbcce5`, with the CCIL arm's stage configuration unchanged for both arms, including:
   - run.seed;
   - epochs, batch size and learning-rate schedule;
   - the noise model and noise-mask probability;
   - the demonstration weight;
   - checkpoint selection "last";
   - the device.
-- **Determinism:** the original training was not bitwise deterministic (`compute.deterministic: false`), and this arm inherits that, unchanged.
+- **Determinism:** the original training was not bitwise deterministic (`compute.deterministic: false`). Both fresh arms inherit that, unchanged. Original CCIL − replay-CCIL measures the resulting drift.
 - **Content:** the arm contains no new state or action information.
 
 ## Running and artifacts
@@ -186,8 +199,8 @@ The tests are sequential and each gates the next, so no multiplicity adjustment 
   2. Phase 1: geometry, disturbances and bins. Then commit and push `geometry.json`.
   3. Capture fitness.
   4. Corrected-cohort evaluation, only if fit and testable.
-  5. Duplication training, only if there is a signal.
-  6. Duplication evaluation.
+  5. Replay-CCIL and duplication training, only if there is a signal.
+  6. Replay-CCIL and duplication evaluation.
 - **Execution:** the tool runs on siddh in tmux. It writes to no input run.
   - The log is in `runs/`, headed by the command, commit, dirty state, host, load and versions.
   - Progress is logged at least every 5 minutes.
@@ -232,6 +245,41 @@ Version 1 asked for a return plus a 1 s stay, not for remaining afterwards. So c
 **Change.** A rollout is recovered only if it stays in the tube at one fixed lag from its onset (j ≤ 250) through step 300, the end of the horizon. Onset, lag, ρ, the lag window, the horizon and the tie rule are unchanged.
 
 **Effect on the self-test.** The zero action now fails from every swing anchor. Every other check passes as before.
+
+### Amendment 3 (2026-11-02, after review; before any real checkpoint is evaluated): primary outcome, attribution pair, sensitivity gate, integrity
+
+**Reasons.**
+- **Retention was standing in for recovery.** The corrected cohort's primary bins (Δ ≤ 2·q95) were scored with ρ = 0.1. If q95 ≤ 0.05, every primary state starts inside the success tube, and testability could pass without a single rollout having to return.
+- **Attribution was confounded.** The original CCIL checkpoints came from a nondeterministic, mixed bucket-64 group. A freshly trained duplication arm in a differently composed group differs from them by retraining as well as by information content.
+- **The capture gate was misdescribed.** Recovery from the held-out capture states was never established, so failing the gate is not a failure to reproduce.
+- **Integrity gaps.** Resumed or partial results could reach a decision, and the audit trusted copies of evidence that it did not pin.
+
+**Changes.**
+1. **Target tube.** The corrected cohort's target tube is ρ_c = q95.
+   - The edge bin, which starts outside ρ_c, gives the primary outcome.
+   - The inside bin is retention, reported separately.
+   - Testability needs q95 > 0 and at least 200 edge states.
+   - The capture sensitivity gate keeps ρ = 0.1.
+2. **Matched attribution pair.** Attribution compares replay-CCIL with duplication, trained fresh as a matched pair in one group. Original CCIL − replay-CCIL is reported as retraining drift.
+3. **Sensitivity gate.** The capture cohort's gate is a new sensitivity gate (see that section).
+4. **Result integrity.**
+   - Each per-policy result records an identity: policy hash, geometry hash, audit hash, input hashes and the evaluator source hash. Its JSON records its NPZ's hash.
+   - Resume, and every decision, require the exact declared arm × seed matrix. Each result must match its expected identity and have its NPZ hash reconcile.
+   - Missing, extra, stale or corrupted results are refused.
+   - Every stage refuses a dirty harness tree and any evaluator source hash other than the audit's.
+5. **Pinned evidence.** The audit pins the committed CCIL `study-audit.json` and `study-evaluate.json` by sha256. It requires their gates to report:
+   - frozen CCIL `6fbcce5`, with no differing CCIL paths;
+   - a clean tree and passing gates;
+   - the evaluate step's commit `e1ca5b5`;
+   - all_pass.
+6. **Response-surface completeness.**
+   - Environment identity (`scope` and `code`) is not treated as a reference.
+   - Every other hash in `root.json`, the run manifest, the stage reports and the identities must resolve, either to a store address, store file or stage file, or to an anchor whose bytes the tool hashes:
+     - the dataset file;
+     - `digest(root.json)` for the protocol;
+     - the spec file at the run's harness commit;
+     - the recomputed exact-model identity.
+   - Anything unresolved excludes the cohort, and root hashes are no longer accepted merely for being in `root.json`.
 
 ## Not done
 
