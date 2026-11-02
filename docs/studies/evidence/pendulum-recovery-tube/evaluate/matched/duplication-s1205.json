@@ -1,0 +1,99 @@
+{
+ "anchors": {
+  "bins": {
+   "beyond_1": {
+    "integrated_mean": 0.4198246482008092,
+    "n": 1325,
+    "onset_mean_s": 1.4456578947368421,
+    "recovered": 0.9177358490566038
+   },
+   "beyond_2": {
+    "integrated_mean": 1.3552652472859292,
+    "n": 814,
+    "onset_mean_s": 2.248571428571428,
+    "recovered": 0.7395577395577395
+   },
+   "beyond_3": {
+    "integrated_mean": 2.720469412242469,
+    "n": 963,
+    "onset_mean_s": 2.3294444444444444,
+    "recovered": 0.5607476635514018
+   },
+   "beyond_4": {
+    "integrated_mean": 2.957887905245202,
+    "n": 431,
+    "onset_mean_s": 3.2969003690036898,
+    "recovered": 0.62877030162413
+   },
+   "beyond_5": {
+    "integrated_mean": 2.1517640433857994,
+    "n": 131,
+    "onset_mean_s": 3.2141304347826094,
+    "recovered": 0.7022900763358778
+   },
+   "beyond_6": {
+    "integrated_mean": 4.233744598958841,
+    "n": 353,
+    "onset_mean_s": 3.730824742268041,
+    "recovered": 0.5495750708215298
+   },
+   "edge": {
+    "integrated_mean": 0.26663407358647795,
+    "n": 993,
+    "onset_mean_s": 0.9575913978494623,
+    "recovered": 0.9365558912386707
+   },
+   "inside": {
+    "integrated_mean": 0.14202832896153716,
+    "n": 1480,
+    "onset_mean_s": 0.8092969870875178,
+    "recovered": 0.9418918918918919
+   }
+  },
+  "failed": 0,
+  "full_curve_log_grid_mean": 0.7471405605097307,
+  "inside_retention": 0.9418918918918919,
+  "k": {
+   "1": 0.91,
+   "16": 0.7029166666666666,
+   "4": 0.8058333333333333
+  },
+  "primary_edge_recovery": 0.9365558912386707,
+  "saturated_fraction": 0.03573153153153154,
+  "sign": {
+   "-1": 0.6786111111111112,
+   "1": 0.9338888888888889
+  },
+  "strata": {
+   "lqr_branch": {
+    "final_hold": 0.833078491335372,
+    "n": 3924,
+    "recovered": 0.833078491335372
+   },
+   "swing": {
+    "final_hold": null,
+    "n": 3276,
+    "recovered": 0.7741147741147741
+   }
+  },
+  "undisturbed_tracking": 0.93
+ },
+ "arm": "duplication",
+ "identity": {
+  "arm": "duplication",
+  "audit_sha256": "5c36051e5357cd4748529d7ee23cef1c39edf1f41d9faf95dbdbca9b18f3c82e",
+  "cohort": "matched",
+  "geometry_sha256": "d0b0872a18ddbcd89a89afb4599ba3aa0504b667e2d42b56e3c5fc5a31ed7745",
+  "inputs": {
+   "geometry_npz_sha256": "63f6bef4765236574fc782003d1bd34924c013210555f031b8a8d7a4b2f0083a",
+   "held_out_capture_sha256": null
+  },
+  "policy_sha256": "26b2b42916c166120e4fcd7ee61ea5cb6968464e10abcdd45558e36f17b8f7c3",
+  "protocol": "docs/studies/pendulum-recovery-tube.md (version 1, amendments 1-3)",
+  "rho": 0.005255904601619209,
+  "seed": 1205,
+  "tool_sha256": "0f8aa3977913dd98c062c6848fece05ad75b2a30d6adfeb4445248cf34a84b58"
+ },
+ "npz_sha256": "99574ca67e86c839a18cd7f47017979f9d6046e02c5c57015b59ac12180bf4f0",
+ "seed": 1205
+}

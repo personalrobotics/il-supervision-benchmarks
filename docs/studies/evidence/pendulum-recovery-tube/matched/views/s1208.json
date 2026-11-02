@@ -1,0 +1,27 @@
+{
+ "ccil_commit": "6fbcce543e8a1ebdf243063c179dd3af82d5db8a",
+ "fields_dropped": [
+  "target_observations",
+  "measurements",
+  "measurement_specs",
+  "reasons",
+  "certificates"
+ ],
+ "fields_kept": [
+  "observations (replaced)",
+  "actions (replaced)",
+  "weights",
+  "source",
+  "episode_id",
+  "frame",
+  "candidate_row",
+  "classification"
+ ],
+ "rows": 1047900,
+ "seed": 1208,
+ "source_candidates_sha256": "2d7a08146e0bcf1267bc43fec8004d785d660f3b2009c783b184addd3e319029",
+ "source_checkpoint_sha256": "ee706b69b68b5ff937405fe770e265a654e68f8e59a8d0149e2f1c17e1ef01fe",
+ "synthetic_rows": 998000,
+ "tool_commit": "acbc35aad1b98aa7a002403e506a091fa19ef663",
+ "view_sha256": "9938dfeb83b3c1351512bf8c8ab70ffe4b382b7c5c2e3718f685a1f0d7d6ea3a"
+}

@@ -6,6 +6,37 @@ This study is **exploratory**. It does not reopen the completed causal ladder (#
 - seeds are not added;
 - the disturbance set, the dose bins and the tube do not change.
 
+## Result (run 20261102T160255Z from `acbc35a`; exploratory)
+
+**Decisions:** fitness **fit**; signal **signal**; attribution **not attributable to corrective information**. The evidence is in `docs/studies/evidence/pendulum-recovery-tube/`: `audit.json`, `geometry.json`, `decision.json`, every per-policy result record (`evaluate/`), the matched pair's manifest and view records (`matched/`), the run logs and scripts, and the phase portraits `pendulum-recovery-tube.svg`.
+
+- **Audit:** the capture and corrected cohorts are eligible, with no failures. The response-surface cohort is excluded: one reference (`plan_sha256`) does not resolve. It is not evaluated.
+- **Geometry (frozen and pushed as `95f7964` before any policy was loaded):**
+  - The pooled label tube is q50 = 0.00013, q95 = 0.00526 and max = 0.0095. Per-seed q95 ranges from 0.0049 to 0.0064.
+  - The tube radius is ρ = q95 = 0.00526, about a seventh of τ★.
+  - The study is testable, with 993 edge states.
+  - Every applied action lies in [−3, 3].
+  - π_D recovers from 0.994 of edge states. The zero action recovers from none.
+- **Decision 1, sensitivity gate:** held-out capture recovery at ρ = 0.1 is relabel 1.000, duplication 0.407 and BC 0.523. Relabel − duplication is +0.593, with a 95% interval of [+0.237, +0.950]: **fit**.
+- **Decision 2, signal:** edge-bin recovery to ρ = q95 is CCIL 0.421 and BC 0.002. CCIL − BC is +0.420, [+0.215, +0.625]: **signal**.
+- **Decision 3, attribution:** edge-bin recovery is replay-CCIL 0.421 and duplication 0.241. Replay-CCIL − duplication is +0.180, [−0.070, +0.430], so the effect is **not attributable to corrective information**. The reported, non-deciding contrasts:
+  - **Exposure** (duplication − BC): +0.240, [+0.066, +0.433].
+  - **Total** (CCIL − BC): +0.420, [+0.215, +0.625].
+  - **Retraining drift** (CCIL − replay-CCIL): exactly 0 on every seed.
+    - The 40 jobs trained in one group (bucket 64) under `6fbcce5` on CUDA.
+    - Every replay policy's arrays are bitwise identical to the original checkpoint's. The files' hashes differ only in the npz container.
+    - Every per-state result array is identical, even though the original run did not request deterministic training.
+- **The duplication views** are byte-identical across seeds (`9938dfeb…`). Every seed's CCIL unit accepted all 998,000 synthetic rows: 20 per demonstration row, over the same 49,900 rows. The duplication arms differ only in their training seed.
+- **Descriptive: the tube measures tracking more than recovery.**
+  - **Undisturbed tracking** at ρ = q95 (staying within the tube from an undisturbed anchor) is CCIL 0.511, duplication 0.245 and BC 0.001.
+  - **Edge recovery** (0.421, 0.241 and 0.002) and **inside retention** (0.467, 0.251 and 0.002) follow the same order. Each arm's recovery is roughly flat in Δ from 10⁻³ to 10⁻¹ (portrait panel c).
+  - So at this tube, the edge-bin contrast mostly measures how closely a policy reproduces the reference trajectory when undisturbed. It does not measure whether the policy corrects from just outside the tube.
+  - The frozen rule makes no adjustment for this. It is reported here, not used to change any decision.
+- **Conclusion:** on Pendulum, the corrected-study CCIL policies stay near the demonstrator's trajectories far more often than BC, including after small bounded disturbances.
+  - Exposure-matched duplication of the demonstration rows recovers a substantial share of that gain: +0.240 of the +0.420.
+  - The remainder, +0.180, is not distinguishable from zero over 20 seeds. The study therefore does not attribute CCIL's advantage to the corrective content of its labels.
+- **Scope:** exploratory. M = 1 and dt = 20 ms are unchanged. No seeds, disturbances, bins or tubes were changed after any outcome was read. Per the protocol, no further training follows.
+
 ## Question
 
 The study separates three links:
