@@ -1,0 +1,53 @@
+purpose: bind the positive-control reports to their artifacts (review of il-supervision-benchmarks#17)
+commit 2c5d5bc7c249a950c0680cce290e85790538c835 dirty=0
+host siddh
+ 17:56:17 up 9 days, 12:42,  4 users,  load average: 14.77, 11.53, 5.51
+17:56:17 hashed 130 artifacts; policy hashes match the report: True
+17:56:28 select 3301 {"tau_demo": 0.23511447457171755, "collection": 4000, "diagnostic": 4000}
+17:56:38 select 3302 {"tau_demo": 0.18892535817130382, "collection": 4000, "diagnostic": 4000}
+17:56:50 select 3303 {"tau_demo": 0.10888874075859344, "collection": 4000, "diagnostic": 4000}
+17:56:58 select 3304 {"tau_demo": 0.31826690837711397, "collection": 4000, "diagnostic": 4000}
+17:57:00 select 3305 {"tau_demo": 0.20976940930298282, "collection": 2040, "diagnostic": 2353}
+17:57:02 select 3306 {"tau_demo": 0.24899382873378217, "collection": 1250, "diagnostic": 1490}
+17:57:13 select 3307 {"tau_demo": 0.06837457750819943, "collection": 4000, "diagnostic": 4000}
+17:57:21 select 3308 {"tau_demo": 0.08105789701286215, "collection": 4000, "diagnostic": 4000}
+17:57:25 select 3309 {"tau_demo": 0.10450449368308386, "collection": 4000, "diagnostic": 4000}
+17:57:27 select 3310 {"tau_demo": 0.3362038260290511, "collection": 1594, "diagnostic": 1543}
+17:57:27 recompute selection done, 70 s
+17:57:28 evaluate 3301 {'bc': (1.3354, 0.1947), 'duplication': (1.3809, 0.3272), 'relabel': (0.0363, 0.1752)}
+17:57:29 evaluate 3302 {'bc': (1.0969, 0.1693), 'duplication': (1.2154, 0.1578), 'relabel': (0.0195, 0.2766)}
+17:57:30 evaluate 3303 {'bc': (0.5819, 0.2632), 'duplication': (0.7263, 0.2938), 'relabel': (0.0072, 0.3285)}
+17:57:30 evaluate 3304 {'bc': (2.6885, 0.2085), 'duplication': (2.685, 0.2112), 'relabel': (0.0283, 0.2238)}
+17:57:31 evaluate 3305 {'bc': (0.587, 0.1926), 'duplication': (0.3078, 0.2725), 'relabel': (0.0307, 0.2142)}
+17:57:32 evaluate 3306 {'bc': (0.2027, 0.4834), 'duplication': (0.2453, 0.5764), 'relabel': (0.0117, 0.5674)}
+17:57:32 evaluate 3307 {'bc': (0.1344, 0.3439), 'duplication': (0.1113, 0.3331), 'relabel': (0.0199, 0.3177)}
+17:57:33 evaluate 3308 {'bc': (0.155, 0.3027), 'duplication': (0.127, 0.2166), 'relabel': (0.0199, 0.28)}
+17:57:34 evaluate 3309 {'bc': (0.1137, 0.2609), 'duplication': (0.1272, 0.567), 'relabel': (0.0219, 0.568)}
+17:57:34 evaluate 3310 {'bc': (0.5381, 0.2916), 'duplication': (0.4735, 0.2795), 'relabel': (0.0185, 0.2718)}
+17:57:34 recompute evaluation done, 7 s
+17:57:34 checks {"policy_hashes_match_report": true, "selection_identical": true, "selection_records_match_report": true, "rollouts_identical": true, "evaluation_records_identical": true, "outcomes_match_report": true, "contrasts_and_decision_match_report": true} all pass: True
+17:57:36 hashed 130 artifacts; policy hashes match the report: True
+17:57:51 select 3311 {"collection": [18823, 18823, 4000], "diagnostic": [18369, 18369, 4000]}
+17:58:01 select 3312 {"collection": [17151, 17151, 4000], "diagnostic": [16557, 16557, 4000]}
+17:58:28 select 3313 {"collection": [29343, 29343, 4000], "diagnostic": [27542, 27542, 4000]}
+17:58:40 select 3314 {"collection": [12662, 12662, 3934], "diagnostic": [11284, 11284, 3844]}
+17:58:48 select 3315 {"collection": [8483, 8483, 3981], "diagnostic": [7933, 7933, 3957]}
+17:59:08 select 3316 {"collection": [29509, 29509, 4000], "diagnostic": [27208, 27208, 4000]}
+17:59:25 select 3317 {"collection": [24673, 24673, 4000], "diagnostic": [24541, 24541, 4000]}
+17:59:33 select 3318 {"collection": [12957, 12957, 4000], "diagnostic": [12676, 12676, 4000]}
+18:00:43 select 3319 {"collection": [29280, 29280, 4000], "diagnostic": [27462, 27462, 4000]}
+18:01:07 select 3320 {"collection": [7669, 7669, 4000], "diagnostic": [7716, 7716, 4000]}
+18:01:07 recompute selection done, 211 s
+18:01:07 evaluate 3311 {'bc': (0.4444, 0.24), 'duplication': (0.5225, 0.0), 'relabel': (0.0091, 1.0)}
+18:01:08 evaluate 3312 {'bc': (0.5277, 0.17), 'duplication': (0.5682, 0.0), 'relabel': (0.009, 1.0)}
+18:01:09 evaluate 3313 {'bc': (0.0216, 0.96), 'duplication': (0.0213, 1.0), 'relabel': (0.001, 1.0)}
+18:01:09 evaluate 3314 {'bc': (0.5745, 0.07), 'duplication': (0.659, 0.0), 'relabel': (0.0362, 1.0)}
+18:01:31 evaluate 3315 {'bc': (1.5438, 0.0), 'duplication': (1.5817, 0.0), 'relabel': (0.0207, 1.0)}
+18:01:36 evaluate 3316 {'bc': (0.0613, 1.0), 'duplication': (0.048, 0.99), 'relabel': (0.0011, 1.0)}
+18:01:37 evaluate 3317 {'bc': (0.2272, 0.57), 'duplication': (0.2339, 1.0), 'relabel': (0.0037, 1.0)}
+18:01:38 evaluate 3318 {'bc': (0.8365, 0.0), 'duplication': (0.8629, 0.0), 'relabel': (0.0387, 1.0)}
+18:01:38 evaluate 3319 {'bc': (0.0144, 0.99), 'duplication': (0.0183, 0.99), 'relabel': (0.0022, 1.0)}
+18:01:39 evaluate 3320 {'bc': (1.7772, 0.0), 'duplication': (1.7526, 0.0), 'relabel': (0.0237, 1.0)}
+18:01:39 recompute evaluation done, 33 s
+18:01:39 checks {"policy_hashes_match_report": true, "selection_identical": true, "selection_records_match_report": true, "rollouts_identical": true, "evaluation_records_identical": true, "outcomes_match_report": true, "contrasts_and_decision_match_report": true} all pass: True
+EXIT=0

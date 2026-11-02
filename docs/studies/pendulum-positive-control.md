@@ -17,6 +17,12 @@
   - Relabel − BC: +0.051, [−0.022, +0.145], no detectable difference.
   - Relabel − Duplication: −0.001, [−0.053, +0.050], no detectable difference.
 - **Secondary, final hold:** 0.077 for BC, 0.205 for duplication and 0.197 for relabel. The duplication control moves as far as the relabel arm.
+- **Artifact binding (added after review):** `artifact-manifest.json` in the evidence directory holds the sha256 of every artifact this report depends on: subsets, splits, selected-state files, policies, final rollouts and evaluation records.
+  - It was produced by `tools/control_verify.py` (run 20261102T015616Z, from `2c5d5bc`), which recomputes from those bytes, without writing to the run:
+    - the selection, from the BC policies;
+    - the final rollouts, action errors and scores, from the policies;
+    - the intervals and the decision.
+  - Every recomputed value equals the report exactly. The log is `verify-20261102T015616Z.log`.
 - **Conclusion:** this experiment did not establish that missing-state supervision at BC-visited off-support states improves closed-loop behavior on this task, under the current learner and task distribution. It does not show the absence of an effect: the intervals admit a positive occupancy effect.
 - **Stop rule:** the predeclared stop rule requires an established positive control, so this result does not justify the multi-step CCIL follow-up.
 - **Not tested here (exploratory observation, not a finding):**
@@ -131,4 +137,4 @@ Because every one of the four must pass, no multiplicity adjustment applies. Any
   - `positive-control.json`: per-seed selections, label checks, per-arm outcomes, the four intervals, the decision and the code state;
   - the run log;
   - the phase plot.
-- **Release asset:** the policies and the per-seed state sets, with their sha256.
+- **Release asset:** the policies and the per-seed state sets. Their sha256 are in `artifact-manifest.json`, which was added after review.
