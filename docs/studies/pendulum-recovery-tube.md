@@ -1,6 +1,6 @@
 # Pendulum recovery-tube expansion from existing checkpoints: predeclaration, version 1 (#18)
 
-**Status: version 1 draft, under review.** It is frozen by a commit before any evaluator code exists. The audit, evaluator, fixtures and duplication support are added to the same pull request as later commits. That pull request is merged before any real checkpoint is evaluated, including the capture control. Results go in one later pull request.
+**Status: version 1, frozen.** The protocol was approved after review on 2026-11-02 and frozen by the commit that adds this status line. No evaluator code existed at that commit. The audit, evaluator, fixtures and duplication support follow as later commits in the same pull request. That pull request is merged before any real checkpoint is evaluated, including the capture control. Results go in one later pull request. Any later change to this protocol is a numbered amendment with its reason, made before the outcome it could affect is read.
 
 This study is **exploratory**. It does not reopen the completed causal ladder (#12), rerun its treatments or make a confirmatory claim. A favorable outcome is not required. An ambiguous outcome is reported as "not established". After any recovery outcome is read:
 - seeds are not added;
