@@ -6,6 +6,53 @@ This study is **exploratory**. It does not reopen the completed causal ladder (#
 - seeds are not added;
 - the disturbance set, the dose bins and the tube do not change.
 
+## Result (run 20261102T160255Z from `acbc35a`; exploratory)
+
+**Decisions:** fitness **fit**; signal **signal**; attribution **not attributable to corrective information**. The evidence is in `docs/studies/evidence/pendulum-recovery-tube/`: `audit.json`, `geometry.json`, `decision.json`, every per-policy result record (`evaluate/`), the matched pair's manifest and view records (`matched/`), the replay-equivalence record (`replay-equivalence.json`), the run logs and scripts, and the phase portraits `pendulum-recovery-tube.svg`.
+
+**Recheck from a clone:** `uv run python tools/recovery_tube_check.py decisions`.
+- It checks the exact 30 + 40 + 40 result matrix and every record's audit and geometry hashes. It also checks that each replay-CCIL result's NPZ hash equals the original CCIL result's.
+- It then recomputes every contrast from the committed summaries with the evaluator's own `paired()`.
+- On the run host (Linux x86-64) every decision block is bit-identical to `decision.json`. On macOS arm64 the outcomes match exactly and the floats match to a relative 1e-12.
+
+- **Audit:** the capture and corrected cohorts are eligible, with no failures. The response-surface cohort is excluded: one reference (`plan_sha256`) does not resolve. It is not evaluated.
+- **Geometry (frozen and pushed as `95f7964` before any policy was loaded):**
+  - The pooled label tube is q50 = 0.00013, q95 = 0.00526 and max = 0.0095. Per-seed q95 ranges from 0.0049 to 0.0064.
+  - The tube radius is ρ = q95 = 0.00526, about a seventh of τ★.
+  - The study is testable, with 993 edge states.
+  - Every applied action lies in [−3, 3].
+  - π_D recovers from 0.994 of edge states. The zero action recovers from none.
+- **Decision 1, sensitivity gate:** held-out capture recovery at ρ = 0.1 is relabel 1.000, duplication 0.407 and BC 0.523. Relabel − duplication is +0.593, with a 95% interval of [+0.237, +0.950]: **fit**.
+- **Decision 2, signal:** edge-bin recovery to ρ = q95 is CCIL 0.421 and BC 0.002. CCIL − BC is +0.420, [+0.215, +0.625]: **signal**.
+- **Decision 3, attribution:** edge-bin recovery is replay-CCIL 0.421 and duplication 0.241. Replay-CCIL − duplication is +0.180, [−0.070, +0.430], so the effect is **not attributable to corrective information**. The reported, non-deciding contrasts:
+  - **Exposure** (duplication − BC): +0.240, [+0.066, +0.433]. This arm changed both how often the demonstrations are seen and how long training runs.
+    - The recipe is epoch-based: 100 epochs, batch 512, `steps = rows // 512`.
+    - BC trains on 49,900 rows: 97 steps per epoch, 9,700 optimizer updates.
+    - CCIL and duplication train on 1,047,900 rows: 2,046 steps per epoch, 204,600 updates, 21.1 times as many.
+    - Under this historical recipe, duplication produced a detectable gain without adding information. The gain is attributable to the combined exposure and optimization schedule, not to data duplication alone.
+  - **Total** (CCIL − BC): +0.420, [+0.215, +0.625].
+  - **Retraining drift** (CCIL − replay-CCIL): exactly 0 on every seed.
+    - The 40 jobs trained in one group (bucket 64) under `6fbcce5` on CUDA.
+    - Every per-state result is identical: each replay-CCIL result NPZ has its original CCIL result's sha256.
+    - Every weight and scaler array is bitwise identical to the original checkpoint's, with a largest absolute difference of 0, even though neither run requested deterministic training. This comes from `replay-equivalence.json`, written by `tools/recovery_tube_check.py replay` on the run host.
+    - The checkpoint files' hashes differ only through the metadata string. Two fields differ: `method` (`replay_ccil`) and `execution_sha256` (a different training group).
+- **The duplication views** are byte-identical across seeds (`9938dfeb…`). Every seed's CCIL unit accepted all 998,000 synthetic rows: 20 per demonstration row, over the same 49,900 rows. The duplication arms differ only in their training seed.
+- **Descriptive: recovery and tracking are not separated.**
+  - **Edge success requires re-entry by construction:** every edge state starts outside q95, so each success really does return to the tube.
+  - **Undisturbed tracking** at ρ = q95 (staying within the tube from an undisturbed anchor) is CCIL 0.511, duplication 0.245 and BC 0.001.
+  - **Edge recovery** (0.421, 0.241 and 0.002) and **inside retention** (0.467, 0.251 and 0.002) follow nearly the same order.
+  - **Recovery is almost flat across disturbance size,** from Δ = 10⁻³ to 10⁻¹ (portrait panel c).
+  - The contrast therefore cannot tell an improved corrective response from improved baseline trajectory-tracking fidelity.
+  - The frozen rule makes no adjustment for this. It is reported here, not used to change any decision.
+- **Answer to #18:**
+  - The frozen metric detects greater edge recovery for CCIL than for BC: +0.420, [+0.215, +0.625].
+  - The advantage does not weaken at the measured synthetic-tube boundary. For CCIL, recovery is 0.467 inside, 0.421 at the edge and 0.379–0.414 through beyond_5. It falls only in beyond_6 (0.209), at 64–128 times q95.
+  - Duplication's profile is just as flat (0.251, 0.241, then 0.188–0.256, and 0.143 in beyond_6).
+  - So a geometrically localized recovery-tube mechanism is not established.
+  - Corrective-label benefit is unresolved, not disproven: replay-CCIL − duplication is +0.180, [−0.070, +0.430].
+  - Exposure under the epoch-based recipe (duplication − BC, which adds 21.1 times the optimizer updates) accounts for +0.240 of the +0.420. That is 57% at the point estimates. No interval was computed for this ratio, so it is a point-estimate decomposition only.
+- **Scope:** exploratory. M = 1 and dt = 20 ms are unchanged. No seeds, disturbances, bins or tubes were changed after any outcome was read. Per the protocol, no further training follows.
+
 ## Question
 
 The study separates three links:
