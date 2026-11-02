@@ -1,6 +1,6 @@
 # Pendulum recovery-tube expansion from existing checkpoints: predeclaration, version 1 (#18)
 
-**Status: version 1, frozen.** The protocol was approved after review on 2026-11-02 and frozen by the commit that adds this status line. No evaluator code existed at that commit. The audit, evaluator, fixtures and duplication support follow as later commits in the same pull request. That pull request is merged before any real checkpoint is evaluated, including the capture control. Results go in one later pull request. Any later change to this protocol is a numbered amendment with its reason, made before the outcome it could affect is read.
+**Status: version 1, frozen.** The protocol was approved after review on 2026-11-02 and frozen by the commit that adds this status line. No evaluator code existed at that commit. The audit, evaluator, fixtures and duplication support follow as later commits in the same pull request. That pull request is merged before any real checkpoint is evaluated, including the capture control. Results go in one later pull request. Any later change to this protocol is a numbered amendment (see "Amendments") with its reason, made before the outcome it could affect is read.
 
 This study is **exploratory**. It does not reopen the completed causal ladder (#12), rerun its treatments or make a confirmatory claim. A favorable outcome is not required. An ambiguous outcome is reported as "not established". After any recovery outcome is read:
 - seeds are not added;
@@ -110,10 +110,11 @@ Everything in this phase depends only on the reconciled candidates, the dataset,
 
 After the disturbance, the evaluated policy controls for H = 300 steps. Its commanded action is clipped to ±3 by `Task.step`.
 
-- **Recovered:** there are a single lag s with |s| ≤ 25 steps (0.5 s) and an onset j ≤ 250 such that d(x_{j+ℓ}, r_{j+ℓ+s}) ≤ ρ for every ℓ = 0, …, 49. ρ = 0.1, the demonstrator's LQR-branch scale.
-  - The lag is fixed throughout the 1 s dwell, so it follows one coherent continuation.
-  - A lag that would need a reference frame before the reference's first frame is unavailable. This applies to the capture states, whose continuation starts at the state itself.
+- **Recovered (as amended by Amendment 2):** there are a single lag s with |s| ≤ 25 steps (0.5 s) and an onset j ≤ 250 such that d(x_m, r_{m+s}) ≤ ρ for every m = j, …, 300. ρ = 0.1, the demonstrator's LQR-branch scale.
+  - The rollout enters the tube and stays there to the end of the horizon, which is at least 50 steps (1 s).
+  - The lag is fixed from onset to the end, so the rollout follows one coherent continuation.
   - The selected (s, j) is recorded, taking the smallest j and then the smallest |s|, with negative s first on a tie.
+  - A lag that would need a reference frame before the reference's first frame is unavailable. This applies to the capture states, whose continuation starts at the state itself.
 - **Also recorded per rollout:**
   - time to recovery, j·dt;
   - integrated distance Σ_j min_{|s|≤25} d(x_j, r_{j+s})·dt (descriptive);
@@ -219,6 +220,18 @@ The tests are sequential and each gates the next, so no multiplicity adjustment 
 2. **Checkpoint:** the sha256 of `checkpoints/policy.npz` in the record's `policy.train` stage equals both the stage manifest's `files` entry and the record's `checkpoint_sha256`. That stage directory appears in the committed `study-audit.json` `stages` with `pass: true`.
 3. **Rollout:** in the evaluate run, the sha256 of `continuous/{arm}/s{seed}-0.0.npz` equals `rollout_sha256["continuous/{arm}/s{seed}/0.0"]` in the committed CCIL `study-evaluate.json`. The checkpoint-to-rollout link is the evaluate step's refusal rule above. No hash inside the rollout names the checkpoint, and this study does not re-create the rollouts.
 4. **CCIL inputs:** for each CCIL unit, the `labels.generate` stage's `labels/candidates.npz` has the sha256 recorded under `inputs.candidates` in the `policy.train` manifest. The dataset input is `59c332bc…cf43c`.
+
+### Amendment 2 (2026-11-02, before any real checkpoint is evaluated): recovery means staying in the tube
+
+**Reason.** The off-protocol self-test (references from eval seed 9001; no study policy) expected the zero action to fail from swing anchors. Under version 1's rule it was credited with recovery from 2 of 3:
+- Near the end of energy pumping, the reference's energy is 9.61–9.62 against an upright energy of 9.81, and π_D's action there is 0.03–0.84.
+- An unpowered pendulum therefore coasts alongside the reference within ρ for 69 and 109 steps, longer than the 50-step dwell. It then falls: the maximum distance over the horizon is 3.7.
+
+Version 1 asked for a return plus a 1 s stay, not for remaining afterwards. So coasting earned credit for every arm, including policies that then fall.
+
+**Change.** A rollout is recovered only if it stays in the tube at one fixed lag from its onset (j ≤ 250) through step 300, the end of the horizon. Onset, lag, ρ, the lag window, the horizon and the tie rule are unchanged.
+
+**Effect on the self-test.** The zero action now fails from every swing anchor. Every other check passes as before.
 
 ## Not done
 
