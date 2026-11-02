@@ -2,6 +2,24 @@
 
 **Status: version 1, pushed before any policy in this document is trained.** This study is **exploratory**. Its region was chosen after inspecting the rollouts of the pumping-region positive control (`docs/studies/pendulum-positive-control.md`, "Result"), so it cannot be described as confirmatory. The outcome is reported as it falls. An ambiguous outcome is "not established". Seeds are not added, the region is not changed, and no longer recovery segment is implemented.
 
+## Result (version 1: run 20261102T003101Z from `c64b672`; exploratory)
+
+**Decision: passes.** Both required contrasts hold for Relabel − Duplication. The evidence is in `docs/studies/evidence/pendulum-capture-control/`: `capture-control.json`, the run log, and the phase plot.
+
+- **Selection:** all 10 seeds qualify, with 3,934–4,000 collection states each.
+  - The capture check removed no LQR-branch state: π_D captures from every BC-visited state with |e| < 0.1.
+  - Every label is within the bounds, and every labeled transition adds no manifold drift.
+- **Required 1, held-out capture action error:** relabel 0.015 rad/s², BC 0.603, duplication 0.627.
+  - Relabel − Duplication: −0.612, 95% interval [−1.050, −0.174], decreases.
+- **Required 2, final hold:** relabel 1.00 on every seed; BC 0.40; duplication 0.40.
+  - Relabel − Duplication: +0.602, [+0.234, +0.970], increases.
+- **Secondary:**
+  - Relabel − BC: action error −0.588 [−1.037, −0.150]; final hold +0.600 [+0.288, +0.913].
+  - Upright occupancy: relabel 0.628, BC 0.417, duplication 0.396. Relabel − Duplication +0.232 [+0.098, +0.366]; Relabel − BC +0.210 [+0.091, +0.330].
+  - Duplication does not move final hold relative to BC here (0.398 against 0.400).
+- **Descriptive, from the phase plot (seed 3311):** inside the LQR branch the relabel arm's action field matches π_D. Just outside it (|e| from 0.1 to 0.5, |ω| up to about 2), the relabel arm disagrees with π_D more than BC does. The capture labels sharpen the branch interior and distort the field across its boundary. Rollouts still enter the branch and hold.
+- **Scope:** exploratory, because the region was chosen after inspecting the pumping-region control. It shows that demonstrator supervision at BC-visited capture states can improve this learner's closed loop on Pendulum. It is not evidence for CCIL. Per the decision rule, CCIL #171 may implement the data-only recovery-segment diagnostic. That diagnostic must cover the capture region from demonstrations alone before any CCIL learner arm runs.
+
 ## Question
 
 Does demonstrator supervision inside the demonstrator's local LQR capture region improve capture and final hold beyond an exposure-matched duplication control?
