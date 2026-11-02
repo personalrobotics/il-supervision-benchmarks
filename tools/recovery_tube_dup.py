@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
-"""The recovery-tube study's exposure-matched duplication arm (docs/studies/pendulum-recovery-tube.md, decision 3 only).
+"""The recovery-tube study's matched replay-CCIL and duplication pair (docs/studies/pendulum-recovery-tube.md,
+decision 3 only, as amended by amendment 3).
 
     cd CCIL_WORKTREE_AT_6fbcce5 && uv run --extra torch python IL_SUPERVISION_BENCHMARKS/tools/recovery_tube_dup.py \\
-        --audit OUT/audit.json --decision OUT/decision.json --out OUT/duplication [--device cuda]
+        --audit OUT/audit.json --decision OUT/decision.json --out OUT/matched
 
 It runs only under ccil at the corrected study's frozen commit 6fbcce5 (checked), and only after decision 2 found a
 signal. For each training seed it rebuilds the CCIL arm's supervision from that unit's reconciled dataset and
 candidates, read-only, and requires it to reproduce both the unit's recorded supervision manifest and the training
-identity recorded in its checkpoint. The training-only view then replaces every synthetic row's observation and action
-with its source demonstration row's, keeping row count, order, weights, source labels (so the sampler's exposure is
-unchanged), episode, frame and candidate row. Generation-describing fields (targets, residuals, measurements,
-certificates) are never copied: the trainer's handoff is (observations, actions, weights) plus the source labels.
-The candidate files are never written. The 20 views train as one group with the CCIL arm's settings, seed, device
-and determinism flag. duplication_view and selftest import no ccil, so the harness selftest exercises them.
+identity recorded in its checkpoint: that rebuilt supervision is the replay-CCIL arm. The duplication view replaces
+every synthetic row's observation and action with its source demonstration row's, keeping row count, order, weights,
+source labels (so the sampler's exposure is unchanged), episode, frame and candidate row. Generation-describing fields
+(targets, residuals, measurements, certificates) are never copied: the trainer's handoff is (observations, actions,
+weights) plus the source labels. The candidate files are never written. Both arms of every seed train in one
+train_group call (replay jobs, then duplication jobs; 40 jobs, bucket 64 as in the original run), with the CCIL arm's
+settings, seeds (so initialization and shuffling match within a seed), device and determinism flag. duplication_view
+and selftest import no ccil, so the harness selftest exercises them.
 """
 from __future__ import annotations
 
@@ -111,7 +114,7 @@ def main() -> int:
     ap.add_argument("--audit", type=Path, required=True)
     ap.add_argument("--decision", type=Path, required=True)
     ap.add_argument("--out", type=Path, required=True)
-    ap.add_argument("--device", default="cuda")
+    ap.add_argument("--device", help="off-protocol smoke only; the study uses the CCIL arm's compute.device")
     ap.add_argument("--seeds", type=int, nargs="+", default=list(SEEDS), help="off-protocol smoke only")
     a = ap.parse_args()
     src_root = Path(ccil.__file__).resolve().parents[2]
@@ -120,7 +123,7 @@ def main() -> int:
     if git("rev-parse", "HEAD") != FROZEN_CCIL or git("status", "--porcelain", "src"):
         raise SystemExit(f"refused: ccil at {src_root} is not a clean checkout of {FROZEN_CCIL}")
     if json.loads(a.decision.read_text()).get("signal", {}).get("outcome") != "signal":
-        raise SystemExit("refused: decision 2 found no signal; the duplication arm is not trained")
+        raise SystemExit("refused: decision 2 found no signal; the matched pair is not trained")
     aud = json.loads(a.audit.read_text())["corrected"]
     if not aud["eligible"]:
         raise SystemExit("refused: the corrected cohort is not eligible")
@@ -128,7 +131,7 @@ def main() -> int:
         raise SystemExit(f"refused: {a.out}/manifest.json exists")
     (a.out / "views").mkdir(parents=True, exist_ok=True)
     tool = git("rev-parse", "HEAD", cwd=Path(__file__).resolve().parent)
-    jobs, settings, views, flags = [], None, {}, set()
+    replay, dups, settings, views, flags, devices, idents = [], [], None, {}, set(), set(), {}
     seeds = tuple(a.seeds)
     for s in seeds:
         u = aud["units"][f"continuous/ccil/s{s}"]
@@ -153,6 +156,8 @@ def main() -> int:
             raise SystemExit("refused: the CCIL units' training settings differ")
         settings = st
         flags.add(bool(v["compute.deterministic"]))
+        devices.add(v["compute.device"])
+        idents[s] = meta["training_identity_sha256"]
         idx = duplication_view(sup.source, sup.episode_id, sup.frame)
         vp = a.out / "views" / f"s{s}.npz"
         atomic_npz(vp, observations=sup.observations[idx], actions=sup.actions[idx], source_row=idx,
@@ -168,29 +173,39 @@ def main() -> int:
         f = np.load(vp)
         view = Supervision(f["observations"], f["actions"], f["weights"], f["source"], f["episode_id"], f["frame"],
                            f["candidate_row"], f["classification"], man)
-        jobs.append(vector_bc_v2.Job(view, s, None, None))
+        replay.append(vector_bc_v2.Job(sup, s, None, None))
+        dups.append(vector_bc_v2.Job(view, s, None, None))
         print("view", s, json.dumps(construction), flush=True)
-    if len(flags) != 1:
-        raise SystemExit("refused: the CCIL units differ in compute.deterministic")
-    trained = vector_bc_v2.train_group(jobs, settings, device=a.device, deterministic=flags.pop())
-    pols = {}
-    for s, (policy, record) in zip(seeds, trained):
-        d = a.out / "policies" / f"s{s}"
+    if len(flags) != 1 or len(devices) != 1:
+        raise SystemExit("refused: the CCIL units differ in compute.deterministic or compute.device")
+    device = a.device or devices.pop()
+    trained = vector_bc_v2.train_group(replay + dups, settings, device=device, deterministic=flags.pop())
+    pols, buckets = {"replay_ccil": {}, "duplication": {}}, set()
+    for (arm, s, job), (policy, record) in zip([("replay_ccil", s, j) for s, j in zip(seeds, replay)]
+                                               + [("duplication", s, j) for s, j in zip(seeds, dups)], trained):
+        if arm == "replay_ccil" and record["training_identity_sha256"] != idents[s]:
+            raise SystemExit(f"refused: replay s{s} is not the CCIL unit's training problem")
+        d = a.out / "policies" / arm / f"s{s}"
         d.mkdir(parents=True, exist_ok=True)
         policy.save(d / "policy.npz", None, record["epochs_run"],
-                    {"supervision": jobs[seeds.index(s)].supervision.manifest()["inputs"], "seed": s,
-                     "method": "duplication", "trainer_version": record.get("trainer_version", "1"),
+                    {"supervision": job.supervision.manifest()["inputs"], "seed": s, "method": arm,
+                     "trainer_version": record.get("trainer_version", "1"),
                      "execution_sha256": record.get("execution", {}).get("execution_sha256"),
                      "training_identity_sha256": record["training_identity_sha256"]})
         atomic_json(d / "training.json", record)
-        pols[str(s)] = {"sha256": sha256_file(d / "policy.npz"), "view_sha256": views[s]["view_sha256"],
-                        "bucket": record.get("execution", {}).get("bucket")}
+        bucket = record.get("execution", {}).get("bucket")
+        buckets.add(bucket)
+        pols[arm][str(s)] = {"sha256": sha256_file(d / "policy.npz"), "bucket": bucket,
+                             "training_identity_sha256": record["training_identity_sha256"],
+                             **({"view_sha256": views[s]["view_sha256"]} if arm == "duplication" else {})}
     atomic_json(a.out / "manifest.json", {
-        "policies": pols, "settings": settings, "device": a.device, "ccil_commit": FROZEN_CCIL, "tool_commit": tool,
-        "seeds": list(seeds), "group": "the duplication views, one group, in seed order",
-        "limitation": "the CCIL arm trained in the runner's mixed group (bucket 64); this group's composition and "
-                      "bucket differ, and neither training was bitwise deterministic"})
-    print("trained", len(pols), "duplication policies", flush=True)
+        "policies": pols, "settings": settings, "device": device, "ccil_commit": FROZEN_CCIL, "tool_commit": tool,
+        "seeds": list(seeds), "buckets": sorted(buckets),
+        "group": "one train_group call: replay_ccil jobs in seed order, then duplication jobs in seed order",
+        "note": "the original CCIL checkpoints trained in the runner's mixed group and were not bitwise deterministic; "
+                "original CCIL - replay_ccil is reported as retraining drift, and attribution is replay_ccil - "
+                "duplication"})
+    print("trained", sum(len(v) for v in pols.values()), "matched policies, buckets", sorted(buckets), flush=True)
     return 0
 
 
