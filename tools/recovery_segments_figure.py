@@ -43,8 +43,8 @@ def segs(ax, states, color, lw=0.6, alpha=0.8, cmap=None, values=None, norm=None
     e, w = ew(states)
     for i, (x, y) in enumerate(zip(e, w)):
         c = cmap(norm(values[i])) if cmap is not None else color
-        ax.plot(x, y, color=c, lw=lw, alpha=alpha)
-        ax.plot(x[-1:], y[-1:], ls="none", marker=".", ms=2, color=c)
+        ax.plot(x, y, color=c, lw=lw, alpha=alpha, rasterized=True)
+        ax.plot(x[-1:], y[-1:], ls="none", marker=".", ms=2, color=c, rasterized=True)
 
 
 def figure(out: Path) -> str:
@@ -65,6 +65,8 @@ def figure(out: Path) -> str:
     paths(ax, np.stack([D["S"][k] for k in D["train"]]), DEMO, lw=0.6, alpha=0.9)
     roll = F["collection/rollouts"]
     paths(ax, roll[F["collection/fail"]], FAIL, lw=0.35, alpha=0.5)
+    for ln in ax.lines:
+        ln.set_rasterized(True)
     e, w = ew(F["collection/x"])
     ax.plot(e, w, ls="none", marker=".", ms=1.5, color=START)
     contract(ax, f"(a) seed {s}: demonstrations (green),\nprovisional-BC failure trajectories (orange, "
@@ -124,7 +126,7 @@ def figure(out: Path) -> str:
     fig.suptitle(f"Pendulum targeted recovery segments, Stage A (exploratory; M > 1 is beyond the paper). {head}",
                  x=0.01, ha="left", color=INK, fontsize=10)
     buf = io.StringIO()
-    fig.savefig(buf, format="svg", metadata={"Date": None, "Creator": None}, bbox_inches="tight")
+    fig.savefig(buf, format="svg", metadata={"Date": None, "Creator": None}, bbox_inches="tight", dpi=150)
     plt.close(fig)
     return buf.getvalue()
 
