@@ -1,0 +1,41 @@
+command uv run python tools/recovery_tube.py audit --out /home/siddh/code/il-supervision-benchmarks/runs/20261102T160255Z-recovery-tube --capture runs/20261102T003101Z-capture-control --corrected /home/siddh/code/CCIL/runs/20261029T191145Z-corrected-study --corrected-eval /home/siddh/code/CCIL/runs/20261030T013609Z-corrected-eval --ccil-evidence /home/siddh/code/CCIL/docs/fixtures/evidence/pendulum-corrected-demonstrator --response-surface runs/20261031T141026Z-j-r-k && uv run python tools/recovery_tube.py geometry --out /home/siddh/code/il-supervision-benchmarks/runs/20261102T160255Z-recovery-tube
+commit acbc35aad1b98aa7a002403e506a091fa19ef663 dirty=0
+host siddh cpus 64
+               total        used        free      shared  buff/cache   available
+Mem:             125           6         100           0          19         119
+ 08:02:56 up 10 days,  2:49,  2 users,  load average: 0.27, 0.11, 0.05
+uv 0.13.0 (x86_64-unknown-linux-gnu)
+stall threshold 1800 s; heartbeat every 300 s; completion marker EXIT= and geometry.json
+   Building il-supervision-benchmarks @ file:///home/siddh/code/il-supervision-benchmarks
+      Built il-supervision-benchmarks @ file:///home/siddh/code/il-supervision-benchmarks
+Uninstalled 1 package in 0.40ms
+Installed 1 package in 1ms
+numpy 2.5.4 scipy 1.16.3 python 3.12.15
+08:02:56 capture cohort eligible: True []
+08:02:58 corrected cohort eligible: True []
+08:03:18 response-surface cohort internally complete: False ['unresolved reference at plan_sha### (1 distinct)']
+08:03:18 audit done in 21.2 s
+08:03:21 geometry 1201 {"q50": 7.093329503240754e-05, "q95": 0.004918271476682985, "max": 0.008043531721258497}
+08:03:27 geometry 1202 {"q50": 8.3933325973062e-05, "q95": 0.004882545126436385, "max": 0.0084349135598294}
+08:03:31 geometry 1203 {"q50": 8.533078389529585e-05, "q95": 0.005275396341944116, "max": 0.008851365386440078}
+08:03:44 geometry 1204 {"q50": 0.00010091766498839082, "q95": 0.005004945370736757, "max": 0.00932697405672257}
+08:03:46 geometry 1205 {"q50": 6.649923330390913e-05, "q95": 0.005067386423863155, "max": 0.008427011669135034}
+08:04:02 geometry 1206 {"q50": 0.0001475165358581083, "q95": 0.005071886231682776, "max": 0.009184692789983611}
+08:04:04 geometry 1207 {"q50": 3.579599261238675e-05, "q95": 0.0052390798469481815, "max": 0.008186285351107922}
+08:04:08 geometry 1208 {"q50": 5.297476482750813e-05, "q95": 0.005262260184955685, "max": 0.008276162564482858}
+08:04:28 geometry 1209 {"q50": 0.00016022902434211024, "q95": 0.005101755131750679, "max": 0.00855275059825455}
+08:04:32 geometry 1210 {"q50": 0.00012228946568493005, "q95": 0.0052735440067168534, "max": 0.008361836921787684}
+08:04:46 geometry 1211 {"q50": 9.33708368538463e-05, "q95": 0.005073483555277828, "max": 0.008629153952089002}
+08:04:51 geometry 1212 {"q50": 6.125110402905524e-05, "q95": 0.005201200857965173, "max": 0.008299909976635378}
+08:04:55 geometry 1213 {"q50": 7.492592281250612e-05, "q95": 0.0051480200055984875, "max": 0.008288849214086893}
+08:05:02 geometry 1214 {"q50": 0.00011084930688751382, "q95": 0.006369457509880025, "max": 0.00946176683331496}
+08:05:06 geometry 1215 {"q50": 5.964301117148794e-05, "q95": 0.005272776032020311, "max": 0.008330533632400262}
+08:05:14 geometry 1216 {"q50": 7.334156506222474e-05, "q95": 0.005296465579440643, "max": 0.008639831518111133}
+08:05:21 geometry 1217 {"q50": 0.00010761115448639942, "q95": 0.005695690895924346, "max": 0.008370545378458065}
+08:05:23 geometry 1218 {"q50": 3.738309487281092e-05, "q95": 0.005010970253822804, "max": 0.008428022803400945}
+08:05:26 geometry 1219 {"q50": 7.287597334602007e-05, "q95": 0.005149246915489449, "max": 0.00866186173692378}
+08:05:37 geometry 1220 {"q50": 6.064144568546757e-05, "q95": 0.005088127378858646, "max": 0.008377025544810221}
+08:05:37 label geometry done, 139 s
+08:06:48 phase 1 frozen: geometry.json d0b0872a18ddbcd89a89afb4599ba3aa0504b667e2d42b56e3c5fc5a31ed7745 testable: True {np.str_('beyond_1'): 1325, np.str_('beyond_2'): 814, np.str_('beyond_3'): 963, np.str_('beyond_4'): 431, np.str_('beyond_5'): 131, np.str_('beyond_6'): 353, np.str_('beyond_7'): 8, np.str_('edge'): 993, np.str_('inside'): 1480, np.str_('null'): 702, np.str_('undisturbed'): 200}
+08:06:48 geometry done in 210.0 s
+EXIT=0
