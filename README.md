@@ -50,4 +50,4 @@ The evidence and selection rationale are recorded in the [benchmark landscape an
 
 ## Status
 
-The first vertical slice of the study harness (#11) is implemented: one state machine from a frozen specification to a reproducible report, with a Pendulum task adapter, a CCIL supervision adapter and a `vector_bc_v2` learner adapter. See [docs/harness.md](docs/harness.md). The first study is the Pendulum calibration study (#12). Existing community benchmarks are dependencies and intellectual foundations, not work to be reproduced locally.
+The first vertical slice of the study harness (#11) is implemented: one state machine from a frozen specification to a reproducible report, with a Pendulum task adapter, a CCIL supervision adapter and a `vector_bc_v2` learner adapter. See [docs/harness.md](docs/harness.md). The first study is the Pendulum calibration study (#12). The Pendulum investigation is closed; its findings are in [docs/studies/pendulum.md](docs/studies/pendulum.md). Existing community benchmarks are dependencies and intellectual foundations, not work to be reproduced locally.

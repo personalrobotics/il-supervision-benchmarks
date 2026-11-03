@@ -1,5 +1,7 @@
 # Pendulum targeted recovery segments at capture failures: predeclaration, version 1 (#21)
 
+> **Historical record (2026-11-03).** The current account of the Pendulum investigation is [pendulum.md](pendulum.md). The text below is unchanged. Its "capture region" is the demonstrator's LQR branch, |e| < 0.1, without the capture check the capture control added; that check removed no state there.
+
 **Status: version 1.** This document is committed and pushed before any code for this study exists, any transition model is fitted, any policy is trained or any rollout is run. It fixes the gates, seed sets, start sets, stop rules and the pilot rule. Any later change is a numbered amendment (see "Amendments"), with its reason, made before the outcome it could affect is read.
 
 ## Result, Stage A (run 20261102T221735Z from `60d8959`; exploratory)

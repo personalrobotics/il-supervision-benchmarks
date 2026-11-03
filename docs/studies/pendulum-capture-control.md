@@ -1,5 +1,7 @@
 # Pendulum capture-region positive control: predeclaration, version 1 (#12)
 
+> **Historical record (2026-11-03).** The current account of the Pendulum investigation is [pendulum.md](pendulum.md). The text below is unchanged.
+
 **Status: version 1, pushed before any policy in this document is trained.** This study is **exploratory**. Its region was chosen after inspecting the rollouts of the pumping-region positive control (`docs/studies/pendulum-positive-control.md`, "Result"), so it cannot be described as confirmatory. The outcome is reported as it falls. An ambiguous outcome is "not established". Seeds are not added, the region is not changed, and no longer recovery segment is implemented.
 
 ## Result (version 1: run 20261102T003101Z from `c64b672`; exploratory)
