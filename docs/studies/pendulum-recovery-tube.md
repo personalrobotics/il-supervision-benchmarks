@@ -1,5 +1,7 @@
 # Pendulum recovery-tube expansion from existing checkpoints: predeclaration, version 1 (#18)
 
+> **Historical record (2026-11-03).** The current account of the Pendulum investigation is [pendulum.md](pendulum.md). The text below is unchanged.
+
 **Status: version 1, frozen.** The protocol was approved after review on 2026-11-02 and frozen by the commit that adds this status line. No evaluator code existed at that commit. The audit, evaluator, fixtures and duplication support follow as later commits in the same pull request. That pull request is merged before any real checkpoint is evaluated, including the capture control. Results go in one later pull request. Any later change to this protocol is a numbered amendment (see "Amendments") with its reason, made before the outcome it could affect is read.
 
 This study is **exploratory**. It does not reopen the completed causal ladder (#12), rerun its treatments or make a confirmatory claim. A favorable outcome is not required. An ambiguous outcome is reported as "not established". After any recovery outcome is read:

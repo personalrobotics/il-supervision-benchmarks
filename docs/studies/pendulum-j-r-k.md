@@ -1,5 +1,7 @@
 # J(r, K | α = 0.5) on Pendulum: protocol
 
+> **Historical record (2026-11-03).** The current account of the Pendulum investigation is [pendulum.md](pendulum.md). The text below is unchanged. This study's results were not merged, and the account does not rely on them.
+
 Status: **frozen at a public commit before execution.** The governing protocol for a study run is the clean, public commit it executes from, recorded in the run's log and root. One earlier run was aborted before any outcome was read (see "Run history").
 
 ## Question

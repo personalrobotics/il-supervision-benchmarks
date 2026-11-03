@@ -1,5 +1,7 @@
 # Pendulum missing-state positive control: predeclaration, version 1.1 (#12)
 
+> **Historical record (2026-11-03).** The current account of the Pendulum investigation is [pendulum.md](pendulum.md). The text below is unchanged. The release asset named under "Running and artifacts" was not published; the run directory is retained on the run host, and `artifact-manifest.json` records the sha256 of its policies and state sets.
+
 **Status: version 1.1 (a label-check amendment, below); version 1 was pushed before any policy in this document is trained.** The outcome is reported as it falls. If it is ambiguous, the result is "positive control not established". Replication is not increased.
 
 ## Result (version 1.1: run 20261101T230010Z from `b3f1114`)
