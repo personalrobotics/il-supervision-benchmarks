@@ -1,0 +1,12 @@
+{
+ "record": "runs/20261102T221735Z-recovery-segments/stage-a.json",
+ "record_sha256": "66100f2b3952a0ea9400914055165d27e89260584dfef4a69dcf9fc1420d8a10",
+ "checks": {
+  "not_smoke": true,
+  "artifacts_verify": true,
+  "gates_match": true,
+  "selection_matches": true,
+  "supervision_rows_schema": true
+ },
+ "all_pass": true
+}
