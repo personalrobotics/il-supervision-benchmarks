@@ -64,7 +64,7 @@ The action-noise scale σ is a hyperparameter of CCIL: it sets the distribution 
 3. **Selection, per (r, K, seed).** Each candidate's selected checkpoint predicts the actions of the unit's held-out demonstration episodes. The σ with the least mean squared error, in raw action units, is selected; ties go to the smaller σ. Raw units keep the errors comparable across σ, whereas the trainer's own validation loss is in each model's scaled units.
 4. **The exact arm** trains at the selected σ of the same (r, K, seed). So learned − exact compares two dynamics models under one selected σ, and the contrast stays a measure of dynamics-model error.
 
-The final-test starts are never used for selection. The train report records every candidate's validation error, every candidate set's failure fraction and feasibility, and the selected σ; the audit recomputes all three. `tools/sigma_geometry.py SPEC` reports what each σ of the grid produces under the exact dynamics (failures, rejections, proposals per transition, displacement against the data's spacing) as a diagnostic. It selects nothing: selecting σ from exact dynamics would make the learned method oracle-assisted.
+The final-test starts are never used for selection. The train report records every candidate's validation error, every candidate set's failure fraction and feasibility, and the selected σ; the audit recomputes all three. Selecting σ from exact dynamics would make the learned method oracle-assisted.
 
 ## Adapters
 

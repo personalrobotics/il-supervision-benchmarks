@@ -1,88 +1,54 @@
 #!/usr/bin/env python3
-"""The three explanatory figures of the Pendulum account (docs/studies/pendulum.md): descriptive only.
+"""Regenerate the three descriptive figures in the canonical Pendulum account.
 
-    uv run python tools/pendulum_figures.py extract --run DIR --ccil CHECKOUT
     uv run --with matplotlib==3.10.9 python tools/pendulum_figures.py draw [--check]
 
-extract writes docs/studies/evidence/pendulum/summary.json, the only input the figures need beyond committed study
-records: (i) design seed 3321's training demonstrations and provisional-BC failure states from the recovery-segments
-Stage A run DIR (the extracted evidence release; its stage-a.json must be the committed one), and (ii) the per-seed
-reach and trust values of CCIL's persistent-bias diagnostic from a clean CCIL CHECKOUT, with its commit and file
-hashes. draw writes the three SVGs from summary.json, stage-a.json and the decision records of the positive control,
-the capture control and the recovery tube; --check exits 1 unless every SVG equals a regeneration.
+The compact committed records are the complete inputs. The evidence-heavy tree
+that produced them is preserved at tag ``pendulum-evidence-archive-v1``.
 """
 from __future__ import annotations
 
 import argparse
-import hashlib
 import io
 import json
-import subprocess
 import sys
 from pathlib import Path
 
 import numpy as np
-
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from positive_control_figure import DEMO, GRID, INK, MUTED, contract, ew, paths, setup  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[1]
 EV = REPO / "docs/studies/evidence"
 OUT = EV / "pendulum"
 SUMMARY = OUT / "summary.json"
 STAGE_A = EV / "pendulum-recovery-segments/stage-a.json"
-ARCHIVE = EV / "pendulum-recovery-segments/archive.json"
-SEED = 3321
-PROBES = "docs/fixtures/evidence/pendulum-recovery"
 CAPTURE_E = 0.1
+INK, MUTED, GRID, SURFACE, DEMO = "#0b0b0b", "#52514e", "#e4e3df", "#ffffff", "#1baf7a"
 EXACT, LEARNED = "#2a6fdb", "#d08a2e"
 FIGURES = ("pendulum-phase-space.svg", "pendulum-reach-trust.svg", "pendulum-supervision-contrasts.svg")
 
 
-def sha256(p: Path) -> str:
-    return hashlib.sha256(p.read_bytes()).hexdigest()
+def setup():
+    import matplotlib
+    matplotlib.use("svg")
+    import matplotlib.pyplot as plt
+    plt.rcParams.update({"svg.hashsalt": "pendulum-positive-control", "svg.fonttype": "none",
+                         "font.family": "DejaVu Sans", "font.size": 8, "axes.edgecolor": GRID,
+                         "axes.labelcolor": MUTED, "xtick.color": MUTED, "ytick.color": MUTED,
+                         "figure.facecolor": SURFACE, "axes.facecolor": SURFACE})
+    return plt
 
 
-def r(x, n=5):
-    return [float(f"{v:.{n}g}") for v in np.asarray(x, np.float64).ravel()]
+def ew(s):
+    return np.mod(np.arctan2(s[..., 0], s[..., 1]), 2 * np.pi) - np.pi, s[..., 2]
 
 
-def extract(run: Path, ccil: Path) -> dict:
-    import recovery_segments as rs
-    import positive_control as pc
-    stage = json.loads(ARCHIVE.read_text())["stage_a_sha256"]
-    if sha256(run / "stage-a.json") != stage:
-        raise SystemExit("refused: DIR/stage-a.json is not the committed Stage A record")
-    D = rs.demos(run, SEED)
-    F, rec = rs.failures(run, SEED)
-    x = F["collection/x"]
-    d = D["tree"].query(pc.phys(x))[0] / D["tau"]
-    demos = [[r(v, 4) for v in ew(D["S"][k][::2])] for k in D["train"]]
-    e, w = ew(x)
-
-    git = lambda *a: subprocess.run(["git", "-C", str(ccil), *a], capture_output=True, text=True, check=True).stdout
-    if git("status", "--porcelain", "--untracked-files=no").strip():
-        raise SystemExit("refused: the CCIL checkout has tracked changes")
-    files = sorted((ccil / PROBES).glob("probe-s*.json"))
-    probes = {}
-    for f in files:
-        p = json.loads(f.read_text())
-        probes[str(p["seed"])] = {
-            "tau_demo": p["tau_demo"], "trust_threshold": p["trust_threshold"],
-            "ladder": {M: {"eta_reach": v["eta_reach"], "kappa_over_tau": v["kappa_M"] / p["tau_demo"],
-                           "trust_off_demonstrations": v["criteria"]["trust_off_demonstrations"],
-                           "reaches_beyond_support": v["criteria"]["reaches_beyond_support"]}
-                       for M, v in sorted(p["ladder"].items(), key=lambda kv: int(kv[0]))}}
-    return {
-        "phase": {"source": {"archive_sha256": json.loads(ARCHIVE.read_text())["sha256"], "stage_a_sha256": stage,
-                             "seed": SEED, "demonstrations": "training episodes, every second state",
-                             "failure_states": "collection set, failures/s3321.npz collection/x"},
-                  "tau_demo": D["tau"], "collection": rec["collection"],
-                  "demonstrations": demos, "failures": {"e": r(e, 4), "omega": r(w, 4), "d_demo_over_tau": r(d, 4)}},
-        "persistent_bias": {"source": {"repository": "personalrobotics/CCIL", "commit": git("rev-parse", "HEAD").strip(),
-                                       "files": {f"{PROBES}/{f.name}": sha256(f) for f in files},
-                                       "protocol": "docs/experiments/pendulum-recovery-diagnostic.md (version 1)"},
-                            "seeds": probes}}
+def contract(ax, title):
+    ax.set_xlim(-np.pi, np.pi)
+    ax.set_ylim(-8, 8)
+    ax.set_xticks([-np.pi, -np.pi / 2, 0, np.pi / 2, np.pi], ["−π", "−π/2", "0 (upright)", "π/2", "π"])
+    ax.set_xlabel("e = θ − π (rad), periodic")
+    ax.set_ylabel("ω (rad/s)")
+    ax.set_title(title, loc="left", color=INK, fontsize=8.5)
 
 
 # ---- figures ----
@@ -257,16 +223,9 @@ def draw() -> dict:
 def main() -> int:
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
-    x = sub.add_parser("extract")
-    x.add_argument("--run", type=Path, required=True)
-    x.add_argument("--ccil", type=Path, required=True)
     d = sub.add_parser("draw")
     d.add_argument("--check", action="store_true")
     a = ap.parse_args()
-    if a.cmd == "extract":
-        OUT.mkdir(parents=True, exist_ok=True)
-        SUMMARY.write_text(json.dumps(extract(a.run, a.ccil), indent=1, sort_keys=True) + "\n")
-        return 0
     svgs = draw()
     if a.check:
         same = {n: (OUT / n).exists() and (OUT / n).read_text() == t for n, t in svgs.items()}
