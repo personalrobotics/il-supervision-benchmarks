@@ -92,7 +92,7 @@ Sources: CCIL [M3 closeout](https://github.com/personalrobotics/CCIL/blob/d84e52
 ## What Pendulum does and does not establish
 
 **It establishes:**
-- Recovery supervision at the states BC actually fails at can matter a great deal (capture control).
+- Oracle-provided recovery supervision at capture states where BC fails can matter a great deal. The capture control establishes sensitivity to such supervision, not that data-only CCIL can discover or label those states.
 - Training exposure alone produces a large part of the measured CCIL gain. Duplication at matched rows is a required control.
 - On this task, BC's capture failures lie on the demonstrations' support. Neither one-step nor targeted multi-step CCIL produces trusted labels outside it.
 
@@ -107,6 +107,7 @@ Sources: CCIL [M3 closeout](https://github.com/personalrobotics/CCIL/blob/d84e52
 
 - **Gate the metric on reference behaviors first.** Zero action, the expert and a positive control show whether a measure can register the effect.
 - **Match the added supervision with duplication at equal optimizer steps** before crediting the information in it.
+- **Separate need from trust.** A provisional learner can identify where additional supervision may matter; independent dynamics checks determine whether a synthetic label there is credible. Neither score substitutes for the other.
 - **Measure geometry before training.** Compute reach, novelty and trust against τ_demo, and stop when a predeclared gate fails.
 - **Report a refusal as a result.**
 
