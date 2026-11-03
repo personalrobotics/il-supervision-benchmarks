@@ -39,7 +39,7 @@ Sources: CCIL [M3 closeout](https://github.com/personalrobotics/CCIL/blob/d84e52
 ### The original improvement was confounded by training exposure
 
 - **The gain.** On the corrected demonstrations, CCIL improved upright occupancy over BC on continuous Pendulum: +0.208 [0.138, 0.277] at 98.75%. No advantage was detected on discontinuous Pendulum (CCIL M3 closeout).
-- **The control.** The CCIL arm adds 20 synthetic rows per demonstration row. Under an epoch-based recipe, that also multiplies the optimizer updates by 21.1. The [recovery tube](pendulum-recovery-tube.md) study separated the two effects with a duplication arm matched in rows and sampler exposure, trained as a pair with a replay of the CCIL arm. Its endpoint is edge-bin recovery, 20 seeds, exploratory:
+- **The control.** The CCIL arm adds 20 synthetic rows per demonstration row. Under an epoch-based recipe, that also multiplies the optimizer updates by 21.1. The [recovery-tube study](https://github.com/personalrobotics/il-supervision-benchmarks/pull/20) separated the two effects with a duplication arm matched in rows and sampler exposure, trained as a pair with a replay of the CCIL arm. Its endpoint is edge-bin recovery, 20 seeds, exploratory:
   - **learned-dynamics CCIL − BC:** +0.420 [+0.215, +0.625];
   - **duplication − BC:** +0.240 [+0.066, +0.433]. Duplication adds no information, yet it accounts for 57% of the gain at the point estimates;
   - **learned-dynamics CCIL − duplication:** +0.180 [−0.070, +0.430]. The gain is **not attributable to corrective information**. That benefit is unresolved, not disproven.
@@ -47,16 +47,16 @@ Sources: CCIL [M3 closeout](https://github.com/personalrobotics/CCIL/blob/d84e52
 
 ### Capture supervision helps, but it is not missing-state supervision
 
-- **Pumping control** ([positive control](pendulum-positive-control.md), predeclared):
+- **Pumping control** ([positive-control record](https://github.com/personalrobotics/il-supervision-benchmarks/pull/17), predeclared):
   - **The test:** demonstrator relabeling at BC-visited states in the energy-pumping region.
   - **Labels:** they reduced held-out action error. Relabel − BC was −0.722 and relabel − duplication −0.719, both intervals below 0.
   - **Closed loop:** occupancy showed no detectable difference: relabel − BC +0.051 [−0.022, +0.145], relabel − duplication −0.001 [−0.053, +0.050].
   - **Outcome:** **not established.**
-- **Capture control** ([capture control](pendulum-capture-control.md), exploratory):
+- **Capture control** ([capture-control record](https://github.com/personalrobotics/il-supervision-benchmarks/pull/17), exploratory):
   - **The test:** demonstrator relabeling at BC-visited states in the capture region.
   - **Final hold:** relabel 1.00 on every seed, against 0.40 for both BC and duplication. Relabel − duplication was +0.602 [+0.234, +0.970].
   - **What it shows:** recovery supervision at the right states matters.
-- **Recovery segments** ([recovery segments](pendulum-recovery-segments.md), #21):
+- **Recovery segments** ([Stage A record](https://github.com/personalrobotics/il-supervision-benchmarks/pull/23), #21):
   - **Where BC fails:** in the approach to upright, but **on the demonstrations' own trajectories**. On design seed 3321, the median failure state lies 0.08 τ_demo from the nearest demonstration state, and 1.4% lie beyond τ_demo (Figure 1).
   - **Segment rows built from those failures:** their median distance from the demonstrations is 0.014–0.22 τ_demo across seeds and horizons.
   - **Labels there:** exact-dynamics CCIL labels at those states are correct and beat BC. At capture states their median label error is 0–0.11, against BC's 0.04–1.25.
@@ -75,7 +75,7 @@ Sources: CCIL [M3 closeout](https://github.com/personalrobotics/CCIL/blob/d84e52
 - **Persistent-bias segments of up to M = 32 intervals** (CCIL [#171 diagnostic](https://github.com/personalrobotics/CCIL/blob/d84e528/docs/experiments/pendulum-recovery-diagnostic.md)).
   - **Reach** grows with M but stays below τ_demo on every seed.
   - **Trust** fails first: where the primary and check models agree, reach is only 0.11–0.26 τ_demo.
-- **Segments targeted at BC's real failures, M ≤ 16** ([recovery segments](pendulum-recovery-segments.md), #21).
+- **Segments targeted at BC's real failures, M ≤ 16** ([Stage A record](https://github.com/personalrobotics/il-supervision-benchmarks/pull/23), #21).
   - **Stage A stopped by its predeclared rule** before any label or learner. No M passed for either arm.
   - **Novelty:** it failed on every seed at every M, for exact and learned dynamics alike, because the failures are already on demonstration support.
   - **Trust:** the learned model and its check agree, yet their segments increasingly fail exact replay as M grows, so agreement is not trust.
@@ -112,8 +112,8 @@ Sources: CCIL [M3 closeout](https://github.com/personalrobotics/CCIL/blob/d84e52
 
 ## Records
 
-- **This repository's study documents:** [pumping control](pendulum-positive-control.md), [capture control](pendulum-capture-control.md), [recovery tube](pendulum-recovery-tube.md) and [recovery segments](pendulum-recovery-segments.md). The committed decision records are under [`evidence/`](evidence/).
-- **CCIL's study documents:** [`docs/experiments/`](https://github.com/personalrobotics/CCIL/tree/d84e528/docs/experiments), at commit `d84e528`.
+- **Historical study records:** [positive controls](https://github.com/personalrobotics/il-supervision-benchmarks/pull/17), [recovery tube](https://github.com/personalrobotics/il-supervision-benchmarks/pull/20), and [targeted recovery segments](https://github.com/personalrobotics/il-supervision-benchmarks/pull/23). The complete pre-cleanup tree is tagged [`pendulum-evidence-archive-v1`](https://github.com/personalrobotics/il-supervision-benchmarks/tree/pendulum-evidence-archive-v1).
+- **CCIL's historical records:** tag [`pendulum-evidence-archive-v1`](https://github.com/personalrobotics/CCIL/tree/pendulum-evidence-archive-v1); the citations above pin the original evidence commits.
 - **The figures:**
-  - `uv run --with matplotlib==3.10.9 python tools/pendulum_figures.py draw --check` regenerates them from committed files and fails if they differ.
-  - Their extracted inputs are in [`evidence/pendulum/summary.json`](evidence/pendulum/summary.json). It records the source archive's sha256, the CCIL commit and the hashes of the files read.
+  - `uv run --with matplotlib==3.10.9 python tools/pendulum_figures.py draw --check` regenerates them from the compact committed records and fails if they differ.
+  - Their extracted inputs are in [`evidence/pendulum/summary.json`](evidence/pendulum/summary.json). It records the source archive's sha256, the CCIL commit and the hashes of the original files.
