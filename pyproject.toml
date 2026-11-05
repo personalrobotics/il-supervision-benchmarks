@@ -5,9 +5,9 @@ description = "Reproducible studies of how supervision construction affects imit
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    # ccil supplies the supervision method (labels, nested views, supervision manifests) and, for the first study,
-    # the learner (vector_bc_v2). Pinned to one commit; bump deliberately.
-    "ccil[torch] @ git+https://github.com/personalrobotics/CCIL@cc711b5961c2ccfbef8a330f7ab784757886411e",
+    # ccil supplies the supervision method (labels, nested views, supervision manifests) and the dynamics fit; the
+    # learners are ilsb.learners.vector. Pinned to one commit; bump deliberately.
+    "ccil[torch] @ git+https://github.com/personalrobotics/CCIL@3b090bb34b5c0a6621e84bfb494e735d62613e1a",
     "numpy>=1.24",
     "pyyaml>=6.0",
     "scipy==1.16.3",
