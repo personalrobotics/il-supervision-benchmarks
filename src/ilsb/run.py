@@ -2,6 +2,7 @@
 
     uv run python -m ilsb run SPEC --root ROOT [--store STORE]     # every stage in order, resuming
     uv run python -m ilsb stage NAME SPEC --root ROOT [--store S]  # one stage (it refuses if out of order)
+    uv run python -m ilsb policy train CONFIG                      # one vector policy on CCIL supervision (policy.py)
 
 The run root holds root.json (the protocol identity: the specification, the harness and ccil commits, the lock, and
 the scope every store identity carries: the harness source, ccil commit, lock and execution environment),
@@ -25,6 +26,7 @@ import numpy as np
 import yaml
 
 from . import analysis
+from . import policy as policy_cmd
 from .learners import vector_bc
 from .store import Store, StoreError, digest, sha256_file, write_json
 from .supervision import ccil as sup
@@ -319,7 +321,7 @@ def policy_identity(ctx, u, group) -> dict:
     return {"kind": "policy", "arm": u["arm"], "subset": sha256_file(u["subset"]), "split": sha256_file(u["split"]),
             "candidates": None if u["candidates"] is None else sha256_file(u["candidates"]),
             "settings": ctx.learner_settings(u["arm"]), "seed": u["seed"], "group": group,
-            "learner": "ccil.training.vector_bc_v2"}
+            "learner": "ilsb.learners.vector.vector_bc_v2"}
 
 
 def validation_mse(u, d: Path) -> float:
@@ -413,7 +415,7 @@ def audit(ctx) -> dict:
     unit's supervision (its training identity, which hashes the supervision manifest with its dataset, split and
     candidate hashes, recomputes from the unit's own inputs), with the weights its record describes and the row the
     train stage reported. Feasibility, the sigma selection and the analysis units recompute to the reported ones."""
-    from ccil.training import vector_bc_v2 as v2
+    from .learners.vector import vector_bc_v2 as v2
     prior = require(ctx, "audit")
     tr = prior["train"]
     problems, rows = {}, {}
@@ -572,7 +574,13 @@ def main(argv=None) -> int:
         p.add_argument("--root", type=Path, required=True)
         p.add_argument("--store", type=Path)
         p.add_argument("--allow-dirty", action="store_true", help="smoke and fixture runs only; recorded")
+    pol = sub_.add_parser("policy").add_subparsers(dest="policy_cmd", required=True)
+    pol.add_parser("train", help="one vector policy on CCIL supervision (moved from ccil policy train)",
+                   description=policy_cmd.__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+                   ).add_argument("config", type=Path)
     a = ap.parse_args(argv)
+    if a.cmd == "policy":
+        return policy_cmd.main(a.config)
     ctx = Context(a.spec, a.root, a.store, a.allow_dirty)
     if a.cmd == "run":
         done = run_all(ctx)
