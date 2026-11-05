@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 """Check the Pendulum task adapter against CCIL's originals, bit for bit.
 
-    uv run python tools/port_check.py --ccil PATH_TO_CCIL_CHECKOUT [--out FILE]
+    git -C CCIL worktree add ARCHIVE pendulum-evidence-archive-v1
+    uv run python tools/port_check.py --ccil ARCHIVE [--out FILE]
 
 - the transition map: ilsb.tasks.pendulum_map.step against CCIL tools/vector_env/pendulum.step on random states and
   actions (both variants, including states inside the discontinuity bands);
 - the scorer: ilsb.tasks.pendulum.Task.score against CCIL tools/pendulum_eval/profiles.pendulum_swingup_v2
   (upright occupancy, normalized height, final hold) on rollouts of the corrected demonstrator;
 - the evaluation starts: Task.starts against CCIL tools/m3_pendulum/env.initial_states.
-The CCIL checkout must be at the commit the harness pins.
+The CCIL checkout must be at the tag pendulum-evidence-archive-v1 (c930925), which keeps these tools. They are
+historical evidence, not CCIL's public interface, so the check reads them there rather than at the pinned commit.
 """
 from __future__ import annotations
 

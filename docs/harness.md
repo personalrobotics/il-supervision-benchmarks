@@ -71,7 +71,7 @@ The final-test starts are never used for selection. The train report records eve
 A benchmark contributes adapters, not a runner.
 
 **Task** (`ilsb/tasks/`). It provides the transition map or evaluator, the fixed evaluation starts, the scorer, the nested real-data subsets, and optionally an exact model for an exact-dynamics arm.
-- **Pendulum** ports CCIL's batched evaluator verbatim. `tools/port_check.py` checks it bit for bit against CCIL at the pinned commit, along with the scorer and the evaluation starts.
+- **Pendulum** ports CCIL's batched evaluator verbatim. `tools/port_check.py` checks it bit for bit against CCIL at the tag `pendulum-evidence-archive-v1`, along with the scorer and the evaluation starts.
 
 **Supervision** (`ilsb/supervision/`). It provides each arm's training and validation supervision, built from a method's public artifacts.
 - **CCIL:**
@@ -81,14 +81,35 @@ A benchmark contributes adapters, not a runner.
   - `ccil.supervision.build_supervision` with the episode split.
 
 **Learner** (`ilsb/learners/`). It trains through the backend's own validation selection, stopping and records.
+- **`ilsb/learners/vector/`** holds the vector-policy trainers v1 and v2, NoiseBC and their batched engine, moved from CCIL (CCIL#168) with only their imports changed. Trainer names, versions and training identities are CCIL's, so a policy CCIL wrote loads, evaluates and resumes here.
 - **`vector_bc_v2`** is the first learner:
   - a plateau learning-rate schedule and a stop at its floor, on the validation history, with the step budget only a ceiling;
   - a fixed synthetic sampling fraction;
   - a realized-exposure record.
 
+## One policy: `ilsb policy train`
+
+`ilsb policy train CONFIG` replaces `ccil policy train`. It trains one vector policy, for the BC, NoiseBC or CCIL arm, on CCIL's supervision artifacts. The configuration has two parts:
+- `labels`: the `recipe`, `config` and `set` options of `ccil labels generate`, which runs CCIL's label stages (each reused when complete);
+- `policy`: CCIL's former `policy.*` keys, without the prefix.
+
+The seed, device and determinism are the labels configuration's `run.seed`, `compute.device` and `compute.deterministic`. The policy is written to `<output_dir>/policy-<identity>/`, whole, and reused when complete. Its `policy.npz` is byte for byte the checkpoint `ccil policy train` wrote, and `evaluation.json` holds the same offline metrics. The module docstring of [`src/ilsb/policy.py`](../src/ilsb/policy.py) is the full reference.
+
+```yaml
+labels:
+  recipe: analytic_double_integrator
+  set: [data.path=rollouts.npz, compute.device=cpu, generation.method=noisy_action,
+        generation.labels_per_transition=4, generation.action_noise_std=0.05]
+policy: {method: ccil, batch_size: 32, epochs: 4}
+```
+
 ## Evidence
 
-- `tools/port_check.py --ccil CCIL_CHECKOUT` gives the Pendulum map, scorer and starts against CCIL, written to `docs/fixtures/evidence/pendulum-port-check.json`.
+- `tools/port_check.py --ccil CCIL_ARCHIVE` gives the Pendulum map, scorer and starts against CCIL at `pendulum-evidence-archive-v1`, written to `docs/fixtures/evidence/pendulum-port-check.json`.
+- `tools/learner_check.py --work NEW_DIR` checks the learners moved from CCIL against CCIL's own trainers at the pinned commit, on the same host, written to `docs/fixtures/evidence/learner-migration.json`:
+  - `ilsb policy train` and `ccil policy train` on the same label stages write the same checkpoint byte for byte, the same supervision manifest and the same offline metrics, for BC, NoiseBC and CCIL with trainers v1 and v2;
+  - the study learner's group of three seeds trains to the same parameters and records;
+  - a resumable checkpoint CCIL wrote loads with the same state and predictions, and resumes to the same next checkpoint byte for byte; CCIL's inference checkpoint reproduces its offline metrics; and resuming an inference checkpoint or another run's is refused.
 - `tools/fixture.py --work NEW_DIR` is the compact end-to-end fixture, written to `docs/fixtures/evidence/vertical-slice-fixture.json`:
   - every arm, two fractions and two doses through every stage on CPU, in a study's design: three seeds at K = 0 and K_max, two surface seeds at the dose between, and a fixed σ per (r, K);
   - a resume that reruns nothing;
@@ -99,3 +120,5 @@ A benchmark contributes adapters, not a runner.
   - a three-point σ grid with no genuine generation failure tolerated, which skips every σ with any failure untrained and fails the train stage on the coordinates left without a feasible σ.
 
   The evidence holds no paths, times or commits, so a rerun on the same host reproduces it byte for byte.
+
+CI (`.github/workflows/fixture.yml`) builds the wheel, installs it in a clean environment with CPU PyTorch, and runs `learner_check.py` and `fixture.py` from there; the evidence is uploaded as the run's artifact. There is no unit-test collection.

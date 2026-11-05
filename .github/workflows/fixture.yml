@@ -1,0 +1,39 @@
+# The end-to-end fixtures, run from the built wheel installed in a clean environment (CPU).
+name: fixture
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  installed-wheel:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2  # v10.3.3
+      - name: Build the wheel
+        run: uv build --wheel --out-dir dist
+      - name: Install it in a clean environment
+        run: |
+          uv venv --python 3.12 "$RUNNER_TEMP/clean"
+          uv pip install --python "$RUNNER_TEMP/clean/bin/python" --torch-backend cpu dist/*.whl
+      - name: Learners moved from CCIL
+        run: |
+          "$RUNNER_TEMP/clean/bin/python" -I tools/learner_check.py --work "$RUNNER_TEMP/learner" \
+            --out evidence/learner-migration.json
+      - name: Study state machine
+        run: |
+          "$RUNNER_TEMP/clean/bin/python" tools/fixture.py --work "$RUNNER_TEMP/study" \
+            --out evidence/vertical-slice-fixture.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        if: always()
+        with:
+          name: evidence
+          path: evidence/
