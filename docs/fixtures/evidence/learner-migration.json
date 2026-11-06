@@ -24,7 +24,7 @@
   "ilsb": [
    {
     "parameters_sha256": "0efd24c5c7de79aae8cf71d9d842510223a580f68308b5570d927660b1a5a582",
-    "record_sha256": "281ef5248513c21247df446791411f6dfbfc790cf3e6c460458b2696e237d312",
+    "record_sha256": "d70d76de9764b4fde5404cdf6961230c6d013bdbab02d07471da1acee1825f31",
     "selected_step": 700,
     "stopping": {
      "ceiling_steps": 4000,
@@ -49,11 +49,11 @@
      "steps": 760,
      "stopped_at_step": 760
     },
-    "training_identity_sha256": "3718f5acf0114f235621932c27dcff0d3267590e42f65d5556b89ecf390e7aee"
+    "training_identity_sha256": "827ae73d1774cbadb6d59541d4b247d861e451f6211c8d08b5d164d09fbb3786"
    },
    {
     "parameters_sha256": "07d1a6ed2305a05e81cf60876f452a29456981231be013464635f58005e6bc0e",
-    "record_sha256": "896bc2cb26596ae94ffa23b3d9bcab87fc880d9a3b0c09d7dcabf735363c11ab",
+    "record_sha256": "77278df2364d3858771b1f63f08398de59c1c648e6daad2cace141de6a2be72f",
     "selected_step": 1580,
     "stopping": {
      "ceiling_steps": 4000,
@@ -78,11 +78,11 @@
      "steps": 1640,
      "stopped_at_step": 1640
     },
-    "training_identity_sha256": "bfba74269671b340c217bfdc02a6971bfef17fde8b1a9490404fcf28fb9c31bb"
+    "training_identity_sha256": "ea1bcfb7b6602835ae188eaf6ea3fb266e84149e89f4a987192ef52f746905a7"
    },
    {
     "parameters_sha256": "6d3e43d1980c2cfe103779850bd34baac3de20d087455440e13691385afdf734",
-    "record_sha256": "573e4ee417b205a62282fa38915719f20a92fa987c43220e3893fdba4444359b",
+    "record_sha256": "1ceb27ac6a6313888c0ab5683f436993313ae298e89856c65358f6001586a653",
     "selected_step": 840,
     "stopping": {
      "ceiling_steps": 4000,
@@ -107,7 +107,7 @@
      "steps": 940,
      "stopped_at_step": 940
     },
-    "training_identity_sha256": "7f1dd6f36602ca0f245e83edb64df985e6e8e4a70c2ff79dfe4622bc85028d4c"
+    "training_identity_sha256": "d9213b62cef7bb58d7c157aa885bea495ff84a96884258d607b826785dc7cb94"
    }
   ],
   "jobs": 3,
@@ -250,7 +250,7 @@
   },
   "ccil_v1": {
    "checkpoint_identical": true,
-   "checkpoint_sha256": "c3987524b12ff83e3922c422eb7121117e360f776fff543560416f96e17f06ee",
+   "checkpoint_sha256": "d4d86ebf22ca102b1b838616878005f31b93ca4d03d3f7ddc4e394db3096f6e2",
    "expert_data_error": 4.675924850897248,
    "manifest_holds_normalized_config": true,
    "metrics_identical": true,
@@ -260,7 +260,7 @@
   },
   "ccil_v2": {
    "checkpoint_identical": true,
-   "checkpoint_sha256": "1e2acf82401b0c2f7d361a82c9a78bbe5b83d53ce4805c72554e2bf89a207e6c",
+   "checkpoint_sha256": "066fa688ba8fcdd0cdfe33dd8f49b95decc0171c6328337a0631c2cd54e7399d",
    "expert_data_error": 5.262121693966504,
    "manifest_holds_normalized_config": true,
    "metrics_identical": true,
@@ -270,7 +270,7 @@
   },
   "ccil_v2_recipe": {
    "checkpoint_identical": true,
-   "checkpoint_sha256": "031debeaabb7ef67c452b912dc658583eb20034cbf40dd8dbf202332df15c11d",
+   "checkpoint_sha256": "b4681ff4c18e6ceb2bb329e100344d61b781dfa819a09589015d28655bcf1428",
    "expert_data_error": 8.499073163246667,
    "manifest_holds_normalized_config": true,
    "metrics_identical": true,
