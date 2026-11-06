@@ -1,0 +1,43 @@
+# The end-to-end fixtures, each run from the built wheel installed in a clean environment (CPU).
+name: fixture
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  installed-wheel:
+    runs-on: ubuntu-24.04
+    # The study fixture takes about 65-80 minutes on a 4-core runner (6.5 on a 10-core laptop).
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        fixture:
+          - {name: learner-migration, script: tools/learner_check.py, python_flags: -I}
+          - {name: vertical-slice-fixture, script: tools/fixture.py, python_flags: ""}
+    name: ${{ matrix.fixture.name }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2  # v10.3.3
+      - name: Build the wheel
+        run: uv build --wheel --out-dir dist
+      - name: Install it in a clean environment
+        run: |
+          uv venv --python 3.12 "$RUNNER_TEMP/clean"
+          uv pip install --python "$RUNNER_TEMP/clean/bin/python" --torch-backend cpu dist/*.whl
+      - name: Run the fixture
+        run: |
+          "$RUNNER_TEMP/clean/bin/python" ${{ matrix.fixture.python_flags }} ${{ matrix.fixture.script }} \
+            --work "$RUNNER_TEMP/work" --out "evidence/${{ matrix.fixture.name }}.json"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        if: always()
+        with:
+          name: ${{ matrix.fixture.name }}
+          path: evidence/
