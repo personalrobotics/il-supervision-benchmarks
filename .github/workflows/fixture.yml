@@ -1,4 +1,4 @@
-# The end-to-end fixtures, run from the built wheel installed in a clean environment (CPU).
+# The end-to-end fixtures, each run from the built wheel installed in a clean environment (CPU).
 name: fixture
 
 on:
@@ -12,7 +12,15 @@ permissions:
 jobs:
   installed-wheel:
     runs-on: ubuntu-24.04
-    timeout-minutes: 90
+    # The study fixture takes about 65-80 minutes on a 4-core runner (6.5 on a 10-core laptop).
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        fixture:
+          - {name: learner-migration, script: tools/learner_check.py, python_flags: -I}
+          - {name: vertical-slice-fixture, script: tools/fixture.py, python_flags: ""}
+    name: ${{ matrix.fixture.name }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
@@ -24,16 +32,12 @@ jobs:
         run: |
           uv venv --python 3.12 "$RUNNER_TEMP/clean"
           uv pip install --python "$RUNNER_TEMP/clean/bin/python" --torch-backend cpu dist/*.whl
-      - name: Learners moved from CCIL
+      - name: Run the fixture
         run: |
-          "$RUNNER_TEMP/clean/bin/python" -I tools/learner_check.py --work "$RUNNER_TEMP/learner" \
-            --out evidence/learner-migration.json
-      - name: Study state machine
-        run: |
-          "$RUNNER_TEMP/clean/bin/python" tools/fixture.py --work "$RUNNER_TEMP/study" \
-            --out evidence/vertical-slice-fixture.json
+          "$RUNNER_TEMP/clean/bin/python" ${{ matrix.fixture.python_flags }} ${{ matrix.fixture.script }} \
+            --work "$RUNNER_TEMP/work" --out "evidence/${{ matrix.fixture.name }}.json"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
         if: always()
         with:
-          name: evidence
+          name: ${{ matrix.fixture.name }}
           path: evidence/
