@@ -62,7 +62,7 @@ SPEC = {
 
 
 def ilsb(*args, allow_dirty=False, env=None) -> subprocess.CompletedProcess:
-    return subprocess.run([sys.executable, "-m", "ilsb", *args, *(["--allow-dirty"] if allow_dirty else [])],
+    return subprocess.run([sys.executable, "-W", "error::FutureWarning", "-m", "ilsb", *args, *(["--allow-dirty"] if allow_dirty else [])],
                           capture_output=True, text=True, env=env)
 
 

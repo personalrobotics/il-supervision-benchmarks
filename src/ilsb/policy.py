@@ -62,8 +62,7 @@ SCHEMA, VERSION = "ilsb.policy-train", 1
 LABELS_RESULT = ("ccil.labels-result", "1")
 REQUIRED = object()
 NOISY = ("noisy_action", "noisy_action_fe")
-# The supervision manifest's method for each source (CCIL's build_supervision names at the pin).
-METHOD = {"demonstrations": "bc", "demonstrations_plus_selection": "ccil"}
+SOURCES = ("demonstrations", "demonstrations_plus_selection")  # CCIL build_supervision sources
 FILES = ("policy.npz", "supervision.json", "training.json", "evaluation.json", "identity.json")
 
 
@@ -137,7 +136,7 @@ def noise(v):
 
 SECTIONS = {
     "labels": {"recipe": (nullable(string), None), "config": (nullable(string), None), "set": (assignments, [])},
-    "supervision": {"source": (choice(*METHOD), REQUIRED), "demonstration_weight": (number(0), 1.0),
+    "supervision": {"source": (choice(*SOURCES), REQUIRED), "demonstration_weight": (number(0), 1.0),
                     "exclude_validation_episodes": (boolean, True), "balance_noisy_labels": (boolean, False)},
     "policy": {"trainer": (choice("vector_bc_v1", "vector_bc_v2"), REQUIRED), "seed": (integer(0), REQUIRED),
                "device": (device, "cpu"), "deterministic": (boolean, False), "hidden_layers": (widths, [256, 256]),
@@ -323,22 +322,23 @@ def train(config_path: Path) -> Path:
         raise Invalid("invalid configuration:\n  " + "\n  ".join(bad))
     art = {k: Path(v) for k, v in res["artifacts"].items()}
     dataset, split = art["dataset"], art.get("split")
-    method = "noise_bc" if p["noise"] is not None else METHOD[s["source"]]
+    perturbation = "noise_bc" if p["noise"] is not None else None
     inputs = {"split": split} if split is not None and s["exclude_validation_episodes"] else {}
-    if method == "ccil":
+    if s["source"] == "demonstrations_plus_selection":
         inputs |= {k: art[k] for k in ("candidates", "certificates", "selection", "calibration") if k in art}
     rep = IdentityRepresentation(values["representation.modality"])
     try:
-        sup = build_supervision(dataset, method, representation=rep, candidates=inputs.get("candidates"),
+        sup = build_supervision(dataset, s["source"], perturbation=perturbation, representation=rep, candidates=inputs.get("candidates"),
                                 certificates=inputs.get("certificates"), selection=inputs.get("selection"),
                                 calibration=inputs.get("calibration"), split=inputs.get("split"),
                                 demonstration_weight=s["demonstration_weight"])
         held = None
         if p["checkpoint_selection"] == "validation":  # the held-out episodes' demonstrations
-            held = build_supervision(dataset, "bc", representation=rep, split=split, part="validation",
+            held = build_supervision(dataset, "demonstrations", representation=rep, split=split, part="validation",
                                      demonstration_weight=s["demonstration_weight"])
     except ValueError as e:  # SupervisionError, SchemaError
         raise Invalid(str(e)) from None
+    method = sup.manifest()["method"]  # bc, noise_bc or ccil, as the training identity has always named it
     nz = None
     if p["noise"] is not None:
         nz = NoiseBC(p["noise"]["model"], p["noise"]["scale"], seed=p["seed"],

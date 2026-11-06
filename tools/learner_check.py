@@ -89,7 +89,9 @@ def text(v) -> str:
 
 
 def run(cmd, cwd) -> subprocess.CompletedProcess:
-    return subprocess.run([sys.executable, "-m", *cmd], cwd=cwd, capture_output=True, text=True)
+    """Run a module; ilsb runs with FutureWarning as an error, so it uses no deprecated CCIL name."""
+    flags = ["-W", "error::FutureWarning"] if cmd[0] == "ilsb" else []
+    return subprocess.run([sys.executable, *flags, "-m", *cmd], cwd=cwd, capture_output=True, text=True)
 
 
 def one(pattern: str, cwd: Path) -> Path:
@@ -205,12 +207,12 @@ def supervision(work: Path):
     data = one("runs/data-prepare-*", d) / "data"
     cands = one("runs/labels-generate-*", d) / "labels" / "candidates.npz"
     rep = IdentityRepresentation("state")
-    train = build_supervision(data / "dataset.npz", "ccil", representation=rep, split=data / "split.json",
+    train = build_supervision(data / "dataset.npz", "demonstrations_plus_selection", representation=rep, split=data / "split.json",
                               part="train", candidates=cands)
-    val = build_supervision(data / "dataset.npz", "bc", representation=rep, split=data / "split.json",
+    val = build_supervision(data / "dataset.npz", "demonstrations", representation=rep, split=data / "split.json",
                             part="validation")
-    noisy = build_supervision(data / "dataset.npz", "noise_bc", representation=rep, split=data / "split.json",
-                              part="train")
+    noisy = build_supervision(data / "dataset.npz", "demonstrations", perturbation="noise_bc", representation=rep,
+                              split=data / "split.json", part="train")
     return train, val, noisy, data / "dataset.npz"
 
 

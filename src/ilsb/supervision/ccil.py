@@ -79,6 +79,6 @@ def view(store: Store, candidates: Path, k: int) -> Path:
 def supervision(arm: str, subset: Path, split: Path, candidates: Path | None, part: str):
     """The arm's supervision for a split part: demonstrations, plus the view's usable labels for CCIL arms."""
     from ccil.supervision import build_supervision
-    method = "bc" if arm == "bc" or part == "validation" else "ccil"
-    return build_supervision(subset, method, representation=_rep(), split=split, part=part,
-                             candidates=candidates if method == "ccil" else None)
+    source = "demonstrations" if arm == "bc" or part == "validation" else "demonstrations_plus_selection"
+    return build_supervision(subset, source, representation=_rep(), split=split, part=part,
+                             candidates=candidates if source == "demonstrations_plus_selection" else None)
