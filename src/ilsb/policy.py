@@ -35,8 +35,8 @@ policy.noise set. policy.train builds the supervision (ccil.supervision.build_su
 ilsb.learners.vector, and evaluates the offline metrics `ccil policy train` reported.
 
 Output: <run.output_dir>/policy-<12 hex>/, named by the policy's identity (its training identity, trainer, device,
-determinism and evaluation data): policy.npz (byte for byte the checkpoint `ccil policy train` wrote for the same
-seed and settings), supervision.json, training.json, evaluation.json, identity.json and manifest.json (the
+determinism and evaluation data): policy.npz (the arrays `ccil policy train` wrote for the same seed and settings,
+before CCIL removed it), supervision.json, training.json, evaluation.json, identity.json and manifest.json (the
 normalized configuration that wrote it and each file's SHA-256). It is written whole and renamed into place, and a
 complete one with the same identity is reused.
 

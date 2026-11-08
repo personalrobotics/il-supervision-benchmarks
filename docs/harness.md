@@ -116,16 +116,16 @@ run:
 - **Supervision** names what the policy learns from: `demonstrations`, or `demonstrations_plus_selection` (the demonstrations and CCIL's selected labels). NoiseBC is `demonstrations` with `policy.noise` set. The former `bc`, `ccil` and `noise_bc` methods map to these.
 - **The policy's seed, device and determinism are its own,** so labels generated once train any number of policy seeds, or on another device.
 - **Every field is checked** for its exact type and range before CCIL runs or a learner is built. A malformed configuration exits 2 and writes nothing. The module docstring of [`src/ilsb/policy.py`](../src/ilsb/policy.py) lists every field and its default.
-- **Output.** The policy is written to `<run.output_dir>/policy-<identity>/`, whole, and reused when complete. Its `manifest.json` holds the normalized configuration that wrote it. For the same seed and settings, its `policy.npz` is byte for byte the checkpoint `ccil policy train` wrote, and `evaluation.json` holds the same offline metrics.
+- **Output.** The policy is written to `<run.output_dir>/policy-<identity>/`, whole, and reused when complete. Its `manifest.json` holds the normalized configuration that wrote it. For the same seed and settings, its `policy.npz` holds the arrays `ccil policy train` wrote before CCIL removed it, and `evaluation.json` holds the same offline metrics.
 
 ## Evidence
 
 - `tools/port_check.py --ccil CCIL_ARCHIVE` gives the Pendulum map, scorer and starts against CCIL at `pendulum-evidence-archive-v1`, written to `docs/fixtures/evidence/pendulum-port-check.json`.
-- `tools/learner_check.py --work NEW_DIR` checks the learners moved from CCIL against CCIL's own trainers at the pinned commit, on the same host, written to `docs/fixtures/evidence/learner-migration.json`:
-  - `ilsb policy train` and `ccil policy train` on the same label stages, with the same seed, write the same checkpoint byte for byte, the same supervision manifest and the same offline metrics, for BC, NoiseBC and CCIL with trainers v1 and v2;
+- `tools/learner_check.py --work NEW_DIR --reference PYTHON` checks the learners moved from CCIL against CCIL's own trainers, written to `docs/fixtures/evidence/learner-migration.json`. CCIL removed the trainers after `REFERENCE_CCIL` (CCIL#168), so they run on the same host in a second environment, `PYTHON`, that holds CCIL at that commit and the same torch; the script's docstring gives the install command. ilsb runs with its pinned CCIL:
+  - `ilsb policy train` and the reference's `ccil policy train`, with the same seed, for BC, NoiseBC and CCIL with trainers v1 and v2, generate the same label arrays, train checkpoints with the same arrays, and give the same offline metrics. The checkpoints' metadata and the supervision manifests differ only in the label files' hashes and the identities derived from them, because each CCIL records its own source in its labels' provenance;
   - two more policy seeds on the same labels reuse every label stage;
   - fifteen malformed configurations each exit 2 with their message, before CCIL runs or anything is written;
-  - the study learner's group of three seeds trains to the same parameters and records;
+  - on the same labels, the study learner's group of three seeds trains to the same parameters and records;
   - a v1 resumable checkpoint CCIL wrote loads with the same state and predictions, and resumes to the same next checkpoint byte for byte; CCIL's v1 and v2 inference checkpoints reproduce their offline metrics; and resuming an inference checkpoint or another run's is refused.
 - `tools/fixture.py --work NEW_DIR` is the compact end-to-end fixture, written to `docs/fixtures/evidence/vertical-slice-fixture.json`:
   - every arm, two fractions and two doses through every stage on CPU, in a study's design: three seeds at K = 0 and K_max, two surface seeds at the dose between, and a fixed σ per (r, K);
@@ -138,4 +138,4 @@ run:
 
   The evidence holds no paths, times or commits, so a rerun on the same host reproduces it byte for byte.
 
-CI (`.github/workflows/fixture.yml`) builds the wheel, installs it in a clean environment with CPU PyTorch, and runs `learner_check.py` and `fixture.py` from there; the evidence is uploaded as the run's artifact. There is no unit-test collection.
+CI (`.github/workflows/fixture.yml`) builds the wheel, installs it in a clean environment with CPU PyTorch, and runs `learner_check.py` (with a reference environment at `REFERENCE_CCIL`) and `fixture.py` from there; the evidence is uploaded as the run's artifact. There is no unit-test collection.
