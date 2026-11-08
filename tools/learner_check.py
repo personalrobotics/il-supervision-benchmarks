@@ -1,24 +1,31 @@
 #!/usr/bin/env python3
 """The learners moved from CCIL (CCIL#168): ilsb trains, loads and evaluates as CCIL did, and resumes its v1 checkpoints.
 
-    python tools/learner_check.py --work NEW_DIR [--out docs/fixtures/evidence/learner-migration.json]
+    python tools/learner_check.py --work NEW_DIR --reference REFERENCE_PYTHON
+        [--out docs/fixtures/evidence/learner-migration.json]
 
-The reference is CCIL's own trainers (ccil.training, at the pinned commit), run on the same host. On a 10-episode
-Pendulum demonstration file and CCIL's analytic recipe with noisy-action labels, on CPU:
-- policy_train: `ilsb policy train` (ilsb.policy-train 1) and `ccil policy train` on the same label stages, with the
-  same seed, for BC, NoiseBC and CCIL with trainer v1 and v2, and v2 with checkpoint selection on validation
-  episodes, a cosine schedule and EMA. Each pair writes the same checkpoint byte for byte, the same supervision
-  manifest and the same offline metrics. A rerun of `ilsb policy train` reuses its policy, and its manifest holds the
-  normalized configuration.
+The reference is CCIL's own trainers (`ccil policy train` and ccil.training), which CCIL removed after
+REFERENCE_CCIL (CCIL#168). They run on the same host in a second environment, REFERENCE_PYTHON, holding CCIL at that
+commit and the same torch as this one:
+    uv venv REF && uv pip install --python REF/bin/python torch==<this torch> \
+        "ccil[torch] @ git+https://github.com/personalrobotics/CCIL@<REFERENCE_CCIL>"
+ilsb runs here, with its pinned CCIL. On a 10-episode Pendulum demonstration file and CCIL's analytic recipe with
+noisy-action labels, on CPU:
+- policy_train: `ilsb policy train` (ilsb.policy-train 1) and the reference's `ccil policy train`, with the same
+  seed, for BC, NoiseBC and CCIL with trainer v1 and v2, and v2 with checkpoint selection on validation episodes, a
+  cosine schedule and EMA. Each CCIL generates its own labels, and each names its own source in their provenance.
+  So each pair's labels and checkpoint hold the same arrays, their metadata and supervision manifests differ only in
+  the label files' hashes and the identities derived from them, and the offline metrics are the same. A rerun of
+  `ilsb policy train` reuses its policy, and its manifest holds the normalized configuration.
 - labels_once: two more policy seeds on the same labels reuse every label stage and train two distinct policies.
 - malformed_configs: fifteen malformed configurations (wrong schema or version, a boolean or float for an integer, a
   string for a number, a zero width, an unknown field, the old source and trainer names, a missing seed, an unknown
   device, a negative or misplaced NoiseBC, a v2 setting on v1, a malformed labels.set) each exit 2 with their
   message, before CCIL runs or anything is written.
-- group_training: the study learner's group (three seeds, validation selection, plateau schedule, patience,
+- group_training: on ilsb's labels, the study learner's group (three seeds, validation selection, plateau schedule, patience,
   a synthetic fraction) trains to the same parameters, record and training identity under both trainers, and
   every model stops by patience.
-- checkpoint_migration: CCIL trains NoiseBC for 3 epochs with trainer v1 and writes a resumable checkpoint at epoch 1
+- checkpoint_migration: on ilsb's labels, CCIL trains NoiseBC for 3 epochs with trainer v1 and writes a resumable checkpoint at epoch 1
   (parameters, scalers, Adam state, epoch records, NoiseBC trace chain, training identity). ilsb loads it and predicts the same actions, and
   resumes it to epoch 3 (trainer v1; v2 writes inference checkpoints, which load but do not resume); CCIL resumes
   the same checkpoint. The two epoch-3 checkpoints are identical byte for byte.
@@ -45,6 +52,10 @@ import yaml
 LABELS = ["data.path=demos.npz", "run.output_dir=runs", "compute.device=cpu", "compute.deterministic=true",
           "generation.method=noisy_action", "generation.labels_per_transition=2", "generation.action_noise_std=0.05",
           "generation.support_radius=0.5"]
+# The last CCIL commit with its trainers; the reference environment must hold it.
+REFERENCE_CCIL = "8903b247033e72437e805d5bba21133544fd8f70"
+# The reference's own label stages, apart from ilsb's.
+REFERENCE_LABELS = [s if not s.startswith("run.output_dir=") else "run.output_dir=ccil-runs" for s in LABELS]
 SEED = 20261023  # the recipe's run.seed, which `ccil policy train` also trained with
 BASE = {"batch_size": 32, "epochs": 3, "hidden_layers": [16, 16]}
 # Each case in `ccil policy train`'s policy.* keys; ilsb_config gives the same arm in ilsb.policy-train 1.
@@ -88,10 +99,36 @@ def text(v) -> str:
     return v if isinstance(v, str) else json.dumps(v)
 
 
-def run(cmd, cwd) -> subprocess.CompletedProcess:
+def run(cmd, cwd, python=sys.executable) -> subprocess.CompletedProcess:
     """Run a module; ilsb runs with FutureWarning as an error, so it uses no deprecated CCIL name."""
     flags = ["-W", "error::FutureWarning"] if cmd[0] == "ilsb" else []
-    return subprocess.run([sys.executable, *flags, "-m", *cmd], cwd=cwd, capture_output=True, text=True)
+    return subprocess.run([python, *flags, "-m", *cmd], cwd=cwd, capture_output=True, text=True)
+
+
+def differing(a, b, path="") -> list[str]:
+    """The dotted paths at which two JSON values differ."""
+    if isinstance(a, dict) and isinstance(b, dict):
+        return [p for k in sorted(set(a) | set(b)) for p in differing(a.get(k), b.get(k), f"{path}.{k}")]
+    if isinstance(a, list) and isinstance(b, list) and len(a) == len(b):
+        return [p for i, (x, y) in enumerate(zip(a, b)) for p in differing(x, y, f"{path}[{i}]")]
+    return [] if a == b else [path]
+
+
+def same_arrays(a: Path, b: Path) -> bool:
+    """Two .npz files hold the same arrays, apart from their JSON metadata."""
+    x, y = np.load(a), np.load(b)
+    return sorted(x.files) == sorted(y.files) and all(
+        np.array_equal(x[k], y[k], equal_nan=x[k].dtype.kind == "f") for k in x.files if k != "meta")
+
+
+def meta(path: Path) -> dict:
+    return json.loads(str(np.load(path)["meta"]))
+
+
+# What a checkpoint and its supervision manifest may differ in across the two CCILs: the label files' hashes (each
+# CCIL's source enters its labels' provenance) and the identities hashed from them.
+LABEL_HASHES = {".supervision.candidates", ".supervision.selection", ".training_identity_sha256", ".execution_sha256"}
+MANIFEST_HASHES = {".inputs.candidates", ".inputs.selection"}
 
 
 def one(pattern: str, cwd: Path) -> Path:
@@ -115,7 +152,7 @@ def ilsb_config(ccil_policy: dict, **policy) -> dict:
             "run": {"output_dir": "policies"}}
 
 
-def policy_train(work: Path) -> dict:
+def policy_train(work: Path, ref: str) -> dict:
     out = {}
     for name, policy in CASES.items():
         d = work / name
@@ -123,27 +160,35 @@ def policy_train(work: Path) -> dict:
         (d / "demos.npz").symlink_to(work / "demos.npz")
         p = {**BASE, **policy}
         (d / "config.yaml").write_text(yaml.safe_dump(ilsb_config(p)))
-        sets = [s for kv in LABELS + [f"policy.{k}={text(v)}" for k, v in p.items()] for s in ("--set", kv)]
-        theirs = run(["ccil", "policy", "train", "--recipe", "analytic_double_integrator", *sets], d)
+        sets = [s for kv in REFERENCE_LABELS + [f"policy.{k}={text(v)}" for k, v in p.items()] for s in ("--set", kv)]
+        theirs = run(["ccil", "policy", "train", "--recipe", "analytic_double_integrator", *sets], d, ref)
         mine = run(["ilsb", "policy", "train", "config.yaml"], d)
         again = run(["ilsb", "policy", "train", "config.yaml"], d)
         if theirs.returncode or mine.returncode:
             out[name] = {"pass": False, "ccil": theirs.stderr[-600:], "ilsb": mine.stderr[-600:]}
             continue
-        c_dir, i_dir = one("runs/policy-train-*", d), one("policies/policy-*", d)
-        c_eval = json.loads((one("runs/policy-evaluate-*", d) / "metrics.json").read_text())["values"]
+        c_dir, i_dir = one("ccil-runs/policy-train-*", d), one("policies/policy-*", d)
+        c_eval = json.loads((one("ccil-runs/policy-evaluate-*", d) / "metrics.json").read_text())["values"]
         i_eval = json.loads((i_dir / "evaluation.json").read_text())
         same_metrics = all(c_eval[k] == v for k, v in i_eval.items() if k != "note")
-        same_sup = json.loads((c_dir / "supervision.json").read_text()) == json.loads(
-            (i_dir / "supervision.json").read_text())
-        ckpt = sha256(c_dir / "checkpoints" / "policy.npz") == sha256(i_dir / "policy.npz")
+        labels = [(sorted(glob.glob(f"ccil-runs/{s}", root_dir=d)), sorted(glob.glob(f"runs/{s}", root_dir=d)))
+                  for s in ("labels-generate-*/labels/*.npz", "labels-curate-*/labels/*.npz")]
+        same_labels = all(len(c) == len(i) and all(same_arrays(d / x, d / y) for x, y in zip(c, i)) for c, i in labels)
+        sup_differs = differing(json.loads((c_dir / "supervision.json").read_text()),
+                                json.loads((i_dir / "supervision.json").read_text()))
+        c_ckpt, i_ckpt = c_dir / "checkpoints" / "policy.npz", i_dir / "policy.npz"
+        meta_differs = differing(meta(c_ckpt), meta(i_ckpt))
+        ckpt = same_arrays(c_ckpt, i_ckpt) and set(meta_differs) <= LABEL_HASHES
+        same_sup = set(sup_differs) <= MANIFEST_HASHES
         reused = "policy.train       reused" in again.stdout and again.returncode == 0
         manifest = json.loads((i_dir / "manifest.json").read_text())["config"]
         normalized = manifest["policy"]["learning_rate"] == 0.001 and manifest["schema"] == "ilsb.policy-train"
-        out[name] = {"checkpoint_identical": ckpt, "supervision_identical": same_sup, "metrics_identical": same_metrics,
+        out[name] = {"labels_identical": same_labels, "checkpoint_identical_but_label_hashes": ckpt,
+                     "supervision_identical_but_label_hashes": same_sup, "metrics_identical": same_metrics,
+                     "checkpoint_metadata_differs": meta_differs, "supervision_differs": sup_differs,
                      "rerun_reused": reused, "manifest_holds_normalized_config": normalized,
-                     "checkpoint_sha256": sha256(i_dir / "policy.npz"), "expert_data_error": i_eval["expert_data_error"],
-                     "pass": ckpt and same_sup and same_metrics and reused and normalized}
+                     "checkpoint_sha256": sha256(i_ckpt), "expert_data_error": i_eval["expert_data_error"],
+                     "pass": same_labels and ckpt and same_sup and same_metrics and reused and normalized}
     return out
 
 
@@ -216,56 +261,71 @@ def supervision(work: Path):
     return train, val, noisy, data / "dataset.npz"
 
 
-def group_training(work: Path) -> dict:
-    from ccil.training import vector_bc_v2 as theirs
-
-    from ilsb.learners.vector import vector_bc_v2 as mine
+def group_rows(v2, work: Path) -> list[dict]:
     train, val, _, _ = supervision(work)
-    rows = {}
-    for name, v2 in (("ccil", theirs), ("ilsb", mine)):
-        res = v2.train_group([v2.Job(train, s, validation=val) for s in (1, 2, 3)], GROUP, device="cpu",
-                             deterministic=True)
-        rows[name] = [{"parameters_sha256": v2.parameters_sha256(p), "training_identity_sha256":
-                       r["training_identity_sha256"], "stopping": r["stopping"],
-                       "selected_step": (r["validation"] or {}).get("selected_step"),
-                       "record_sha256": digest(untimed(r))}
-                      for p, r in res]
+    res = v2.train_group([v2.Job(train, s, validation=val) for s in (1, 2, 3)], GROUP, device="cpu", deterministic=True)
+    return [{"parameters_sha256": v2.parameters_sha256(p), "training_identity_sha256": r["training_identity_sha256"],
+             "stopping": r["stopping"], "selected_step": (r["validation"] or {}).get("selected_step"),
+             "record_sha256": digest(untimed(r))}
+            for p, r in res]
+
+
+def reference_group(work: Path) -> list[dict]:
+    from ccil.training import vector_bc_v2
+    return group_rows(vector_bc_v2, work)
+
+
+def group_training(work: Path, ref: str) -> dict:
+    from ilsb.learners.vector import vector_bc_v2
+    rows = {"ccil": reference(ref, "group", work), "ilsb": group_rows(vector_bc_v2, work)}
     same = rows["ccil"] == rows["ilsb"]
     outcomes = [r["stopping"]["outcome"] for r in rows["ilsb"]]
     return {"jobs": 3, "identical": same, "ilsb": rows["ilsb"], "ccil": None if same else rows["ccil"],
             "outcomes": outcomes, "pass": same and outcomes == ["patience"] * 3}
 
 
-def checkpoint_migration(work: Path) -> dict:
-    from ccil.training import noise_bc as c_noise
-    from ccil.training import vector_bc as c_bc
+def noise(mod):
+    return mod.NoiseBC("symmetric_uniform_half_batch", 0.1, seed=7, mask_probability=0.5,
+                       units="standardized observation units (after the observation scaler)")
 
+
+def saver(d: Path, prefix: str):
+    return lambda policy, opt, epoch, state: policy.save(d / f"{prefix}{epoch}.npz", opt, epoch, state)
+
+
+def reference_migration(work: Path) -> dict:
+    """CCIL trains 3 epochs, saving each, and resumes its epoch-1 checkpoint to epoch 3; it loads that checkpoint."""
+    from ccil.training import noise_bc, vector_bc
+    _, _, noisy, _ = supervision(work)
+    d = work / "migration"
+    vector_bc.train_vector_bc(noisy, V1, seed=7, deterministic=True, noise=noise(noise_bc),
+                              on_epoch=saver(d, "ccil-uninterrupted-"))
+    first = d / "ccil-uninterrupted-1.npz"
+    vector_bc.train_vector_bc(noisy, V1, seed=7, deterministic=True, noise=noise(noise_bc), resume=first,
+                              on_epoch=saver(d, "ccil-resumed-"))
+    pol, meta_, adam = vector_bc.VectorBCPolicy.load(first)
+    np.savez(d / "ccil-loaded.npz", predictions=pol.predict(noisy.arrays()[0]), **{f"adam/{k}": v for k, v in adam.items()})
+    return meta_
+
+
+def checkpoint_migration(work: Path, ref: str) -> dict:
     from ilsb.learners.vector import noise_bc as i_noise
     from ilsb.learners.vector import vector_bc as i_bc
     _, _, noisy, dataset = supervision(work)
     d = work / "migration"
     d.mkdir()
-
-    def noise(mod):
-        return mod.NoiseBC("symmetric_uniform_half_batch", 0.1, seed=7, mask_probability=0.5,
-                           units="standardized observation units (after the observation scaler)")
-
-    def saver(prefix):
-        return lambda policy, opt, epoch, state: policy.save(d / f"{prefix}{epoch}.npz", opt, epoch, state)
     # CCIL trains 3 epochs, saving each; its epoch-1 checkpoint is resumed to epoch 3 by CCIL and by ilsb.
-    c_bc.train_vector_bc(noisy, V1, seed=7, deterministic=True, noise=noise(c_noise),
-                         on_epoch=saver("ccil-uninterrupted-"))
+    c_meta = reference(ref, "migration", work)
     first = d / "ccil-uninterrupted-1.npz"
-    c_bc.train_vector_bc(noisy, V1, seed=7, deterministic=True, noise=noise(c_noise), resume=first,
-                         on_epoch=saver("ccil-resumed-"))
     i_bc.train_vector_bc(noisy, V1, seed=7, deterministic=True, noise=noise(i_noise), resume=first,
-                         on_epoch=saver("ilsb-resumed-"))
+                         on_epoch=saver(d, "ilsb-resumed-"))
     obs, _, _ = noisy.arrays()
-    c_pol, c_meta, c_adam = c_bc.VectorBCPolicy.load(first)
+    loaded = np.load(d / "ccil-loaded.npz")
+    c_adam = {k.removeprefix("adam/"): loaded[k] for k in loaded.files if k.startswith("adam/")}
     i_pol, i_meta, i_adam = i_bc.VectorBCPolicy.load(first)
-    predictions = np.array_equal(c_pol.predict(obs), i_pol.predict(obs))
-    state = c_meta == i_meta and sorted(c_adam) == sorted(i_adam) and all(np.array_equal(c_adam[k], i_adam[k])
-                                                                         for k in c_adam)
+    predictions = np.array_equal(loaded["predictions"], i_pol.predict(obs))
+    state = json.loads(json.dumps(i_meta, default=str)) == c_meta and sorted(c_adam) == sorted(i_adam) and all(
+        np.array_equal(c_adam[k], i_adam[k]) for k in c_adam)
     resumed = sha256(d / "ilsb-resumed-3.npz") == sha256(d / "ccil-resumed-3.npz")
     uninterrupted = sha256(d / "ilsb-resumed-3.npz") == sha256(d / "ccil-uninterrupted-3.npz")
     # The inference checkpoint `ccil policy train` wrote: loaded and evaluated here, it reproduces CCIL's metrics.
@@ -273,13 +333,13 @@ def checkpoint_migration(work: Path) -> dict:
     evaluated = {}
     for case in ("ccil_v1", "ccil_v2"):
         cd = work / case
-        inference = one("runs/policy-train-*", cd) / "checkpoints" / "policy.npz"
-        c_eval = json.loads((one("runs/policy-evaluate-*", cd) / "metrics.json").read_text())["values"]
-        data = one("runs/data-prepare-*", cd) / "data"
+        inference = one("ccil-runs/policy-train-*", cd) / "checkpoints" / "policy.npz"
+        c_eval = json.loads((one("ccil-runs/policy-evaluate-*", cd) / "metrics.json").read_text())["values"]
+        data = one("ccil-runs/data-prepare-*", cd) / "data"
         pol, _, _ = i_bc.VectorBCPolicy.load(inference)
         i_eval = evaluate(pol, data / "dataset.npz", data / "split.json", "state", False)
         evaluated[case] = all(c_eval[k] == v for k, v in i_eval.items() if k != "note")
-    inference = one("runs/policy-train-*", work / "ccil_v1") / "checkpoints" / "policy.npz"
+    inference = one("ccil-runs/policy-train-*", work / "ccil_v1") / "checkpoints" / "policy.npz"
     refusals = {}
     for name, ckpt, sup, kw in (("inference_checkpoint", inference, noisy, {"noise": noise(i_noise)}),
                                 ("another_run", first, noisy, {"noise": noise(i_noise), "seed_": 8})):
@@ -296,24 +356,54 @@ def checkpoint_migration(work: Path) -> dict:
             "inference_checkpoint_metrics_identical": evaluated, "refuses_to_resume": refusals, "pass": ok}
 
 
+REFERENCE = {"group": reference_group, "migration": reference_migration}
+
+
+def reference(ref: str, half: str, work: Path):
+    """Run one reference half in the reference environment; return its JSON result."""
+    r = subprocess.run([ref, "-W", "ignore::FutureWarning", __file__, "--reference-half", half, "--work", str(work)],
+                       capture_output=True, text=True)
+    if r.returncode:
+        raise RuntimeError(f"the reference's {half} failed: {r.stderr[-2000:]}")
+    return json.loads(r.stdout)
+
+
+PROBE = ("import json, torch; from importlib import metadata; "
+         "d = json.loads(metadata.distribution('ccil').read_text('direct_url.json') or '{}'); "
+         "print(json.dumps({'ccil': (d.get('vcs_info') or {}).get('commit_id'), 'torch': torch.__version__}))")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--work", type=Path, required=True)
+    ap.add_argument("--reference", help="the Python of an environment with CCIL at REFERENCE_CCIL")
+    ap.add_argument("--reference-half", choices=REFERENCE, help=argparse.SUPPRESS)
     ap.add_argument("--out", type=Path)
     a = ap.parse_args()
     work = a.work.resolve()
+    if a.reference_half:  # run by the reference environment's Python, in the work directory main() made
+        print(json.dumps(REFERENCE[a.reference_half](work), default=str))
+        return 0
+    if not a.reference:
+        ap.error("--reference is required")
+    import torch
+    found = json.loads(subprocess.run([a.reference, "-c", PROBE], capture_output=True, text=True, check=True).stdout)
+    if found != {"ccil": REFERENCE_CCIL, "torch": torch.__version__}:
+        print(f"the reference environment holds {found}; it needs ccil {REFERENCE_CCIL} and torch {torch.__version__}",
+              file=sys.stderr)
+        return 2
     work.mkdir(parents=True)
     import ilsb
     from ilsb.tasks.pendulum import Task, demonstrations
     demonstrations(Task(variant="continuous", action_bound=3.0, horizon=100, eval_episodes=4, eval_seed=9001),
                    episodes=10, steps=60, seed=5, out=work / "demos.npz")
-    ev = {"demonstrations_sha256": sha256(work / "demos.npz"),
+    ev = {"demonstrations_sha256": sha256(work / "demos.npz"), "reference_ccil": REFERENCE_CCIL,
           "installed": "site-packages" in Path(ilsb.__file__).resolve().parts}
-    ev["policy_train"] = policy_train(work)
+    ev["policy_train"] = policy_train(work, a.reference)
     ev["labels_once"] = labels_once(work)
     ev["malformed_configs"] = malformed(work)
-    ev["group_training"] = group_training(work)
-    ev["checkpoint_migration"] = checkpoint_migration(work)
+    ev["group_training"] = group_training(work, a.reference)
+    ev["checkpoint_migration"] = checkpoint_migration(work, a.reference)
     ev["all_pass"] = bool(all(c["pass"] for c in ev["policy_train"].values()) and ev["group_training"]["pass"]
                           and ev["labels_once"]["pass"] and all(c["pass"] for c in ev["malformed_configs"].values())
                           and ev["checkpoint_migration"]["pass"])

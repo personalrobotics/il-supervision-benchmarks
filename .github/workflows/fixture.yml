@@ -18,8 +18,9 @@ jobs:
       fail-fast: false
       matrix:
         fixture:
-          - {name: learner-migration, script: tools/learner_check.py, python_flags: -I}
-          - {name: vertical-slice-fixture, script: tools/fixture.py, python_flags: ""}
+          - {name: learner-migration, script: tools/learner_check.py, python_flags: -I,
+             args: --reference "$RUNNER_TEMP/reference/bin/python"}
+          - {name: vertical-slice-fixture, script: tools/fixture.py, python_flags: "", args: ""}
     name: ${{ matrix.fixture.name }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -32,10 +33,19 @@ jobs:
         run: |
           uv venv --python 3.12 "$RUNNER_TEMP/clean"
           uv pip install --python "$RUNNER_TEMP/clean/bin/python" --torch-backend cpu dist/*.whl
+      # CCIL's own trainers, which the learner check compares with, last existed at REFERENCE_CCIL (CCIL#168).
+      - name: Install the reference CCIL in a second environment
+        if: matrix.fixture.name == 'learner-migration'
+        run: |
+          commit=$(sed -n 's/^REFERENCE_CCIL = "\([0-9a-f]*\)"$/\1/p' tools/learner_check.py)
+          torch=$("$RUNNER_TEMP/clean/bin/python" -c 'import torch; print(torch.__version__.split("+")[0])')
+          uv venv --python 3.12 "$RUNNER_TEMP/reference"
+          uv pip install --python "$RUNNER_TEMP/reference/bin/python" --torch-backend cpu "torch==$torch" \
+            "ccil[torch] @ git+https://github.com/personalrobotics/CCIL@$commit"
       - name: Run the fixture
         run: |
           "$RUNNER_TEMP/clean/bin/python" ${{ matrix.fixture.python_flags }} ${{ matrix.fixture.script }} \
-            --work "$RUNNER_TEMP/work" --out "evidence/${{ matrix.fixture.name }}.json"
+            --work "$RUNNER_TEMP/work" --out "evidence/${{ matrix.fixture.name }}.json" ${{ matrix.fixture.args }}
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
         if: always()
         with:
