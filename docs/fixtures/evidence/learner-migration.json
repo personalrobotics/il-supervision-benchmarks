@@ -24,7 +24,7 @@
   "ilsb": [
    {
     "parameters_sha256": "0efd24c5c7de79aae8cf71d9d842510223a580f68308b5570d927660b1a5a582",
-    "record_sha256": "d70d76de9764b4fde5404cdf6961230c6d013bdbab02d07471da1acee1825f31",
+    "record_sha256": "5f065d73980a8c6164b8a7b094be40904d8d606cba0f0ca794bd917366a1420c",
     "selected_step": 700,
     "stopping": {
      "ceiling_steps": 4000,
@@ -49,11 +49,11 @@
      "steps": 760,
      "stopped_at_step": 760
     },
-    "training_identity_sha256": "827ae73d1774cbadb6d59541d4b247d861e451f6211c8d08b5d164d09fbb3786"
+    "training_identity_sha256": "f35c387c79f923518963e119d35c46509a382e48c8ffda46bc5cff498376984d"
    },
    {
     "parameters_sha256": "07d1a6ed2305a05e81cf60876f452a29456981231be013464635f58005e6bc0e",
-    "record_sha256": "77278df2364d3858771b1f63f08398de59c1c648e6daad2cace141de6a2be72f",
+    "record_sha256": "ae4c4bf2974058da7dde26b988606c4ab8105d44edbd170d87c37e771afaffce",
     "selected_step": 1580,
     "stopping": {
      "ceiling_steps": 4000,
@@ -78,11 +78,11 @@
      "steps": 1640,
      "stopped_at_step": 1640
     },
-    "training_identity_sha256": "ea1bcfb7b6602835ae188eaf6ea3fb266e84149e89f4a987192ef52f746905a7"
+    "training_identity_sha256": "99280e94f5803ec63f5c23968fa21b8f955dfd741d67638b253a1b52bd869e02"
    },
    {
     "parameters_sha256": "6d3e43d1980c2cfe103779850bd34baac3de20d087455440e13691385afdf734",
-    "record_sha256": "1ceb27ac6a6313888c0ab5683f436993313ae298e89856c65358f6001586a653",
+    "record_sha256": "5e3ca701106b3f904d1b01ff9663883c28a7f2b8a18615e2ce3b3ab673579c84",
     "selected_step": 840,
     "stopping": {
      "ceiling_steps": 4000,
@@ -107,7 +107,7 @@
      "steps": 940,
      "stopped_at_step": 940
     },
-    "training_identity_sha256": "d9213b62cef7bb58d7c157aa885bea495ff84a96884258d607b826785dc7cb94"
+    "training_identity_sha256": "71b892f090d1a92c873231a34016543ac4bf421dea8d776f6dabc2d10f19b3e4"
    }
   ],
   "jobs": 3,
@@ -229,74 +229,119 @@
  },
  "policy_train": {
   "bc_v1": {
-   "checkpoint_identical": true,
+   "checkpoint_identical_but_label_hashes": true,
+   "checkpoint_metadata_differs": [],
    "checkpoint_sha256": "65c20899e964c597379c79dd8673e067094660ef6c3cd235ff65d95e268850cd",
    "expert_data_error": 7.915051190976326,
+   "labels_identical": true,
    "manifest_holds_normalized_config": true,
    "metrics_identical": true,
    "pass": true,
    "rerun_reused": true,
-   "supervision_identical": true
+   "supervision_differs": [],
+   "supervision_identical_but_label_hashes": true
   },
   "bc_v2": {
-   "checkpoint_identical": true,
+   "checkpoint_identical_but_label_hashes": true,
+   "checkpoint_metadata_differs": [],
    "checkpoint_sha256": "425609a91f3d6cadbc2c71d0ced98fb28438460989576846e1b5285027af88ce",
    "expert_data_error": 7.875715841208757,
+   "labels_identical": true,
    "manifest_holds_normalized_config": true,
    "metrics_identical": true,
    "pass": true,
    "rerun_reused": true,
-   "supervision_identical": true
+   "supervision_differs": [],
+   "supervision_identical_but_label_hashes": true
   },
   "ccil_v1": {
-   "checkpoint_identical": true,
-   "checkpoint_sha256": "d4d86ebf22ca102b1b838616878005f31b93ca4d03d3f7ddc4e394db3096f6e2",
+   "checkpoint_identical_but_label_hashes": true,
+   "checkpoint_metadata_differs": [
+    ".supervision.candidates",
+    ".supervision.selection",
+    ".training_identity_sha256"
+   ],
+   "checkpoint_sha256": "5cd6b0296da81d9bd6b606b7ce27f406c4be32f4a0a29fe5e960b50e0a844364",
    "expert_data_error": 4.675924850897248,
+   "labels_identical": true,
    "manifest_holds_normalized_config": true,
    "metrics_identical": true,
    "pass": true,
    "rerun_reused": true,
-   "supervision_identical": true
+   "supervision_differs": [
+    ".inputs.candidates",
+    ".inputs.selection"
+   ],
+   "supervision_identical_but_label_hashes": true
   },
   "ccil_v2": {
-   "checkpoint_identical": true,
-   "checkpoint_sha256": "066fa688ba8fcdd0cdfe33dd8f49b95decc0171c6328337a0631c2cd54e7399d",
+   "checkpoint_identical_but_label_hashes": true,
+   "checkpoint_metadata_differs": [
+    ".execution_sha256",
+    ".supervision.candidates",
+    ".supervision.selection",
+    ".training_identity_sha256"
+   ],
+   "checkpoint_sha256": "7d2566deb2d7f67f34e5061ceadf58edab68a5fbed319319f4b914668bcd70eb",
    "expert_data_error": 5.262121693966504,
+   "labels_identical": true,
    "manifest_holds_normalized_config": true,
    "metrics_identical": true,
    "pass": true,
    "rerun_reused": true,
-   "supervision_identical": true
+   "supervision_differs": [
+    ".inputs.candidates",
+    ".inputs.selection"
+   ],
+   "supervision_identical_but_label_hashes": true
   },
   "ccil_v2_recipe": {
-   "checkpoint_identical": true,
-   "checkpoint_sha256": "b4681ff4c18e6ceb2bb329e100344d61b781dfa819a09589015d28655bcf1428",
+   "checkpoint_identical_but_label_hashes": true,
+   "checkpoint_metadata_differs": [
+    ".execution_sha256",
+    ".supervision.candidates",
+    ".supervision.selection",
+    ".training_identity_sha256"
+   ],
+   "checkpoint_sha256": "b93a248623ad1f49510b0f414f6403573310cea10a957b00a54f1a6fa41bfb3d",
    "expert_data_error": 8.499073163246667,
+   "labels_identical": true,
    "manifest_holds_normalized_config": true,
    "metrics_identical": true,
    "pass": true,
    "rerun_reused": true,
-   "supervision_identical": true
+   "supervision_differs": [
+    ".inputs.candidates",
+    ".inputs.selection"
+   ],
+   "supervision_identical_but_label_hashes": true
   },
   "noise_bc_v1": {
-   "checkpoint_identical": true,
+   "checkpoint_identical_but_label_hashes": true,
+   "checkpoint_metadata_differs": [],
    "checkpoint_sha256": "2e7170f277f1ebbbc4a2724cc5c5038c42c4cf5db961b2bcdbb788486ed5207e",
    "expert_data_error": 7.912397547988477,
+   "labels_identical": true,
    "manifest_holds_normalized_config": true,
    "metrics_identical": true,
    "pass": true,
    "rerun_reused": true,
-   "supervision_identical": true
+   "supervision_differs": [],
+   "supervision_identical_but_label_hashes": true
   },
   "noise_bc_v2": {
-   "checkpoint_identical": true,
+   "checkpoint_identical_but_label_hashes": true,
+   "checkpoint_metadata_differs": [],
    "checkpoint_sha256": "510091bc792ced56955010a45899e340bbd89a35c8058090afe15d05045e45a0",
    "expert_data_error": 7.872174445652211,
+   "labels_identical": true,
    "manifest_holds_normalized_config": true,
    "metrics_identical": true,
    "pass": true,
    "rerun_reused": true,
-   "supervision_identical": true
+   "supervision_differs": [],
+   "supervision_identical_but_label_hashes": true
   }
- }
+ },
+ "reference_ccil": "8903b247033e72437e805d5bba21133544fd8f70"
 }
