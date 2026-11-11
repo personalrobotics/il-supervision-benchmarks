@@ -1,0 +1,48 @@
+{
+ "steps": 150,
+ "batch": 256,
+ "results": {
+  "fp32_tf32": {
+   "train_s_per_step": 0.1979838923054437,
+   "inference_s_per_call": 0.05668147035175934,
+   "loss_rel_diff": 0.0,
+   "grad_rel_diff": 0.0568653866648674,
+   "train_speedup": 1.0,
+   "inference_speedup": 1.0
+  },
+  "bf16": {
+   "train_s_per_step": 0.10316330808680504,
+   "inference_s_per_call": 0.027699460997246204,
+   "loss_rel_diff": 0.0007069401326589286,
+   "grad_rel_diff": 0.4414098560810089,
+   "train_speedup": 1.9191309000953465,
+   "inference_speedup": 2.046302285715756
+  },
+  "fp16": {
+   "train_s_per_step": 0.10560663003319254,
+   "inference_s_per_call": 0.028119417396374045,
+   "loss_rel_diff": 1.141779102908913e-05,
+   "grad_rel_diff": 8.381385803222656,
+   "train_speedup": 1.8747297612206417,
+   "inference_speedup": 2.015741277736015
+  },
+  "compile_fp32_tf32": {
+   "train_s_per_step": 0.16835745291318743,
+   "inference_s_per_call": 0.05423163205850869,
+   "loss_rel_diff": 0.0,
+   "grad_rel_diff": 0.0568653903901577,
+   "train_speedup": 1.1759734355658906,
+   "inference_speedup": 1.0451736044124138
+  },
+  "compile_bf16": {
+   "train_s_per_step": 0.08962914401354889,
+   "inference_s_per_call": 0.02585406870348379,
+   "loss_rel_diff": 0.0007069401326589286,
+   "grad_rel_diff": 0.44141456484794617,
+   "train_speedup": 2.208923163156788,
+   "inference_speedup": 2.1923617130375157
+  }
+ },
+ "gpu": "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition",
+ "torch": "2.11.0+cu130"
+}
