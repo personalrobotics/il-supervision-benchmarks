@@ -42,7 +42,7 @@ these respects only:
 
    The policy and its passed gate are unchanged.
 
-**Why the pose coordinates.** Generating directly on the keypoint history
+**Why the pose coordinates** ([the full account](pusht-keypoints-vs-pose.md)). Generating directly on the keypoint history
 failed:
 - **Low yield:** Newton converged on 1% of proposals.
 - **No valid root:** every converged label deformed the previous frame's T by
