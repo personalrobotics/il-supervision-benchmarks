@@ -70,6 +70,9 @@ def now() -> str:
 class Pilot:
     PROTOCOL = PROTOCOL  # a study built on this runner (tools/pusht_v2) names its own
     SELECTOR = (HERE / "lerobot_select.py", "mean_l2")  # the held-out scorer and its score, lower is better
+    CONFIG = CONFIG
+    PRESERVE = ("next.reward", "next.done", "next.success")  # source columns CCIL's conversion keeps as metadata
+    REPEAT_TOLERANCE = {"max_reward": 1e-12}  # the audit's repeat evaluation; every other episode field is exact
 
     def __init__(self, root: Path, source: Path, lerobot_python: Path, smoke: bool):
         self.root, self.source, self.py, self.smoke = root, source, lerobot_python, smoke
@@ -98,7 +101,7 @@ class Pilot:
             subprocess.run(["uv", "pip", "freeze", "--python", str(self.py)], capture_output=True, text=True).stdout
         gpus = subprocess.run(["nvidia-smi", "--query-gpu=index,name,memory.total", "--format=csv,noheader"],
                               capture_output=True, text=True).stdout.strip() if shutil.which("nvidia-smi") else None
-        return {"protocol_sha256": sha256(self.PROTOCOL), "config_sha256": sha256(CONFIG), "smoke": self.smoke,
+        return {"protocol_sha256": sha256(self.PROTOCOL), "config_sha256": sha256(self.CONFIG), "smoke": self.smoke,
                 "ilsb_commit": git("rev-parse", "HEAD"),
                 "ilsb_dirty": bool(git("status", "--porcelain", "--", "src", "tools", "pyproject.toml", "uv.lock")),
                 "ccil_commit": ccil_url.get("vcs_info", {}).get("commit_id"),
@@ -153,8 +156,8 @@ class Pilot:
         if d.exists():
             d.rename(self.root / f"labels.incomplete-{int(time.time())}")
         d.mkdir()
-        convert(self.source, d / "pusht.npz", d / "conversion.json", preserve=["next.reward", "next.done", "next.success"])
-        shutil.copy(CONFIG, d / "pusht.yaml")
+        convert(self.label_source(), d / "pusht.npz", d / "conversion.json", preserve=list(self.PRESERVE))
+        shutil.copy(self.CONFIG, d / "pusht.yaml")
         self.log("labels: converted; generating")
         gen = self.ccil("generate", "--config", "pusht.yaml", cwd=d)
         cur = self.ccil("curate", "runs/generate-result.json", cwd=d)
@@ -385,6 +388,9 @@ class Pilot:
     def held_out(self) -> list:
         return self.need("labels")["held_out"]
 
+    def label_source(self) -> Path:
+        return self.source
+
     def selection_source(self) -> Path:
         return self.source
 
@@ -468,9 +474,11 @@ class Pilot:
         r = subprocess.run(cmd, capture_output=True, text=True, cwd=unit0, env={**os.environ, "CUDA_VISIBLE_DEVICES": "0"})
         repeat = per_episode(json.loads((again / "eval_info.json").read_text()), self.evaluation["start_seed"]) \
             if r.returncode == 0 else []
-        exact = ("index", "seed", "sum_reward", "success")
+        tol = self.REPEAT_TOLERANCE
+        exact = [k for k in ("index", "seed", "sum_reward", "success") if k not in tol]
         max_diff = max((abs(a["max_reward"] - b["max_reward"]) for a, b in zip(repeat, first["episodes"])), default=None)
-        reproduced = (len(repeat) == len(first["episodes"]) and max_diff <= 1e-12
+        reproduced = (len(repeat) == len(first["episodes"])
+                      and all(abs(a[k] - b[k]) <= t for a, b in zip(repeat, first["episodes"]) for k, t in tol.items())
                       and all(a[k] == b[k] for a, b in zip(repeat, first["episodes"]) for k in exact))
         if not reproduced:
             problems.append(f"re-evaluating {arm0}-s{seed0} did not reproduce its episodes (exit {r.returncode})")

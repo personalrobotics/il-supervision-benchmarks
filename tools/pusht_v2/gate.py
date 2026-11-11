@@ -105,7 +105,18 @@ class Gate(Pilot):
     def derive(self) -> None:
         if self.marker("arms"):
             return
+        train = self.derive_data()
+        write_json(self.root / "arms.json", {"arms": {"bc": {"path": "derived/train", "frames": train["frames"],
+                                                             "episodes": train["episodes"],
+                                                             "files": tree(self.root / "derived" / "train")}},
+                                             "check": self.need("derive")["check"], "completed": now()})
+        self.log(f"derive: bc trains on {train['episodes']} episodes, {train['frames']} frames")
+
+    def derive_data(self) -> dict:
+        """The history dataset, full and training-only, and the passed adapter check (marker derive.json)."""
         d = self.root / "derived"
+        if self.marker("derive"):
+            return json.loads((d / "train.json").read_text())
         if d.exists():
             d.rename(self.root / f"derived.incomplete-{int(time.time())}")
         d.mkdir()
@@ -126,10 +137,10 @@ class Gate(Pilot):
         full, train = (json.loads((d / f"{n}.json").read_text()) for n in ("full", "train"))
         if train["episodes"] != full["episodes"] - len(self.held_out()):
             raise PilotError(f"training-only dataset has {train['episodes']} episodes")
-        write_json(self.root / "arms.json", {"arms": {"bc": {"path": "derived/train", "frames": train["frames"],
-                                                             "episodes": train["episodes"], "files": tree(d / "train")}},
-                                             "check": check["checks"], "completed": now()})
-        self.log(f"derive: adapter check passed; bc trains on {train['episodes']} episodes, {train['frames']} frames")
+        write_json(self.root / "derive.json", {"check": check["checks"], "full": full["out_sha256"],
+                                               "train": train["out_sha256"], "completed": now()})
+        self.log("derive: adapter check passed")
+        return train
 
     def decide(self) -> None:
         g = self.protocol["gate"]
@@ -154,19 +165,19 @@ class Gate(Pilot):
                  f"gate {'PASSED' if passed else 'FAILED'}")
 
 
-def main() -> int:
+def main(cls=Gate, stages=STAGES) -> int:
     import argparse
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", type=Path, required=True)
     ap.add_argument("--source", type=Path, required=True, help="lerobot/pusht_keypoints at the protocol's revision")
     ap.add_argument("--lerobot-python", type=Path, required=True)
     ap.add_argument("--smoke", action="store_true")
-    ap.add_argument("stages", nargs="*", default=list(STAGES))
+    ap.add_argument("stages", nargs="*", default=list(stages))
     a = ap.parse_args()
-    g = Gate(a.root.resolve(), a.source.resolve(), a.lerobot_python, a.smoke)
+    g = cls(a.root.resolve(), a.source.resolve(), a.lerobot_python, a.smoke)
     try:
         g.check_root()
-        for s in STAGES:
+        for s in stages:
             if s in a.stages:
                 g.log(f"stage {s}: start")
                 getattr(g, s)()
