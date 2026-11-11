@@ -68,9 +68,11 @@ def now() -> str:
 
 
 class Pilot:
+    PROTOCOL = PROTOCOL  # a study built on this runner (tools/pusht_v2) names its own
+
     def __init__(self, root: Path, source: Path, lerobot_python: Path, smoke: bool):
         self.root, self.source, self.py, self.smoke = root, source, lerobot_python, smoke
-        self.protocol = json.loads(PROTOCOL.read_text())
+        self.protocol = json.loads(self.PROTOCOL.read_text())
         t = dict(self.protocol["training"])
         e = dict(self.protocol["evaluation"])
         if smoke:
@@ -95,7 +97,7 @@ class Pilot:
             subprocess.run(["uv", "pip", "freeze", "--python", str(self.py)], capture_output=True, text=True).stdout
         gpus = subprocess.run(["nvidia-smi", "--query-gpu=index,name,memory.total", "--format=csv,noheader"],
                               capture_output=True, text=True).stdout.strip() if shutil.which("nvidia-smi") else None
-        return {"protocol_sha256": sha256(PROTOCOL), "config_sha256": sha256(CONFIG), "smoke": self.smoke,
+        return {"protocol_sha256": sha256(self.PROTOCOL), "config_sha256": sha256(CONFIG), "smoke": self.smoke,
                 "ilsb_commit": git("rev-parse", "HEAD"),
                 "ilsb_dirty": bool(git("status", "--porcelain", "--", "src", "tools", "pyproject.toml", "uv.lock")),
                 "ccil_commit": ccil_url.get("vcs_info", {}).get("commit_id"),
@@ -283,7 +285,9 @@ class Pilot:
                 f"--policy.use_vae={str(p['use_vae']).lower()}", "--policy.push_to_hub=false",
                 f"--policy.device={t['device']}", f"--steps={t['steps']}", f"--batch_size={t['batch_size']}",
                 f"--save_freq={t['save_freq']}", "--log_freq=1000", f"--num_workers={t['num_workers']}",
-                f"--seed={seed}", f"--output_dir={out}", "--wandb.enable=false"]
+                f"--seed={seed}", f"--output_dir={out}", "--wandb.enable=false",
+                *([f"--policy.normalization_mapping={json.dumps(p['normalization_mapping'])}"]
+                  if "normalization_mapping" in p else [])]
 
     def unit_done(self, arm, seed) -> dict | None:
         p = self.root / "units" / f"{arm}-s{seed}" / "train.json"
@@ -377,8 +381,14 @@ class Pilot:
             self.log(f"train: FAILED: {err}")
             raise
 
+    def held_out(self) -> list:
+        return self.need("labels")["held_out"]
+
+    def selection_source(self) -> Path:
+        return self.source
+
     def select(self) -> None:
-        lab = self.need("labels")
+        held = self.held_out()
         for arm, seed in self.units():
             unit = self.root / "units" / f"{arm}-s{seed}"
             if (unit / "select.json").exists():
@@ -386,9 +396,9 @@ class Pilot:
             m = self.unit_done(arm, seed)
             if m is None:
                 raise PilotError(f"{arm}-s{seed} has not finished training")
-            (unit / "held_out.json").write_text(json.dumps([int(e) for e in lab["held_out"]]))
+            (unit / "held_out.json").write_text(json.dumps([int(e) for e in held]))
             (unit / "checkpoints.json").write_text(json.dumps({str(c["step"]): str(self.root / c["path"]) for c in m["checkpoints"]}))
-            r = subprocess.run([str(self.py), str(HERE / "lerobot_select.py"), str(self.source), str(unit / "held_out.json"),
+            r = subprocess.run([str(self.py), str(HERE / "lerobot_select.py"), str(self.selection_source()), str(unit / "held_out.json"),
                                 str(unit / "checkpoints.json"), str(unit / "select-scores.json")],
                                capture_output=True, text=True, env={**os.environ, "CUDA_VISIBLE_DEVICES": "0"})
             if r.returncode:
