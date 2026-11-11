@@ -1,0 +1,5 @@
+commit d533c9dbb5ebe433fdda6135f083c114d939af87 clean
+Wed Nov 11 06:35:14 AM UTC 2026
+structured: held-out shift p50 0 max 0; newest p50 1.44 max 13.7; mean L2 3.621
+unstructured: held-out shift p50 2.58 max 30.5; newest p50 1.64 max 14.1; mean L2 7.278
+EXIT=0
