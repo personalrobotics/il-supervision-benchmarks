@@ -102,6 +102,18 @@ exposure, and re-evaluates one unit to confirm the starts are fixed.
   weights, selection scores and every evaluated episode, bit for bit, on this
   host.
 
+**Amendment 1 (audit only).** The first full run from `54efe63` stopped in
+its audit. Re-evaluating bc-s1 reproduced every episode's seed, success and
+summed reward exactly. Two of the 100 maximum rewards differed in the last
+bit (episode 65: 0.1776077141400573 vs 0.17760771414005727; episode 85:
+0.6783382796364246 vs 0.6783382796364245), and the mean was identical. The
+audit had required bitwise equality. It now requires exact seeds, successes
+and summed rewards, and maximum rewards within 1e-12, and records the largest
+difference. Nothing else changed. That run's per-unit evaluation values had
+been printed in its progress log before the amendment. The result below comes
+from a fresh root at the amending commit; its agreement with the stopped run
+is reported there.
+
 ## Result
 
 Not yet run.

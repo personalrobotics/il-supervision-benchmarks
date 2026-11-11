@@ -446,7 +446,8 @@ class Pilot:
             starts.add(tuple(ep["seed"] for ep in ev["episodes"]))
             exposure[f"{arm}-s{seed}"] = {"samples": m["samples"], "dataset_frames": arms[arm]["frames"],
                                           "epochs": m["samples"] / arms[arm]["frames"], "last_log": m["last_log"]}
-        # Fixed starts: re-evaluate the first unit with its own command; every episode must reproduce exactly.
+        # Fixed starts: re-evaluate the first unit with its own command. Every episode's seed, success and summed
+        # reward must reproduce exactly; its max reward to 1e-12 (protocol amendment 1: the last bit can differ).
         arm0, seed0 = self.units()[0]
         unit0 = self.root / "units" / f"{arm0}-s{seed0}"
         first = json.loads((unit0 / "eval.json").read_text())
@@ -455,7 +456,10 @@ class Pilot:
         r = subprocess.run(cmd, capture_output=True, text=True, cwd=unit0, env={**os.environ, "CUDA_VISIBLE_DEVICES": "0"})
         repeat = per_episode(json.loads((again / "eval_info.json").read_text()), self.evaluation["start_seed"]) \
             if r.returncode == 0 else []
-        reproduced = repeat == first["episodes"]
+        exact = ("index", "seed", "sum_reward", "success")
+        max_diff = max((abs(a["max_reward"] - b["max_reward"]) for a, b in zip(repeat, first["episodes"])), default=None)
+        reproduced = (len(repeat) == len(first["episodes"]) and max_diff <= 1e-12
+                      and all(a[k] == b[k] for a, b in zip(repeat, first["episodes"]) for k in exact))
         if not reproduced:
             problems.append(f"re-evaluating {arm0}-s{seed0} did not reproduce its episodes (exit {r.returncode})")
         if len({v["samples"] for v in exposure.values()}) != 1:
@@ -465,7 +469,8 @@ class Pilot:
         if arms["duplication"]["frames"] != arms["ccil"]["frames"]:
             problems.append("duplication and ccil have different frame counts")
         write_json(self.root / "audit.json", {"problems": problems, "exposure": exposure, "completed": now(),
-                                              "repeat_evaluation": {"unit": f"{arm0}-s{seed0}", "reproduced": reproduced},
+                                              "repeat_evaluation": {"unit": f"{arm0}-s{seed0}", "reproduced": reproduced,
+                                                                    "max_reward_max_abs_diff": max_diff},
                                               "pass": not problems})
         if problems:
             raise PilotError("audit: " + "; ".join(problems))
