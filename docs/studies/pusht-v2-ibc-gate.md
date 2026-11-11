@@ -146,6 +146,31 @@ training actions, not worse control. The predeclared selection is kept for v2
 unchanged: it never uses simulator returns, and it is applied identically to
 every arm.
 
+## Rerun under v2.1's settings (predeclared)
+
+The 200k schedule spent about 90% of each unit's steps past the checkpoint that
+selection kept. v2's first full run was therefore stopped before any outcome,
+and v2 takes faster settings:
+- **Ceiling:** 50,000 steps, with a checkpoint every 5,000.
+- **Compilation:** the energy network is compiled in training.
+- **Precision:** bf16 autocast over float32 weights.
+
+Compilation leaves the arithmetic unchanged; bf16 changes it. Measured on
+`siddh` ([`speed`](evidence/pusht-v2/development/speed/speed.json)), the
+settings run 2.24× faster per step, 0.034 s against 0.076. A shorter schedule
+also changes the cosine learning rate at every step. So the gate is rerun
+under exactly these settings before v2 uses them
+([`gate_fast.json`](../../tools/pusht_v2/gate_fast.json), with
+`lerobot_policy_ibc` 1.1.0). Everything else is unchanged:
+- the state and the split;
+- the learner's method;
+- held-out InfoNCE selection;
+- the 100-episode evaluation;
+- three seeds;
+- the pass rule, R ≥ 0.5042.
+
+A smoke run of these settings passed every stage before the freeze.
+
 **Evaluation repeats only to rounding.** Before v2's freeze, one selected
 checkpoint was evaluated twice under the same seed (10 episodes). Every success
 repeated, and rewards agreed to 2.2e-16 (maximum) and 1.4e-14 (summed). v2's
