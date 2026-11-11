@@ -1,0 +1,116 @@
+# PushT keypoints v2: IBC BC feasibility gate
+
+**Status: predeclared, not yet run.** The commit that adds this file, with
+[`tools/pusht_v2`](../../tools/pusht_v2/gate.py), freezes the gate before any of
+its policies trains. The machine-readable protocol is
+[`gate.json`](../../tools/pusht_v2/gate.json). Controlling issue:
+personalrobotics/CCIL#30.
+
+## Why
+
+Two earlier learners failed on PushT:
+- **The [M=1 pilot](pusht-m1-pilot.md):** single-frame ACT on a state with no
+  velocity.
+- **The [velocity-aware ACT gate](pusht-v2-gate.md):** it predicted held-out
+  actions at about 10 px, but closed loop it never moved the T.
+
+The current learner removes both mechanisms the PushT literature relies on:
+- **Observation history:** one observation is not Markov.
+- **A multimodal action model:** a point regressor averages PushT's several
+  valid pushes, and that averaged action drifts closed loop however low its
+  offline error.
+
+Implicit behavioral cloning restores both and still predicts one action. It is
+an energy MLP over [o_{t−1}, o_t, a_t], with the action chosen by sampling and
+refinement. That is the interface CCIL's one-step labels need. Diffusion
+reached the demonstrator through this pipeline (0.948), but it predicts
+16-step action chunks, which do not align with one-step labels. This gate asks
+only whether IBC can learn PushT here. It is a baseline-capability gate, not a
+CCIL result.
+
+## The state
+
+For the agent position and the T's 8 keypoints, x̄_t = [x_{t−1}, x_t]:
+- `observation.state` grows from 2 to 4 values, and
+  `observation.environment_state` from 16 to 32.
+- The history lives inside these two features. LeRobot policies read only
+  them, and a CCIL one-frame synthetic row then carries its own history.
+  LeRobot's own `n_obs_steps 2` would pad a one-frame episode with a copy of
+  itself.
+
+The same state goes to BC, to CCIL's dynamics model and to the final policy:
+- **Data:** [`derive.py`](../../tools/pusht_v2/derive.py) drops each episode's
+  first frame.
+- **Simulator:** the env plugin
+  [`lerobot_env_pusht_history`](../../tools/pusht_v2/env_plugin/lerobot_env_pusht_history.py)
+  carries the previous observation for an unchanged `lerobot-eval`. A reset is
+  at rest, so its frame is its own predecessor.
+- **Adapter check:** [`check.py`](../../tools/pusht_v2/check.py) must pass
+  before training (smoke run):
+  - the plugin reproduces every derived row exactly;
+  - replayed demonstrations match to 4.5e-5 px (median episode);
+  - every start is at rest;
+  - LeRobot's discovery yields 4 + 32 observations.
+
+## Learner
+
+[`lerobot_policy_ibc`](../../tools/pusht_v2/ibc_plugin/lerobot_policy_ibc/modeling_ibc.py)
+is a LeRobot 0.6.1 policy plugin, so `lerobot-train` and `lerobot-eval` run
+unchanged. It ports the published PushT low-dimensional IBC
+(real-stanford/diffusion_policy `5ba07ac`, `train_ibc_dfo_lowdim_workspace`
+with `pusht_lowdim`; `IbcDfoLowdimPolicy` on its default paths):
+- **Model:** a 4 × 1024 ReLU MLP energy with dropout 0.1.
+- **Training:** InfoNCE of the demonstrated action (jittered by 1e-4) against
+  1024 uniform negatives.
+- **Inference:** 1024 samples, 5 iterations of resampling with 0.03 noise,
+  then one action drawn from the last distribution.
+- **Normalization and optimizer:** min/max normalization to [−1, 1]; AdamW
+  (1e-4, betas 0.95/0.999, weight decay 1e-6); cosine to 0 after 500 warmup
+  steps; no gradient clipping.
+
+## Fixed setting
+
+- **Split:** the pilot's CCIL split; BC trains on 165 episodes (20,335 frames).
+- **Training:** 200,000 steps at batch 256, about the reference's optimizer
+  steps. A checkpoint is saved every 20,000. Seeds 1–3.
+  - Measured on siddh before the freeze: 0.076 s/step and 12.1 GB per unit
+    alone on one GPU.
+- **Selection:** each seed's checkpoint with the lowest mean held-out InfoNCE
+  ([`select_infonce.py`](../../tools/pusht_v2/select_infonce.py)): eval mode,
+  every frame of the 41 held-out episodes, and 1024 uniform negatives drawn
+  once from seed 0 and shared by every checkpoint. Ties go to the earlier
+  step. Simulator returns are never used. The sampled action's held-out L2 is
+  recorded as a diagnostic only, since it penalizes a different valid push.
+- **Evaluation:** unchanged `lerobot-eval`, env `pusht_history`, 100 episodes
+  from start seed 1000, synchronous environments.
+
+## Gate
+
+Let R be the mean over the three seeds of average maximum coverage at each
+seed's selected checkpoint.
+
+**Pass iff (R − 0.0620) / (0.9464 − 0.0620) ≥ 0.5, that is R ≥ 0.5042.**
+
+- **Pass:** freeze v2 and run bc, duplication and ccil with this learner and
+  state. M=1, one-frame labels, one-action supervision, and the transition
+  model fitted on the training episodes only. Nothing else changes.
+- **Fail:** no CCIL run.
+
+## Execution
+
+From a clean checkout of the freezing commit, on `siddh`, in a LeRobot 0.6.1
+environment (`dataset`, `pusht`, `training` extras) with this commit's two
+plugins installed
+(`uv pip install tools/pusht_v2/env_plugin tools/pusht_v2/ibc_plugin`):
+
+```bash
+uv run python tools/pusht_v2/gate.py --root runs/<timestamp>-pusht-v2-ibc-gate \
+    --source <lerobot/pusht_keypoints at ace8c161> --lerobot-python <that environment>/bin/python
+```
+
+The runner refuses an installed plugin that differs from the commit's. A smoke
+run (200 steps, one seed, 4 episodes) exercised every stage before the freeze.
+
+## Result
+
+Not yet run.

@@ -69,6 +69,7 @@ def now() -> str:
 
 class Pilot:
     PROTOCOL = PROTOCOL  # a study built on this runner (tools/pusht_v2) names its own
+    SELECTOR = (HERE / "lerobot_select.py", "mean_l2")  # the held-out scorer and its score, lower is better
 
     def __init__(self, root: Path, source: Path, lerobot_python: Path, smoke: bool):
         self.root, self.source, self.py, self.smoke = root, source, lerobot_python, smoke
@@ -398,16 +399,17 @@ class Pilot:
                 raise PilotError(f"{arm}-s{seed} has not finished training")
             (unit / "held_out.json").write_text(json.dumps([int(e) for e in held]))
             (unit / "checkpoints.json").write_text(json.dumps({str(c["step"]): str(self.root / c["path"]) for c in m["checkpoints"]}))
-            r = subprocess.run([str(self.py), str(HERE / "lerobot_select.py"), str(self.selection_source()), str(unit / "held_out.json"),
+            r = subprocess.run([str(self.py), str(self.SELECTOR[0]), str(self.selection_source()), str(unit / "held_out.json"),
                                 str(unit / "checkpoints.json"), str(unit / "select-scores.json")],
                                capture_output=True, text=True, env={**os.environ, "CUDA_VISIBLE_DEVICES": "0"})
             if r.returncode:
                 raise PilotError(f"{arm}-s{seed}: selection exited {r.returncode}:\n{r.stderr[-1500:]}")
             scores = json.loads((unit / "select-scores.json").read_text())
-            best = min(sorted(scores["mean_l2"], key=int), key=lambda k: scores["mean_l2"][k])  # ties: earlier step
+            key = self.SELECTOR[1]
+            best = min(sorted(scores[key], key=int), key=lambda k: scores[key][k])  # ties: earlier step
             chosen = next(c for c in m["checkpoints"] if str(c["step"]) == best)
             write_json(unit / "select.json", {"scores": scores, "selected": chosen, "completed": now()})
-            self.log(f"select: {arm}-s{seed} step {best} (held-out mean L2 {scores['mean_l2'][best]:.4f})")
+            self.log(f"select: {arm}-s{seed} step {best} (held-out {key} {scores[key][best]:.4f})")
 
     def evaluate(self) -> None:
         e = self.evaluation

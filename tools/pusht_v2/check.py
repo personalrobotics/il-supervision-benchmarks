@@ -3,14 +3,15 @@ installed.
 
     python check.py SOURCE DERIVED OUT_JSON
 
-- identity: the plugin's VelocityObservation, fed the source's recorded positions frame by frame, reproduces every
-  derived row (to float32 rounding: 1e-3 px and 1e-2 px/s);
+- identity: the plugin's HistoryObservation, fed the source's recorded positions frame by frame, reproduces every
+  derived row exactly;
 - replay: each demonstration placed at its first frame's pose (reference.py's rigid fit) and stepped with its recorded
   actions through the wrapped simulator reproduces its derived rows; the median episode's largest error must stay
-  below 1e-3 px and 1e-2 px/s (drift on contact-rich episodes is reported, not gated);
-- rest: every evaluation start (the pilot's 100 seeds) resets the agent and the T at rest, so velocity 0 at t = 0 is
-  the true finite difference;
-- discovery: LeRobot's own plugin import finds env type pusht_velocity, and its vector env observes 4 + 32 values.
+  below 1e-3 px in both frames (drift on contact-rich episodes is reported, not gated);
+- rest: every evaluation start (the pilot's 100 seeds) resets the agent and the T at rest, so repeating the first frame
+  as its own predecessor is the true history;
+- discovery: LeRobot's own plugin import finds env type pusht_history, and its vector env observes 4 + 32 values,
+  the first observation's two frames equal.
 """
 import hashlib
 import json
@@ -23,7 +24,7 @@ import pyarrow.parquet as pq
 sys.path.insert(0, str(Path(__file__).parents[1] / "pusht_pilot"))
 from reference import EVAL, fit_pose, local_keypoints  # noqa: E402
 
-import lerobot_env_pusht_velocity as plugin  # noqa: E402
+import lerobot_env_pusht_history as plugin  # noqa: E402
 
 KEYS = (("agent_pos", "observation.state"), ("environment_state", "observation.environment_state"))
 
@@ -41,10 +42,10 @@ def frames(root: Path) -> dict:
 
 
 def errors(obs, row):
-    """Largest position and velocity error of one observation against one derived row."""
-    pos = max(float(np.abs(obs[k][:w] - row[c][:w]).max()) for (k, c), w in zip(KEYS, (2, 16)))
-    vel = max(float(np.abs(obs[k][w:] - row[c][w:]).max()) for (k, c), w in zip(KEYS, (2, 16)))
-    return pos, vel
+    """Largest error of one observation against one derived row, in the previous and the current frame."""
+    prev = max(float(np.abs(obs[k][:w] - row[c][:w]).max()) for (k, c), w in zip(KEYS, (2, 16)))
+    cur = max(float(np.abs(obs[k][w:] - row[c][w:]).max()) for (k, c), w in zip(KEYS, (2, 16)))
+    return prev, cur
 
 
 def main(source, derived, out):
@@ -52,7 +53,7 @@ def main(source, derived, out):
     src, der = frames(source), frames(derived)
     env = gym.make(plugin.GYM_ID, obs_type="environment_state_agent_pos")
     w = env
-    while not isinstance(w, plugin.VelocityObservation):
+    while not isinstance(w, plugin.HistoryObservation):
         w = w.env
     u = w.env.unwrapped
     local = local_keypoints(gym.make("gym_pusht/PushT-v0", obs_type="environment_state_agent_pos"))
@@ -92,24 +93,25 @@ def main(source, derived, out):
     from lerobot.envs.configs import EnvConfig
     from lerobot.utils.import_utils import register_third_party_plugins
     register_third_party_plugins()
-    cfg = EnvConfig.get_choice_class("pusht_velocity")()
-    vec = cfg.create_envs(n_envs=2)["pusht_velocity"][0]
+    cfg = EnvConfig.get_choice_class("pusht_history")()
+    vec = cfg.create_envs(n_envs=2)["pusht_history"][0]
     obs, _ = vec.reset(seed=[EVAL["start_seed"], EVAL["start_seed"] + 1])
     shapes = {k: list(v.shape) for k, v in obs.items()}
-    first_vel = float(np.abs(np.concatenate([obs["agent_pos"][:, 2:], obs["environment_state"][:, 16:]], 1)).max())
+    first_gap = max(float(np.abs(obs["agent_pos"][:, :2] - obs["agent_pos"][:, 2:]).max()),
+                    float(np.abs(obs["environment_state"][:, :16] - obs["environment_state"][:, 16:]).max()))
 
     ident, replay = np.array(ident), np.array(replay)
     q = lambda a: {p: float(np.percentile(a, p)) for p in (50, 90, 100)}  # noqa: E731
     checks = {
-        "identity": bool(ident[:, 0].max() <= 1e-3 and ident[:, 1].max() <= 1e-2),
-        "replay": bool(np.median(replay[:, 0]) < 1e-3 and np.median(replay[:, 1]) < 1e-2),
+        "identity": bool(ident.max() == 0.0),
+        "replay": bool(np.median(replay[:, 0]) < 1e-3 and np.median(replay[:, 1]) < 1e-3),
         "rest": bool(max(rest) < 1e-9),
-        "discovery": shapes == {"agent_pos": [2, 4], "environment_state": [2, 32]} and first_vel == 0.0,
+        "discovery": shapes == {"agent_pos": [2, 4], "environment_state": [2, 32]} and first_gap == 0.0,
     }
     doc = {"episodes": len(src), "derived_frames": int(sum(len(d["action"]) for d in der.values())),
-           "identity_max": {"position_px": float(ident[:, 0].max()), "velocity_px_s": float(ident[:, 1].max())},
-           "replay_episode_max": {"position_px": q(replay[:, 0]), "velocity_px_s": q(replay[:, 1])},
-           "rest_max_velocity": max(rest), "vector_env_shapes": shapes, "first_velocity_max": first_vel,
+           "identity_max_px": {"previous": float(ident[:, 0].max()), "current": float(ident[:, 1].max())},
+           "replay_episode_max_px": {"previous": q(replay[:, 0]), "current": q(replay[:, 1])},
+           "rest_max_velocity": max(rest), "vector_env_shapes": shapes, "first_frames_gap": first_gap,
            "plugin_sha256": hashlib.sha256(Path(plugin.__file__).read_bytes()).hexdigest(),
            "checks": checks, "pass": all(checks.values())}
     Path(out).write_text(json.dumps(doc, indent=1) + "\n")

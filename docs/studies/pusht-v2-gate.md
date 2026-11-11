@@ -1,10 +1,11 @@
 # PushT keypoints v2: BC feasibility gate
 
-**Status: stopped before its decision; the learner changed** ([Result](#result)).
+**Status: stopped before its decision; the learner changed** ([Result](#result); successor:
+[IBC gate](pusht-v2-ibc-gate.md)).
 The commit that adds this file, with
-[`tools/pusht_v2`](../../tools/pusht_v2/gate.py), freezes the gate before any of
+[`tools/pusht_v2`](https://github.com/personalrobotics/il-supervision-benchmarks/blob/4b2574651ec53c2194669acc9fb2d094216aa39b/tools/pusht_v2/gate.py), freezes the gate before any of
 its policies trains. The machine-readable protocol is
-[`gate.json`](../../tools/pusht_v2/gate.json). Controlling issue:
+[`gate.json`](https://github.com/personalrobotics/il-supervision-benchmarks/blob/4b2574651ec53c2194669acc9fb2d094216aa39b/tools/pusht_v2/gate.json). Controlling issue:
 personalrobotics/CCIL#30.
 
 ## Why
@@ -24,14 +25,14 @@ x̄_t = [x_t, (x_t − x_{t−1}) / Δt], with Δt = 0.1 s:
 - `observation.state` grows from 2 to 4 values, and
   `observation.environment_state` from 16 to 32. The velocities stay inside
   these two features because LeRobot policies read only them.
-- **Data:** [`derive.py`](../../tools/pusht_v2/derive.py) drops each episode's
+- **Data:** [`derive.py`](https://github.com/personalrobotics/il-supervision-benchmarks/blob/4b2574651ec53c2194669acc9fb2d094216aa39b/tools/pusht_v2/derive.py) drops each episode's
   first frame rather than invent its velocity (206 episodes, 25,444 frames).
 - **Simulator:** the env plugin
-  [`lerobot_env_pusht_velocity`](../../tools/pusht_v2/plugin/lerobot_env_pusht_velocity.py)
+  [`lerobot_env_pusht_velocity`](https://github.com/personalrobotics/il-supervision-benchmarks/blob/4b2574651ec53c2194669acc9fb2d094216aa39b/tools/pusht_v2/plugin/lerobot_env_pusht_velocity.py)
   computes the same feature from the previous observation. `lerobot-eval`
   imports it unchanged, as it does every `lerobot_env_*` package. A reset is at
   rest, so its velocity is 0.
-- **Adapter check:** [`check.py`](../../tools/pusht_v2/check.py) runs before
+- **Adapter check:** [`check.py`](https://github.com/personalrobotics/il-supervision-benchmarks/blob/4b2574651ec53c2194669acc9fb2d094216aa39b/tools/pusht_v2/check.py) runs before
   training, and must pass:
   - the plugin's arithmetic on the recorded positions reproduces every derived
     row (smoke run: 0 px, 3.1e-5 px/s);

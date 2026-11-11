@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lerobot_policy_ibc"  # LeRobot imports a plugin by its distribution name, prefix lerobot_policy_
+version = "1.0.0"
+description = "Implicit behavioral cloning (derivative-free) as a LeRobot 0.6.1 policy plugin"
+requires-python = ">=3.10"
+
+[tool.setuptools]
+packages = ["lerobot_policy_ibc"]

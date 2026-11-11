@@ -1,13 +1,13 @@
-"""The PushT v2 BC feasibility gate (gate.json): velocity-aware single-step BC, three seeds, pass or fail.
+"""The PushT v2 BC feasibility gate (gate.json): IBC on the two-frame history state, three seeds, pass or fail.
 
     python tools/pusht_v2/gate.py --root ROOT --source DATA --lerobot-python PY [--smoke] [stages...]
 
-DATA is lerobot/pusht_keypoints at the protocol's revision; PY is a LeRobot 0.6.1 environment with this commit's
-plugin installed (tools/pusht_v2/plugin). Stages:
-  derive    the velocity-aware dataset, full and training-only (derive.py), and the adapter check (check.py)
+DATA is lerobot/pusht_keypoints at the protocol's revision; PY is a LeRobot 0.6.1 environment with this commit's two
+plugins installed (tools/pusht_v2/env_plugin, tools/pusht_v2/ibc_plugin). Stages:
+  derive    the history dataset, full and training-only (derive.py), and the adapter check (check.py)
   train     bc on the training-only dataset for each seed, with the pilot's supervised scheduler
-  select    each seed's checkpoint with the lowest held-out action error, on the full derived dataset
-  evaluate  each selected checkpoint through an unchanged lerobot-eval, env pusht_velocity
+  select    each seed's checkpoint with the lowest held-out InfoNCE (select_infonce.py), on the full derived dataset
+  evaluate  each selected checkpoint through an unchanged lerobot-eval, env pusht_history
   decide    the gate statistic against the predeclared threshold
 A rerun resumes as the pilot's runner does. No CCIL code runs here.
 """
@@ -29,24 +29,37 @@ from run import Pilot, PilotError, now, sha256, tree, write_json  # noqa: E402
 
 REPO = HERE.parents[1]
 STAGES = ("derive", "train", "select", "evaluate", "decide")
-PLUGIN = HERE / "plugin" / "lerobot_env_pusht_velocity.py"
+PLUGINS = {"lerobot_env_pusht_history": HERE / "env_plugin" / "lerobot_env_pusht_history.py",
+           "lerobot_policy_ibc": HERE / "ibc_plugin" / "lerobot_policy_ibc"}
+
+
+def digest(path: Path) -> str:
+    """sha256 over a module file, or over a package's .py files by name."""
+    h = hashlib.sha256()
+    for f in [path] if path.is_file() else sorted(path.glob("*.py")):
+        h.update(f.name.encode() + b"\0" + f.read_bytes())
+    return h.hexdigest()
 
 
 class Gate(Pilot):
     PROTOCOL = HERE / "gate.json"
+    SELECTOR = (HERE / "select_infonce.py", "infonce")
 
     def identity(self) -> dict:
         git = lambda *a: subprocess.run(["git", "-C", str(REPO), *a], capture_output=True, text=True).stdout.strip()  # noqa: E731
         freeze = subprocess.run(["uv", "pip", "freeze", "--python", str(self.py)], capture_output=True, text=True).stdout
-        plugin = subprocess.run([str(self.py), "-c", "import lerobot_env_pusht_velocity as m; print(m.__file__)"],
-                                capture_output=True, text=True).stdout.strip()
+        installed = {}
+        for name in PLUGINS:
+            f = subprocess.run([str(self.py), "-c", f"import {name} as m; print(m.__file__)"],
+                               capture_output=True, text=True).stdout.strip()
+            installed[name] = (digest(Path(f)) if f.endswith(f"{name}.py") else digest(Path(f).parent)) if f else None
         gpus = subprocess.run(["nvidia-smi", "--query-gpu=index,name,memory.total", "--format=csv,noheader"],
                               capture_output=True, text=True).stdout.strip() if shutil.which("nvidia-smi") else None
         return {"protocol_sha256": sha256(self.PROTOCOL), "smoke": self.smoke, "ilsb_commit": git("rev-parse", "HEAD"),
                 "ilsb_dirty": bool(git("status", "--porcelain", "--", "src", "tools", "pyproject.toml", "uv.lock")),
                 "ccil": md.version("ccil"), "lerobot_freeze_sha256": hashlib.sha256(freeze.encode()).hexdigest(),
                 "lerobot": next((ln.split("==")[1] for ln in freeze.splitlines() if ln.startswith("lerobot==")), None),
-                "plugin_installed_sha256": sha256(plugin) if plugin else None, "plugin_sha256": sha256(PLUGIN),
+                "plugins_installed": installed, "plugins": {n: digest(p) for n, p in PLUGINS.items()},
                 "source_sha256": tree(self.source), "host": platform.node(), "gpus": gpus,
                 "python": platform.python_version(), "numpy": np.__version__}
 
@@ -54,12 +67,13 @@ class Gate(Pilot):
         ident = self.identity()
         if ident["lerobot"] != self.protocol["lerobot"]["version"]:
             raise PilotError(f"lerobot is {ident['lerobot']}, the protocol pins {self.protocol['lerobot']['version']}")
-        if ident["plugin_installed_sha256"] != ident["plugin_sha256"]:
-            raise PilotError("the installed lerobot_env_pusht_velocity is not this commit's plugin; reinstall it")
+        for name in PLUGINS:
+            if ident["plugins_installed"][name] != ident["plugins"][name]:
+                raise PilotError(f"the installed {name} is not this commit's; reinstall it")
         path = self.root / "root.json"
         if path.exists():
             old = json.loads(path.read_text())
-            keep = ("protocol_sha256", "smoke", "ilsb_commit", "lerobot_freeze_sha256", "plugin_sha256", "source_sha256",
+            keep = ("protocol_sha256", "smoke", "ilsb_commit", "lerobot_freeze_sha256", "plugins", "source_sha256",
                     "host")
             diff = [k for k in keep if old.get(k) != ident.get(k)]
             if diff:
@@ -69,13 +83,24 @@ class Gate(Pilot):
                 raise PilotError("the gate runs from a clean, committed ilsb checkout")
             write_json(path, {**ident, "created": now(), "command": sys.argv})
             self.log(f"root created: ilsb {ident['ilsb_commit'][:12]}, lerobot {ident['lerobot']}, "
-                     f"plugin {ident['plugin_sha256'][:12]}, smoke {self.smoke}, gpus {ident['gpus']}")
+                     f"smoke {self.smoke}, gpus {ident['gpus']}")
 
     def held_out(self) -> list:
         return self.protocol["split"]["held_out"]
 
     def selection_source(self) -> Path:
         return self.root / "derived" / "full"
+
+    def train_cmd(self, arm, seed, out):
+        t, p = self.training, self.protocol["policy"]
+        root = self.root / self.need("arms")["arms"][arm]["path"]
+        args = {**p["args"], "scheduler_decay_steps": t["steps"]}  # the cosine reaches 0 at the common ceiling
+        flag = lambda v: json.dumps(v) if isinstance(v, (dict, list)) else str(v).lower() if isinstance(v, bool) else v  # noqa: E731
+        return [str(self.bin / "lerobot-train"), f"--dataset.repo_id=local/pusht-{arm}", f"--dataset.root={root}",
+                f"--policy.type={p['type']}", *[f"--policy.{k}={flag(v)}" for k, v in args.items()],
+                "--policy.push_to_hub=false", f"--policy.device={t['device']}", f"--steps={t['steps']}",
+                f"--batch_size={t['batch_size']}", f"--save_freq={t['save_freq']}", "--log_freq=1000",
+                f"--num_workers={t['num_workers']}", f"--seed={seed}", f"--output_dir={out}", "--wandb.enable=false"]
 
     def derive(self) -> None:
         if self.marker("arms"):
@@ -96,7 +121,7 @@ class Gate(Pilot):
         check = json.loads((d / "check.json").read_text()) if (d / "check.json").exists() else {}
         if r.returncode or not check.get("pass"):
             raise PilotError(f"the adapter check failed (exit {r.returncode}): {check.get('checks')}\n{r.stderr[-1500:]}")
-        if check["plugin_sha256"] != sha256(PLUGIN):
+        if check["plugin_sha256"] != sha256(PLUGINS["lerobot_env_pusht_history"]):
             raise PilotError("the adapter check ran another plugin")
         full, train = (json.loads((d / f"{n}.json").read_text()) for n in ("full", "train"))
         if train["episodes"] != full["episodes"] - len(self.held_out()):
@@ -116,7 +141,8 @@ class Gate(Pilot):
                 raise PilotError(f"{arm}-s{seed}: eval_info.json changed")
             res[seed] = {"avg_max_reward": ev["avg_max_reward"], "pc_success": ev["pc_success"],
                          "selected_step": sel["selected"]["step"],
-                         "held_out_mean_l2": sel["scores"]["mean_l2"][str(sel["selected"]["step"])]}
+                         "held_out_infonce": sel["scores"]["infonce"][str(sel["selected"]["step"])],
+                         "held_out_mean_l2_diagnostic": sel["scores"]["mean_l2_diagnostic"][str(sel["selected"]["step"])]}
         stat = float(np.mean([v["avg_max_reward"] for v in res.values()]))
         ref = g["references"]
         fraction = (stat - ref["hold"]) / (ref["demonstration_replay"] - ref["hold"])
