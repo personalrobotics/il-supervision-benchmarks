@@ -32,6 +32,8 @@ class IBCPolicy(PreTrainedPolicy):
             layers += [nn.Linear(width, config.hidden_dim), nn.ReLU(), nn.Dropout(config.dropout)]
             width = config.hidden_dim
         self.energy = nn.Sequential(*layers, nn.Linear(width, 1))
+        # compiled for training only, and kept out of the module tree so the checkpoint's keys are unchanged
+        self.__dict__["_compiled"] = torch.compile(self.energy) if config.compile else None
 
     def get_optim_params(self):
         return self.parameters()
@@ -46,7 +48,8 @@ class IBCPolicy(PreTrainedPolicy):
         """obs (B, Do), actions (B, N, Da) -> (B, N)."""
         b, n, _ = actions.shape
         x = torch.cat([obs.unsqueeze(1).expand(-1, n, -1), actions], dim=-1)
-        return self.energy(x.reshape(b * n, -1)).reshape(b, n)
+        net = self._compiled if self._compiled is not None and self.training else self.energy
+        return net(x.reshape(b * n, -1)).reshape(b, n)
 
     def infonce(self, obs: Tensor, action: Tensor, negatives: Tensor) -> Tensor:
         """Mean cross-entropy of the demonstrated action (index 0) against the negatives, per batch row."""

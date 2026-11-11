@@ -172,8 +172,11 @@ def main(cls=Gate, stages=STAGES) -> int:
     ap.add_argument("--source", type=Path, required=True, help="lerobot/pusht_keypoints at the protocol's revision")
     ap.add_argument("--lerobot-python", type=Path, required=True)
     ap.add_argument("--smoke", action="store_true")
+    ap.add_argument("--protocol", type=Path, help=f"the protocol file (default {cls.PROTOCOL.name})")
     ap.add_argument("stages", nargs="*", default=list(stages))
     a = ap.parse_args()
+    if a.protocol:
+        cls.PROTOCOL = a.protocol.resolve()
     g = cls(a.root.resolve(), a.source.resolve(), a.lerobot_python, a.smoke)
     try:
         g.check_root()

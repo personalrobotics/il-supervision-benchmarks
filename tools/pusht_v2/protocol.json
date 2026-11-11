@@ -64,7 +64,7 @@
    "pusht",
    "training"
   ],
-  "plugins": "tools/pusht_v2/env_plugin (lerobot_env_pusht_history 1.0.0) and tools/pusht_v2/ibc_plugin (lerobot_policy_ibc 1.0.0), installed from the freezing commit"
+  "plugins": "tools/pusht_v2/env_plugin (lerobot_env_pusht_history 1.0.0) and tools/pusht_v2/ibc_plugin (lerobot_policy_ibc 1.1.0), installed from the freezing commit"
  },
  "arms": [
   "bc",
@@ -113,7 +113,7 @@
  },
  "policy": {
   "type": "ibc",
-  "reference": "the IBC gate's learner (tools/pusht_v2/gate.json), unchanged",
+  "reference": "the IBC gate's learner under the fast gate's settings (tools/pusht_v2/gate_fast.json)",
   "args": {
    "hidden_dim": 1024,
    "n_layers": 4,
@@ -124,14 +124,16 @@
    "resample_std": 0.03,
    "optimizer_lr": 0.0001,
    "optimizer_weight_decay": 1e-06,
-   "scheduler_warmup_steps": 500
+   "scheduler_warmup_steps": 500,
+   "compile": true,
+   "dtype": "bfloat16"
   },
-  "other": "min/max normalization to [-1, 1] of STATE, ENV and ACTION; AdamW betas (0.95, 0.999); cosine to 0 at the last step; no gradient clipping"
+  "other": "min/max normalization to [-1, 1] of STATE, ENV and ACTION; AdamW betas (0.95, 0.999); cosine to 0 at the last step; no gradient clipping; bf16 autocast over float32 weights; the energy network compiled in training"
  },
  "training": {
-  "steps": 200000,
+  "steps": 50000,
   "batch_size": 256,
-  "save_freq": 20000,
+  "save_freq": 5000,
   "num_workers": 4,
   "device": "cuda",
   "seeds": [

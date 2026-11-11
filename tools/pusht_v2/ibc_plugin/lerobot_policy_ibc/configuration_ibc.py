@@ -32,6 +32,10 @@ class IBCConfig(PreTrainedConfig):
     pred_n_samples: int = 1024
     pred_n_iter: int = 5
     resample_std: float = 3e-2
+    # speed, not the method (pusht-v2 development evidence): lerobot-train reads dtype to choose Accelerate's mixed
+    # precision (bfloat16: bf16 autocast over float32 weights); compile runs the energy network compiled in training
+    dtype: str = "float32"
+    compile: bool = False
 
     optimizer_lr: float = 1e-4
     optimizer_betas: tuple[float, float] = (0.95, 0.999)
@@ -44,6 +48,8 @@ class IBCConfig(PreTrainedConfig):
         super().__post_init__()
         if self.n_obs_steps != 1:
             raise ValueError("ibc reads its history from each observation feature; n_obs_steps must be 1")
+        if self.dtype not in ("float32", "bfloat16"):
+            raise ValueError(f"ibc dtype {self.dtype!r} is not float32 or bfloat16")
 
     def get_optimizer_preset(self) -> AdamWConfig:
         # the reference clips no gradients
