@@ -1,0 +1,99 @@
+{
+ "arm": "bc",
+ "checkpoints": [
+  {
+   "path": "units/bc-s1/train/checkpoints/020000/pretrained_model",
+   "sha256": "59acb369bcc53eb82c98bd153da913218cf52bb4d235b9d675ad905c2845d406",
+   "step": 20000,
+   "weights": "units/bc-s1/train/checkpoints/020000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/bc-s1/train/checkpoints/040000/pretrained_model",
+   "sha256": "a914509d187f13fa3d519d00d219b6c5eb63d4114cf15b4f5ebc5cdae4c8b046",
+   "step": 40000,
+   "weights": "units/bc-s1/train/checkpoints/040000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/bc-s1/train/checkpoints/060000/pretrained_model",
+   "sha256": "0b7d0e84a2bb294c4bea4c95a49168ae59d4e5bf084e54f573d6ab3ae0d743ef",
+   "step": 60000,
+   "weights": "units/bc-s1/train/checkpoints/060000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/bc-s1/train/checkpoints/080000/pretrained_model",
+   "sha256": "e4f08b6d4f5f43202af68e732f1564e0f40ffe722f97865287a9cd8847da56a6",
+   "step": 80000,
+   "weights": "units/bc-s1/train/checkpoints/080000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/bc-s1/train/checkpoints/100000/pretrained_model",
+   "sha256": "ab51db57874631b76b168dbdaa782d7ed7c16ef48004d173b82fc4520c33443e",
+   "step": 100000,
+   "weights": "units/bc-s1/train/checkpoints/100000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/bc-s1/train/checkpoints/120000/pretrained_model",
+   "sha256": "0b19275031add28abe9c344085c5b5fcfe0c263a1be8e02211edc4579d5a0c57",
+   "step": 120000,
+   "weights": "units/bc-s1/train/checkpoints/120000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/bc-s1/train/checkpoints/140000/pretrained_model",
+   "sha256": "846a0526fb48797f1e390eaed6ca1bb68355c05219bd61dde7ef0a8d6761706e",
+   "step": 140000,
+   "weights": "units/bc-s1/train/checkpoints/140000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/bc-s1/train/checkpoints/160000/pretrained_model",
+   "sha256": "438b742f77ee488b064d5498cb3431498e5255eb60dbf8eff04f25c83c9ce0dd",
+   "step": 160000,
+   "weights": "units/bc-s1/train/checkpoints/160000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/bc-s1/train/checkpoints/180000/pretrained_model",
+   "sha256": "49145f8907af544dca48f644a19ec164e276ff15b41218f249671080f7d34143",
+   "step": 180000,
+   "weights": "units/bc-s1/train/checkpoints/180000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/bc-s1/train/checkpoints/200000/pretrained_model",
+   "sha256": "1d1e13ab9d3720cdd7ece4dd3340ae0230ca4d1f63ec0b84cee0750afcfc7eb7",
+   "step": 200000,
+   "weights": "units/bc-s1/train/checkpoints/200000/pretrained_model/model.safetensors"
+  }
+ ],
+ "command": [
+  "/home/siddh/code/CCIL-pusht/.lerobot-ibc/bin/lerobot-train",
+  "--dataset.repo_id=local/pusht-bc",
+  "--dataset.root=/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044357-pusht-v2-ibc-gate/derived/train",
+  "--policy.type=ibc",
+  "--policy.hidden_dim=1024",
+  "--policy.n_layers=4",
+  "--policy.dropout=0.1",
+  "--policy.train_n_neg=1024",
+  "--policy.pred_n_samples=1024",
+  "--policy.pred_n_iter=5",
+  "--policy.resample_std=0.03",
+  "--policy.optimizer_lr=0.0001",
+  "--policy.optimizer_weight_decay=1e-06",
+  "--policy.scheduler_warmup_steps=500",
+  "--policy.scheduler_decay_steps=200000",
+  "--policy.push_to_hub=false",
+  "--policy.device=cuda",
+  "--steps=200000",
+  "--batch_size=256",
+  "--save_freq=20000",
+  "--log_freq=1000",
+  "--num_workers=4",
+  "--seed=1",
+  "--output_dir=/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044357-pusht-v2-ibc-gate/units/bc-s1/train",
+  "--wandb.enable=false"
+ ],
+ "completed": "2026-11-11T13:44:44+00:00",
+ "last_log": [
+  "Training: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 200000/200000 [9:00:08<00:00, 14.42step/s]INFO 2026-11-11 05:44:21 ot_train.py:641 step:200K smpl:51M ep:415K epch:2517.83 loss:0.168 grdn:18.899 lr:2.1e-09 updt_s:0.136 data_s:0.019 smp/s:1648 mem_gb:10.04 infonce:0.168"
+ ],
+ "samples": 51200000,
+ "seconds": 32434.252804756165,
+ "seed": 1
+}

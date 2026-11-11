@@ -1,6 +1,6 @@
 # PushT keypoints v2: IBC BC feasibility gate
 
-**Status: predeclared, not yet run.** The commit that adds this file, with
+**Status: run; the gate passed** ([Result](#result)). The commit that adds this file, with
 [`tools/pusht_v2`](../../tools/pusht_v2/gate.py), freezes the gate before any of
 its policies trains. The machine-readable protocol is
 [`gate.json`](../../tools/pusht_v2/gate.json). Controlling issue:
@@ -113,4 +113,40 @@ run (200 steps, one seed, 4 episodes) exercised every stage before the freeze.
 
 ## Result
 
-Not yet run.
+**The gate passed.** The run is root `20261111T044357-pusht-v2-ibc-gate` on
+`siddh`, from a clean checkout of `b41e352`; both plugins were installed from
+that commit, and the adapter check passed. All three units trained 200,000
+steps. Records: [`evidence/pusht-v2-ibc-gate`](evidence/pusht-v2-ibc-gate).
+
+| seed | selected step | held-out InfoNCE | coverage (100 starts) | success |
+|---|---|---|---|---|
+| 1 | 20k | 1.254 | 0.7988 | 29% |
+| 2 | 20k | 1.295 | 0.8348 | 36% |
+| 3 | 20k | 1.272 | 0.8304 | 18% |
+| **mean** | | | **0.8213** | |
+
+(0.8213 − 0.0620) / (0.9464 − 0.0620) = **0.859** of the hold-to-demonstrator
+gap; the gate needs 0.5. Single-step IBC on the two-frame history state learns
+PushT. The single-frame ACT of the pilot and the velocity-aware ACT gate did not.
+
+**Selection picked the first checkpoint on every seed.** Held-out InfoNCE
+rose monotonically after 20k (1.25–1.30 to 2.73–2.78 at 200k), while closed-loop
+coverage kept improving. Monitoring peeks, taken outside the gate's root on the
+first 50 starts (hold-still scores 0.0486 there), show it. They are not the
+gate's evaluation and decided nothing:
+
+| seed | 20k | 40k | 60k | 80k | 100k | 120k | 140k | 160k | 180k | 200k |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | 0.756 | 0.887 | 0.938 | 0.923 | 0.931 | 0.918 | 0.923 | 0.930 | 0.926 | 0.943 |
+| 2 | 0.774 | 0.869 | 0.850 | 0.920 | 0.879 | 0.895 | 0.888 | 0.883 | 0.871 | 0.925 |
+| 3 | 0.857 | 0.825 | 0.845 | 0.916 | 0.862 | 0.919 | 0.924 | 0.886 | 0.895 | 0.890 |
+
+A rising held-out InfoNCE is the energy landscape sharpening around the
+training actions, not worse control. The predeclared selection is kept for v2
+unchanged: it never uses simulator returns, and it is applied identically to
+every arm.
+
+**Evaluation repeats only to rounding.** Before v2's freeze, one selected
+checkpoint was evaluated twice under the same seed (10 episodes). Every success
+repeated, and rewards agreed to 2.2e-16 (maximum) and 1.4e-14 (summed). v2's
+audit predeclares those tolerances.

@@ -1,0 +1,101 @@
+{
+  "per_task": [
+    {
+      "task_group": "pusht_history",
+      "task_id": 0,
+      "metrics": {
+        "sum_rewards": [
+          30.47964380205043,
+          163.06226412520067,
+          153.21861794408784,
+          74.38303669151593,
+          114.94658605744465,
+          0.19425834203546546,
+          166.79054255485264,
+          151.98638188809764,
+          0.48049459355849744,
+          92.56622923516176
+        ],
+        "max_rewards": [
+          1.0,
+          0.9935340691085032,
+          0.9446931650618706,
+          1.0,
+          1.0,
+          0.061414902760377706,
+          0.9134603570949312,
+          0.9998229563917336,
+          0.08192028672343979,
+          0.3130406912075378
+        ],
+        "successes": [
+          true,
+          false,
+          false,
+          true,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "video_paths": [
+          "/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044457-pusht-v2-ibc-gate-peek/repro-b/videos/pusht_history_0/eval_episode_0.mp4",
+          "/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044457-pusht-v2-ibc-gate-peek/repro-b/videos/pusht_history_0/eval_episode_1.mp4",
+          "/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044457-pusht-v2-ibc-gate-peek/repro-b/videos/pusht_history_0/eval_episode_2.mp4",
+          "/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044457-pusht-v2-ibc-gate-peek/repro-b/videos/pusht_history_0/eval_episode_3.mp4",
+          "/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044457-pusht-v2-ibc-gate-peek/repro-b/videos/pusht_history_0/eval_episode_4.mp4",
+          "/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044457-pusht-v2-ibc-gate-peek/repro-b/videos/pusht_history_0/eval_episode_5.mp4",
+          "/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044457-pusht-v2-ibc-gate-peek/repro-b/videos/pusht_history_0/eval_episode_6.mp4",
+          "/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044457-pusht-v2-ibc-gate-peek/repro-b/videos/pusht_history_0/eval_episode_7.mp4",
+          "/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044457-pusht-v2-ibc-gate-peek/repro-b/videos/pusht_history_0/eval_episode_8.mp4",
+          "/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044457-pusht-v2-ibc-gate-peek/repro-b/videos/pusht_history_0/eval_episode_9.mp4"
+        ],
+        "predicted_video_paths": []
+      }
+    }
+  ],
+  "per_group": {
+    "pusht_history": {
+      "avg_sum_reward": 94.81080552340056,
+      "avg_max_reward": 0.7307886428348394,
+      "pc_success": 30.0,
+      "n_episodes": 10,
+      "video_paths": [
+        "/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044457-pusht-v2-ibc-gate-peek/repro-b/videos/pusht_history_0/eval_episode_0.mp4",
+        "/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044457-pusht-v2-ibc-gate-peek/repro-b/videos/pusht_history_0/eval_episode_1.mp4",
+        "/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044457-pusht-v2-ibc-gate-peek/repro-b/videos/pusht_history_0/eval_episode_2.mp4",
+        "/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044457-pusht-v2-ibc-gate-peek/repro-b/videos/pusht_history_0/eval_episode_3.mp4",
+        "/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044457-pusht-v2-ibc-gate-peek/repro-b/videos/pusht_history_0/eval_episode_4.mp4",
+        "/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044457-pusht-v2-ibc-gate-peek/repro-b/videos/pusht_history_0/eval_episode_5.mp4",
+        "/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044457-pusht-v2-ibc-gate-peek/repro-b/videos/pusht_history_0/eval_episode_6.mp4",
+        "/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044457-pusht-v2-ibc-gate-peek/repro-b/videos/pusht_history_0/eval_episode_7.mp4",
+        "/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044457-pusht-v2-ibc-gate-peek/repro-b/videos/pusht_history_0/eval_episode_8.mp4",
+        "/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044457-pusht-v2-ibc-gate-peek/repro-b/videos/pusht_history_0/eval_episode_9.mp4"
+      ],
+      "predicted_video_paths": []
+    }
+  },
+  "overall": {
+    "avg_sum_reward": 94.81080552340056,
+    "avg_max_reward": 0.7307886428348394,
+    "pc_success": 30.0,
+    "n_episodes": 10,
+    "eval_s": 11.580951452255249,
+    "eval_ep_s": 1.1580951690673829,
+    "video_paths": [
+      "/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044457-pusht-v2-ibc-gate-peek/repro-b/videos/pusht_history_0/eval_episode_0.mp4",
+      "/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044457-pusht-v2-ibc-gate-peek/repro-b/videos/pusht_history_0/eval_episode_1.mp4",
+      "/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044457-pusht-v2-ibc-gate-peek/repro-b/videos/pusht_history_0/eval_episode_2.mp4",
+      "/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044457-pusht-v2-ibc-gate-peek/repro-b/videos/pusht_history_0/eval_episode_3.mp4",
+      "/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044457-pusht-v2-ibc-gate-peek/repro-b/videos/pusht_history_0/eval_episode_4.mp4",
+      "/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044457-pusht-v2-ibc-gate-peek/repro-b/videos/pusht_history_0/eval_episode_5.mp4",
+      "/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044457-pusht-v2-ibc-gate-peek/repro-b/videos/pusht_history_0/eval_episode_6.mp4",
+      "/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044457-pusht-v2-ibc-gate-peek/repro-b/videos/pusht_history_0/eval_episode_7.mp4",
+      "/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044457-pusht-v2-ibc-gate-peek/repro-b/videos/pusht_history_0/eval_episode_8.mp4",
+      "/home/siddh/code/ilsb-pusht-ibc-b41e352/runs/20261111T044457-pusht-v2-ibc-gate-peek/repro-b/videos/pusht_history_0/eval_episode_9.mp4"
+    ],
+    "predicted_video_paths": []
+  }
+}
