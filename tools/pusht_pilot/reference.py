@@ -108,6 +108,7 @@ def act(arm, out_dir, steps):
     from run import per_episode
     t, bin_ = PROTOCOL["training"], Path(sys.executable).parent
     out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True)
     train = [str(bin_ / "lerobot-train"), "--dataset.repo_id=local/pusht-bc", f"--dataset.root={arm}",
              "--policy.type=act", "--policy.push_to_hub=false", f"--policy.device={t['device']}", f"--steps={steps}",
              f"--batch_size={t['batch_size']}", f"--save_freq={steps}", "--log_freq=1000",
