@@ -1,0 +1,5 @@
+accepted 1044 failed 99908
+failed: |resid agent| p10=12.3 p50=49.5 p90=292; |resid T kp| p10=11 p50=35.9 p90=204; older-slot resid max 0
+accepted: |resid agent| p10=2.04e-06 p50=5.33e-06 p90=1.03e-05; |resid T kp| p10=3.29e-06 p50=5.86e-06 p90=1.06e-05; older-slot resid max 0
+action noise norm p50: failed 11.734 accepted 10.615
+T moving at target (kp displacement > 0.01 px): failed 0.474 accepted 0.531 all 0.475

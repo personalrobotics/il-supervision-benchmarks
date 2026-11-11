@@ -75,9 +75,9 @@ class V2(Gate):
             raise PilotError("CCIL's split is not the protocol's")
         fit_cfg = json.loads(next((self.root / "labels" / "runs").glob("transition-fit-*/config.json")).read_text())
         gen_cfg = json.loads(next((self.root / "labels" / "runs").glob("labels-generate-*/config.json")).read_text())
-        study = {"fit_episodes": fit_cfg["values"]["transition_model.fit_episodes"],
-                 "structure": fit_cfg["values"]["transition_model.structure"],
-                 "method": gen_cfg["values"]["generation.method"]}
+        study = {"fit_episodes": fit_cfg["values"]["transition_model.fit_episodes"]["value"],
+                 "structure": fit_cfg["values"]["transition_model.structure"]["value"],
+                 "method": gen_cfg["values"]["generation.method"]["value"]}  # each value is a resolved record
         if study != {"fit_episodes": "train", "structure": "history_shift", "method": "noisy_action_fe"}:
             raise PilotError(f"the labels were not made as the protocol fixes: {study}")
         exp = self.root / lab["export"]

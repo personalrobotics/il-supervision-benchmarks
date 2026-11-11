@@ -1,0 +1,516 @@
+{
+ "artifacts": {
+  "candidates": {
+   "path": "labels-generate-5816ed0df193/labels/candidates.npz",
+   "sha256": "6befa12c8c3e407c18a8d57a2874305b11f39df9c6e49dbb537f7c3a1faf0627"
+  },
+  "dataset": {
+   "path": "data-prepare-0a0484bbc565/data/dataset.npz",
+   "sha256": "80202e2d097ade1a379fdd9b99c7214bd9ca6e47d82a87a580bf3b268a082317"
+  },
+  "diagnosis": {
+   "path": "labels-diagnose-9d483c4d35e6/diagnosis/diagnosis.json",
+   "sha256": "ef88afac0fe5f2e57b2896a3a614d78cab629639d0f9922e6e524787c0e15633"
+  },
+  "split": {
+   "path": "data-prepare-0a0484bbc565/data/split.json",
+   "sha256": "64c516232f22a1cf8480d61496cf575b50deb2f760e62ed39212116496398ea9"
+  },
+  "transition_model": {
+   "path": "transition-fit-5cbbe2ecc534/checkpoints/transition_model.npz",
+   "sha256": "81fa9754dd0cf62b861e6b53bd52cdfaa0239095874a9f1c9dc01ba6a31b483e"
+  }
+ },
+ "config": {
+  "config_hash": "d4bf69d89c91320391596bb0dc0979c4c7bcee521c89202d5b72ded97dde17f5",
+  "notes": [],
+  "schema": "ccil.config",
+  "values": {
+   "audit.reference_dynamics": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": null
+   },
+   "calibration.level": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": null
+   },
+   "certificate.demonstration_residual_bound": {
+    "source": "default",
+    "status": "implemented",
+    "units": "scaled state",
+    "value": null
+   },
+   "certificate.discrepancy_action_lipschitz": {
+    "source": "default",
+    "status": "implemented",
+    "units": "error per scaled action",
+    "value": null
+   },
+   "certificate.discrepancy_state_lipschitz": {
+    "source": "default",
+    "status": "implemented",
+    "units": "error per scaled state",
+    "value": null
+   },
+   "certificate.learned_lipschitz_source": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": "model"
+   },
+   "certificate.learned_state_lipschitz": {
+    "source": "default",
+    "status": "implemented",
+    "units": "error per scaled state",
+    "value": null
+   },
+   "certificate.neighborhood_action": {
+    "source": "default",
+    "status": "implemented",
+    "units": "scaled action",
+    "value": null
+   },
+   "certificate.neighborhood_state": {
+    "source": "default",
+    "status": "implemented",
+    "units": "scaled state",
+    "value": null
+   },
+   "certificate.profile": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": null
+   },
+   "certificate.reference_dynamics": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": null
+   },
+   "certificate.true_action_lipschitz": {
+    "source": "default",
+    "status": "implemented",
+    "units": "error per scaled action",
+    "value": null
+   },
+   "certificate.true_state_lipschitz": {
+    "source": "default",
+    "status": "implemented",
+    "units": "error per scaled state",
+    "value": null
+   },
+   "compute.deterministic": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": false
+   },
+   "compute.device": {
+    "source": "file:pusht.yaml",
+    "status": "implemented",
+    "units": "-",
+    "value": "cpu"
+   },
+   "compute.jacobian_memory_mb": {
+    "source": "default",
+    "status": "implemented",
+    "units": "MiB",
+    "value": 2048
+   },
+   "curate.population": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": "admitted"
+   },
+   "curate.quantile": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": null
+   },
+   "curate.tolerance": {
+    "source": "default",
+    "status": "implemented",
+    "units": "scaled state",
+    "value": null
+   },
+   "data.action_high": {
+    "source": "file:pusht.yaml",
+    "status": "implemented",
+    "units": "action units",
+    "value": [
+     512.0,
+     512.0
+    ]
+   },
+   "data.action_low": {
+    "source": "file:pusht.yaml",
+    "status": "implemented",
+    "units": "action units",
+    "value": [
+     0.0,
+     0.0
+    ]
+   },
+   "data.path": {
+    "source": "file:pusht.yaml",
+    "status": "implemented",
+    "units": "-",
+    "value": "pusht.npz"
+   },
+   "data.validation_fraction": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": 0.2
+   },
+   "diagnose.fit_quantile": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": 0.95
+   },
+   "diagnose.fit_ratio": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": 0.5
+   },
+   "diagnose.label_quantile": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": 0.9
+   },
+   "diagnose.min_displacement": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": 1.0
+   },
+   "diagnose.min_novelty": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": 1.0
+   },
+   "diagnose.min_yield": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": 0.01
+   },
+   "diagnose.probe_transitions": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": 256
+   },
+   "diagnose.tau_quantile": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": 0.95
+   },
+   "diagnose.tau_sample": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": 2048
+   },
+   "generation.action_chunk_size": {
+    "source": "default",
+    "status": "implemented",
+    "units": "actions",
+    "value": null
+   },
+   "generation.action_noise_scale": {
+    "source": "file:pusht.yaml",
+    "status": "implemented",
+    "units": "-",
+    "value": "training_std"
+   },
+   "generation.action_noise_std": {
+    "source": "file:pusht.yaml",
+    "status": "implemented",
+    "units": "action units",
+    "value": 0.1
+   },
+   "generation.evidence_mode": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": "data_only"
+   },
+   "generation.labels_per_transition": {
+    "source": "file:pusht.yaml",
+    "status": "implemented",
+    "units": "-",
+    "value": 4
+   },
+   "generation.max_iterations": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": null
+   },
+   "generation.method": {
+    "source": "file:pusht.yaml",
+    "status": "implemented",
+    "units": "-",
+    "value": "noisy_action_fe"
+   },
+   "generation.model_error_threshold": {
+    "source": "default",
+    "status": "implemented",
+    "units": "representation units",
+    "value": null
+   },
+   "generation.recovery_steps": {
+    "source": "file:pusht.yaml",
+    "status": "implemented",
+    "units": "-",
+    "value": "1"
+   },
+   "generation.root_tolerance": {
+    "source": "default",
+    "status": "implemented",
+    "units": "state units",
+    "value": 0.0001
+   },
+   "generation.support_radius": {
+    "source": "default",
+    "status": "implemented",
+    "units": "state units",
+    "value": null
+   },
+   "integrated.trainer": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": "linear_least_squares"
+   },
+   "representation.dim": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": null
+   },
+   "representation.kind": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": "identity"
+   },
+   "representation.modality": {
+    "source": "file:pusht.yaml",
+    "status": "implemented",
+    "units": "-",
+    "value": "state+state.environment_state"
+   },
+   "run.output_dir": {
+    "source": "file:pusht.yaml",
+    "status": "implemented",
+    "units": "-",
+    "value": "runs"
+   },
+   "run.overwrite": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": false
+   },
+   "run.seed": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": 42
+   },
+   "supervision.demonstration_weight": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": 1.0
+   },
+   "supervision.exclude_validation_episodes": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": true
+   },
+   "supervision.source": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": "demonstrations_plus_selection"
+   },
+   "transition_model.activation": {
+    "source": "file:pusht.yaml",
+    "status": "implemented",
+    "units": "-",
+    "value": "relu"
+   },
+   "transition_model.batch_size": {
+    "source": "file:pusht.yaml",
+    "status": "implemented",
+    "units": "-",
+    "value": 256
+   },
+   "transition_model.checkpoint": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": null
+   },
+   "transition_model.direction": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": "forward"
+   },
+   "transition_model.epochs": {
+    "source": "file:pusht.yaml",
+    "status": "implemented",
+    "units": "-",
+    "value": 50
+   },
+   "transition_model.fit_episodes": {
+    "source": "file:pusht.yaml",
+    "status": "implemented",
+    "units": "-",
+    "value": "train"
+   },
+   "transition_model.hidden_layers": {
+    "source": "file:pusht.yaml",
+    "status": "implemented",
+    "units": "-",
+    "value": [
+     256,
+     256
+    ]
+   },
+   "transition_model.history_steps": {
+    "source": "file:pusht.yaml",
+    "status": "implemented",
+    "units": "-",
+    "value": 2
+   },
+   "transition_model.kind": {
+    "source": "file:pusht.yaml",
+    "status": "implemented",
+    "units": "-",
+    "value": "mlp"
+   },
+   "transition_model.learning_rate": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": 0.001
+   },
+   "transition_model.lipschitz_constraint": {
+    "source": "file:pusht.yaml",
+    "status": "implemented",
+    "units": "-",
+    "value": 3.0
+   },
+   "transition_model.lipschitz_coordinates": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": "model_normalized"
+   },
+   "transition_model.lipschitz_type": {
+    "source": "file:pusht.yaml",
+    "status": "implemented",
+    "units": "-",
+    "value": "spectral_normalization"
+   },
+   "transition_model.slack_weight": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": 1.0
+   },
+   "transition_model.soft_penalty_weight": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": null
+   },
+   "transition_model.soft_samples": {
+    "source": "default",
+    "status": "declared",
+    "units": "-",
+    "value": 5
+   },
+   "transition_model.soft_sampling_eps": {
+    "source": "default",
+    "status": "implemented",
+    "units": "normalized input units (model_normalized) or raw state and action units (raw)",
+    "value": 0.0003
+   },
+   "transition_model.structure": {
+    "source": "file:pusht.yaml",
+    "status": "implemented",
+    "units": "-",
+    "value": "history_shift"
+   },
+   "transition_model.trainer_version": {
+    "source": "file:pusht.yaml",
+    "status": "implemented",
+    "units": "-",
+    "value": "1"
+   },
+   "transition_model.weight_decay": {
+    "source": "default",
+    "status": "implemented",
+    "units": "-",
+    "value": 1e-05
+   }
+  },
+  "version": "1"
+ },
+ "counts": {
+  "accepted": 1044,
+  "admitted": 1,
+  "by_classification": null,
+  "candidates": 100952,
+  "rejected_by_reason": {
+   "action_out_of_bounds": 81,
+   "generation_failed": 99908,
+   "non_finite": 0,
+   "out_of_support": 0
+  }
+ },
+ "next_step": "ccil curate runs/generate-result.json",
+ "schema": "ccil.generate-result",
+ "stages": [
+  {
+   "reused": false,
+   "run_dir": "data-prepare-0a0484bbc565",
+   "stage": "data.prepare"
+  },
+  {
+   "reused": false,
+   "run_dir": "transition-fit-5cbbe2ecc534",
+   "stage": "transition.fit"
+  },
+  {
+   "reused": false,
+   "run_dir": "labels-diagnose-9d483c4d35e6",
+   "stage": "labels.diagnose"
+  },
+  {
+   "reused": false,
+   "run_dir": "labels-generate-5816ed0df193",
+   "stage": "labels.generate"
+  }
+ ],
+ "version": "1.0"
+}

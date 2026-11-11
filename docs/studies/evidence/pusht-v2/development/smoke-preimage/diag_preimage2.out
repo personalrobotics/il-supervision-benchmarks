@@ -1,0 +1,5 @@
+failed sample, 50 iterations: converged 0/2000; residual p50 67.8
+failed sample, 200 iterations: converged 6/2000; residual p50 61.4
+failed sample, 1000 iterations: converged 35/2000; residual p50 63.1
+failed: sigma_max p50 0.415, sigma_min p50 4.37e-05, condition p50 9.3e+03
+accepted: sigma_max p50 0.429, sigma_min p50 8.88e-05, condition p50 4.63e+03

@@ -1,0 +1,17 @@
+data.prepare       wrote  runs/data-prepare-0a0484bbc565
+transition.fit     wrote  runs/transition-fit-5cbbe2ecc534
+labels.diagnose    wrote  runs/labels-diagnose-9d483c4d35e6
+labels.generate    wrote  runs/labels-generate-5816ed0df193
+
+candidates     runs/labels-generate-5816ed0df193/labels/candidates.npz: 100952 rows, 1044 accepted
+rejected       action_out_of_bounds 81, generation_failed 99908
+evidence       no certificate.profile: no quality evidence
+admitted       recovery length 1
+result         runs/generate-e88e6d1bebaf.json (latest: runs/generate-result.json)
+next           ccil curate runs/generate-result.json
+labels.curate      wrote  runs/labels-curate-7379ac18e9b0
+
+selection      runs/labels-curate-7379ac18e9b0/labels/selection.npz: 1044 of 100952 rows selected (accepted)
+not selected   selection.not_accepted 99908
+result         runs/curate-7d29fb30a168.json
+next           ccil inspect runs/curate-7d29fb30a168.json: the usable rows, and how to load them
