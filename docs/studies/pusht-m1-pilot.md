@@ -1,6 +1,7 @@
 # PushT keypoints: does one-step CCIL help an unchanged LeRobot policy? (pilot)
 
-**Status: protocol version 1, frozen.** The commit that adds this file, with
+**Status: protocol version 1, run and closed.** Its policies were not
+competent, so the result is not evidence about CCIL ([Result](#result)). The commit that adds this file, with
 [`tools/pusht_pilot`](../../tools/pusht_pilot/run.py), freezes the protocol;
 it is pushed before any policy of the pilot is trained. The machine-readable
 protocol is [`protocol.json`](../../tools/pusht_pilot/protocol.json); the
@@ -116,4 +117,75 @@ is reported there.
 
 ## Result
 
-Not yet run.
+**Run.** Root `20261111T002414-pusht-m1-pilot` on `siddh`, from a clean checkout
+of `96f8445` (CCIL `56b64b4`, LeRobot 0.6.1). Every unit trained 100,000 steps
+at batch 64 (6.4 M samples). The audit passed: the repeat evaluation of bc-s1
+matched to 2.8e-17 in maximum reward and exactly otherwise. Against the stopped
+run from `54efe63`, the arms, all 150 checkpoints and all 15 selections are
+bitwise identical. Every one of the 1,500 evaluated episodes has the same
+success; 16 summed rewards differ in the last bit, and maximum rewards by at
+most 3.3e-16. Records: [`evidence/pusht-m1-pilot`](evidence/pusht-m1-pilot).
+
+Average maximum coverage over the 100 shared starts (selected step in
+parentheses):
+
+| seed | bc | duplication | ccil | ccil − duplication | ccil − bc |
+|---|---|---|---|---|---|
+| 1 | 0.1123 (70k) | 0.1126 (70k) | 0.1333 (100k) | +0.0207 | +0.0210 |
+| 2 | 0.1251 (80k) | 0.1058 (40k) | 0.1347 (90k) | +0.0289 | +0.0096 |
+| 3 | 0.1352 (100k) | 0.1483 (90k) | 0.1455 (100k) | −0.0028 | +0.0103 |
+| 4 | 0.0902 (80k) | 0.0763 (90k) | 0.0994 (100k) | +0.0231 | +0.0092 |
+| 5 | 0.1591 (90k) | 0.1091 (70k) | 0.1493 (60k) | +0.0402 | −0.0098 |
+| mean | 0.1244 | 0.1104 | 0.1324 | **+0.0220** | +0.0081 |
+
+- **Primary**, ccil − duplication on coverage: +0.0220, interval
+  [+0.0024, +0.0416], positive on 4 of 5 seeds. **The signal rule is met.**
+- **Secondary.** ccil − bc on coverage: +0.0081, [−0.0057, +0.0219], no
+  detectable difference. Success rate was 0% or 1% for every unit; neither
+  contrast on it is detectable.
+
+**Interpretation: the policies are not competent, so the contrast is not
+evidence about CCIL.** Every arm reaches about an eighth of the
+demonstrator's coverage. The reference behaviours below were measured
+**after** the result was observed. They are not part of the frozen protocol,
+and the policy references are one seed each, evaluated at their final
+checkpoint. They locate the cause in the policy design, not in the pipeline.
+
+| reference, same 100 starts | avg max coverage | success |
+|---|---|---|
+| hold the agent still | 0.062 | 0% |
+| pilot arms (single-frame ACT) | 0.110–0.132 | 0–1% |
+| single-frame ACT, keypoints normalized | 0.161 | 0% |
+| ACT, LeRobot defaults (chunk 100) | 0.392 | 0% |
+| diffusion, 2 observation steps, horizon 16, 8 executed | 0.948 | 71% |
+| demonstrations replayed in gym_pusht | 0.946 | 3% |
+
+- **The pipeline is sound.** Each demonstration's first frame is a rigid
+  pose of the simulator's T to 1.5e-5 px; replaying its actions reproduces
+  its keypoints to 4.5e-5 px (median episode; 90th percentile 0.24 px). A
+  diffusion policy trained on the bc arm and evaluated by the same
+  `lerobot-eval` matches the demonstrator.
+- **The single-frame observation is not Markov.** It holds positions only.
+  The agent is PD-controlled toward its action, so the next action depends on
+  the agent's velocity. On the 41 held-out episodes, the pilot's selected
+  checkpoints err by 17.7–20.1 px. Predicting the current agent position
+  errs by 24.2 px, the previous action by 10.8 px, and position plus twice
+  the last displacement by 9.0 px. Chunking (0.392) and observation history
+  (0.948) recover what one frame cannot see.
+- **Keypoints were not normalized.** LeRobot types
+  `observation.environment_state` as `ENV`, and ACT's default normalization
+  maps only `VISUAL`, `STATE` and `ACTION`, so the arms saw raw pixel
+  keypoints. Mapping `ENV` raises single-frame ACT from 0.112 to 0.161
+  (seed 1): a real handicap, but secondary.
+- **CCIL shares the first defect.** Its transition model is fitted on the
+  same velocity-free state, so its labels come from a misspecified model.
+
+**Decision.** v1 ends here, and no confirmatory study is frozen on its
+design. A later protocol must first clear a predeclared BC coverage floor
+with a velocity-aware state, in CCIL's representation and the policy's
+observation alike, before any CCIL arm runs.
+
+Reproduce the references from `d29bc49` in the LeRobot environment with
+[`reference.py`](../../tools/pusht_pilot/reference.py): `hold`, `replay`,
+`predictors`, and `act` with the arguments recorded in each `act.log`. The
+diffusion run used the same environment plus `diffusers` 0.39.0.

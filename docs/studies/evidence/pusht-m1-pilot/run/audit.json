@@ -1,0 +1,132 @@
+{
+ "completed": "2026-11-11T01:42:42+00:00",
+ "exposure": {
+  "bc-s1": {
+   "dataset_frames": 20500,
+   "epochs": 312.1951219512195,
+   "last_log": [
+    "Training: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2589| 99996/100000 [32:57<00:00, 71.74step/s]INFO 2026-11-10 17:02:22 ot_train.py:641 step:100K smpl:6M ep:52K epch:312.20 loss:0.079 grdn:3.864 lr:1.0e-05 updt_s:0.010 data_s:0.004 smp/s:4510 mem_gb:0.44 l1_loss:0.079"
+   ],
+   "samples": 6400000
+  },
+  "bc-s2": {
+   "dataset_frames": 20500,
+   "epochs": 312.1951219512195,
+   "last_log": [
+    "Training: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2589| 99993/100000 [33:04<00:00, 70.59step/s]INFO 2026-11-10 17:02:29 ot_train.py:641 step:100K smpl:6M ep:52K epch:312.20 loss:0.079 grdn:4.430 lr:1.0e-05 updt_s:0.010 data_s:0.004 smp/s:4582 mem_gb:0.44 l1_loss:0.079"
+   ],
+   "samples": 6400000
+  },
+  "bc-s3": {
+   "dataset_frames": 20500,
+   "epochs": 312.1951219512195,
+   "last_log": [
+    "Training: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2589| 99993/100000 [32:59<00:00, 76.21step/s]INFO 2026-11-10 17:02:23 ot_train.py:641 step:100K smpl:6M ep:52K epch:312.20 loss:0.084 grdn:4.729 lr:1.0e-05 updt_s:0.010 data_s:0.004 smp/s:4512 mem_gb:0.44 l1_loss:0.084"
+   ],
+   "samples": 6400000
+  },
+  "bc-s4": {
+   "dataset_frames": 20500,
+   "epochs": 312.1951219512195,
+   "last_log": [
+    "Training: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2589| 99999/100000 [32:45<00:00, 65.05step/s]INFO 2026-11-10 17:35:12 ot_train.py:641 step:100K smpl:6M ep:52K epch:312.20 loss:0.082 grdn:4.973 lr:1.0e-05 updt_s:0.011 data_s:0.005 smp/s:3973 mem_gb:0.44 l1_loss:0.082"
+   ],
+   "samples": 6400000
+  },
+  "bc-s5": {
+   "dataset_frames": 20500,
+   "epochs": 312.1951219512195,
+   "last_log": [
+    "Training: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2589| 99999/100000 [28:26<00:00, 61.93step/s]INFO 2026-11-10 17:30:53 ot_train.py:641 step:100K smpl:6M ep:52K epch:312.20 loss:0.078 grdn:4.066 lr:1.0e-05 updt_s:0.010 data_s:0.005 smp/s:4096 mem_gb:0.44 l1_loss:0.078"
+   ],
+   "samples": 6400000
+  },
+  "ccil-s1": {
+   "dataset_frames": 101763,
+   "epochs": 62.891227656417364,
+   "last_log": [
+    "Training: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2589| 99997/100000 [32:29<00:00, 60.43step/s]INFO 2026-11-10 17:01:55 ot_train.py:641 step:100K smpl:6M ep:5M epch:62.89 loss:0.119 grdn:2.931 lr:1.0e-05 updt_s:0.013 data_s:0.006 smp/s:3324 mem_gb:0.44 l1_loss:0.119"
+   ],
+   "samples": 6400000
+  },
+  "ccil-s2": {
+   "dataset_frames": 101763,
+   "epochs": 62.891227656417364,
+   "last_log": [
+    "Training: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2589| 99999/100000 [32:37<00:00, 52.80step/s]INFO 2026-11-10 17:02:02 ot_train.py:641 step:100K smpl:6M ep:5M epch:62.89 loss:0.118 grdn:2.924 lr:1.0e-05 updt_s:0.013 data_s:0.006 smp/s:3378 mem_gb:0.44 l1_loss:0.118"
+   ],
+   "samples": 6400000
+  },
+  "ccil-s3": {
+   "dataset_frames": 101763,
+   "epochs": 62.891227656417364,
+   "last_log": [
+    "Training: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2589| 99994/100000 [27:55<00:00, 62.24step/s]INFO 2026-11-10 17:30:23 ot_train.py:641 step:100K smpl:6M ep:5M epch:62.89 loss:0.122 grdn:4.277 lr:1.0e-05 updt_s:0.012 data_s:0.005 smp/s:3937 mem_gb:0.44 l1_loss:0.122"
+   ],
+   "samples": 6400000
+  },
+  "ccil-s4": {
+   "dataset_frames": 101763,
+   "epochs": 62.891227656417364,
+   "last_log": [
+    "Training: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2589| 99995/100000 [32:14<00:00, 53.68step/s]INFO 2026-11-10 17:34:42 ot_train.py:641 step:100K smpl:6M ep:5M epch:62.89 loss:0.127 grdn:4.245 lr:1.0e-05 updt_s:0.012 data_s:0.006 smp/s:3460 mem_gb:0.44 l1_loss:0.127"
+   ],
+   "samples": 6400000
+  },
+  "ccil-s5": {
+   "dataset_frames": 101763,
+   "epochs": 62.891227656417364,
+   "last_log": [
+    "Training: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2589| 99998/100000 [32:16<00:00, 82.49step/s]INFO 2026-11-10 17:35:15 ot_train.py:641 step:100K smpl:6M ep:5M epch:62.89 loss:0.124 grdn:3.610 lr:1.0e-05 updt_s:0.011 data_s:0.004 smp/s:4255 mem_gb:0.44 l1_loss:0.124"
+   ],
+   "samples": 6400000
+  },
+  "duplication-s1": {
+   "dataset_frames": 101763,
+   "epochs": 62.891227656417364,
+   "last_log": [
+    "Training: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2589| 99999/100000 [32:38<00:00, 63.12step/s]INFO 2026-11-10 17:02:03 ot_train.py:641 step:100K smpl:6M ep:5M epch:62.89 loss:0.077 grdn:4.297 lr:1.0e-05 updt_s:0.013 data_s:0.006 smp/s:3395 mem_gb:0.44 l1_loss:0.077"
+   ],
+   "samples": 6400000
+  },
+  "duplication-s2": {
+   "dataset_frames": 101763,
+   "epochs": 62.891227656417364,
+   "last_log": [
+    "Training: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2589| 99996/100000 [32:28<00:00, 52.62step/s]INFO 2026-11-10 17:01:54 ot_train.py:641 step:100K smpl:6M ep:5M epch:62.89 loss:0.071 grdn:3.447 lr:1.0e-05 updt_s:0.013 data_s:0.006 smp/s:3355 mem_gb:0.44 l1_loss:0.071"
+   ],
+   "samples": 6400000
+  },
+  "duplication-s3": {
+   "dataset_frames": 101763,
+   "epochs": 62.891227656417364,
+   "last_log": [
+    "Training: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2589| 99999/100000 [32:38<00:00, 72.17step/s]INFO 2026-11-10 17:02:04 ot_train.py:641 step:100K smpl:6M ep:5M epch:62.89 loss:0.081 grdn:3.601 lr:1.0e-05 updt_s:0.013 data_s:0.006 smp/s:3425 mem_gb:0.44 l1_loss:0.081"
+   ],
+   "samples": 6400000
+  },
+  "duplication-s4": {
+   "dataset_frames": 101763,
+   "epochs": 62.891227656417364,
+   "last_log": [
+    "Training: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2589| 99997/100000 [27:55<00:00, 61.36step/s]INFO 2026-11-10 17:30:23 ot_train.py:641 step:100K smpl:6M ep:5M epch:62.89 loss:0.082 grdn:5.488 lr:1.0e-05 updt_s:0.011 data_s:0.005 smp/s:3964 mem_gb:0.44 l1_loss:0.082"
+   ],
+   "samples": 6400000
+  },
+  "duplication-s5": {
+   "dataset_frames": 101763,
+   "epochs": 62.891227656417364,
+   "last_log": [
+    "Training: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2589| 99997/100000 [32:16<00:00, 77.16step/s]INFO 2026-11-10 17:35:15 ot_train.py:641 step:100K smpl:6M ep:5M epch:62.89 loss:0.078 grdn:4.467 lr:1.0e-05 updt_s:0.011 data_s:0.004 smp/s:4303 mem_gb:0.44 l1_loss:0.078"
+   ],
+   "samples": 6400000
+  }
+ },
+ "pass": true,
+ "problems": [],
+ "repeat_evaluation": {
+  "max_reward_max_abs_diff": 2.7755575615628914e-17,
+  "reproduced": true,
+  "unit": "bc-s1"
+ }
+}

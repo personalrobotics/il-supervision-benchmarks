@@ -1,0 +1,12 @@
+{
+ "episodes": 41,
+ "frames": 5150,
+ "summary": {
+  "training mean action": 125.67417971651531,
+  "agent position": 24.16729026717071,
+  "previous action": 10.794409853077227,
+  "agent position + 1 x velocity": 15.342641929841928,
+  "agent position + 2 x velocity": 9.03879770372338,
+  "agent position + 3 x velocity": 11.804752364637535
+ }
+}

@@ -1,0 +1,25 @@
+commit ab488685f3d87ead80cc529f53a0f8b4ece378ce clean
+Wed Nov 11 01:30:27 AM UTC 2026
+ 17:30:27 up 18 days, 12:16,  4 users,  load average: 30.17, 29.72, 29.12
+index, memory.used [MiB]
+0, 5279 MiB
+1, 1224 MiB
+arm /home/siddh/code/ilsb-pusht-54efe63/runs/20261110T150411-pusht-m1-pilot/arms/bc
+{
+ "policy": "act-default-chunking",
+ "eval": [
+  "/home/siddh/code/CCIL-pusht/.lerobot/bin/lerobot-eval",
+  "--policy.path=runs/20261111T013027-pusht-reference-act/act/train/checkpoints/last/pretrained_model",
+  "--env.type=pusht",
+  "--env.obs_type=environment_state_agent_pos",
+  "--eval.n_episodes=100",
+  "--eval.batch_size=50",
+  "--eval.use_async_envs=false",
+  "--seed=1000",
+  "--policy.device=cuda",
+  "--output_dir=runs/20261111T013027-pusht-reference-act/act/eval"
+ ],
+ "avg_max_reward": 0.3923807987353846,
+ "pc_success": 0.0
+}
+EXIT=0

@@ -1,0 +1,51 @@
+{
+ "arms": {
+  "bc": {
+   "added_rows": 0,
+   "added_source_index_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "demonstration_frames": 20500,
+   "demonstration_index_sha256": "b35243a436cf62ad89e46683814ef116b17d914c1711dbbeadadfcfef7ddbb6b",
+   "files": {
+    "data/chunk-000/file-000.parquet": "72c75a37546b04e99e78af921860b2b7a9c56e258919107fe364fefe1ea49217",
+    "meta/episodes/chunk-000/file-000.parquet": "1e0fd9a49040fd08a5a956ed0f14c4645cd64789f1c00d5114603bfa4f539e1f",
+    "meta/info.json": "46bc4ca9b5a7d7a7477e83a34729e188125db6f3cd7c3bae12c09db31483de63",
+    "meta/stats.json": "2e8d5335ceb2657e7f59c62c0d472b8b8399acf68ae1378cff1611b0713a15d7",
+    "meta/tasks.parquet": "a44d7f052b0a70e9e46b3fd1a7731e7a390d4da72626e5d088629ac715f17f20"
+   },
+   "frames": 20500,
+   "path": "arms/bc"
+  },
+  "ccil": {
+   "added_rows": 81263,
+   "added_source_index_sha256": "a2a0a00510d7c133d7ce43e9af4bf6fdd8e87769dde46409c8447db8d0f00baf",
+   "demonstration_frames": 20500,
+   "demonstration_index_sha256": "b35243a436cf62ad89e46683814ef116b17d914c1711dbbeadadfcfef7ddbb6b",
+   "files": {
+    "ccil/export.json": "744d2eb6efe48a5058d0f8053ad34d7359f01ebfc12a8610e58a0d7b326ab6e2",
+    "data/chunk-000/file-000.parquet": "1e10bdc0a34f81e44293305bea626c0090cb8051eec9aa024470f380a8ed1023",
+    "meta/episodes/chunk-000/file-000.parquet": "08b31705451494902dceccfd0ae3cdf821d43b3934e2c88e4672ffa47a0f81ba",
+    "meta/info.json": "10c9c2d14bae1f786c449943b4fb087cb9e67638b1f08bf12fc3c7379a824108",
+    "meta/stats.json": "4633f70edc34fc7e080f9bfabc53ca61e247814517e5abcb5b0c575e5d31248a",
+    "meta/tasks.parquet": "a44d7f052b0a70e9e46b3fd1a7731e7a390d4da72626e5d088629ac715f17f20"
+   },
+   "frames": 101763,
+   "path": "labels/export"
+  },
+  "duplication": {
+   "added_rows": 81263,
+   "added_source_index_sha256": "a2a0a00510d7c133d7ce43e9af4bf6fdd8e87769dde46409c8447db8d0f00baf",
+   "demonstration_frames": 20500,
+   "demonstration_index_sha256": "b35243a436cf62ad89e46683814ef116b17d914c1711dbbeadadfcfef7ddbb6b",
+   "files": {
+    "data/chunk-000/file-000.parquet": "76c9306e4de30b0005df15f5b47aa2d1510e2d31adb12eb344d654dc76390b38",
+    "meta/episodes/chunk-000/file-000.parquet": "fc4169f5c2be7c7fb739ce9ea09611665736d9d6fdd43a92aed20996c58c6e74",
+    "meta/info.json": "10c9c2d14bae1f786c449943b4fb087cb9e67638b1f08bf12fc3c7379a824108",
+    "meta/stats.json": "769a3f565faf82cf8510d30d1eb222a3073d43bb8f6040c1cef13cb6901b33be",
+    "meta/tasks.parquet": "a44d7f052b0a70e9e46b3fd1a7731e7a390d4da72626e5d088629ac715f17f20"
+   },
+   "frames": 101763,
+   "path": "arms/duplication"
+  }
+ },
+ "completed": "2026-11-11T00:29:20+00:00"
+}

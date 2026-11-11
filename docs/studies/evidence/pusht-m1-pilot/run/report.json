@@ -1,0 +1,234 @@
+{
+ "completed": "2026-11-11T01:42:43+00:00",
+ "primary": {
+  "bca": [
+   0.007069773460017634,
+   0.032266246317305215
+  ],
+  "confidence": 0.95,
+  "contrast": "ccil - duplication",
+  "interval": [
+   0.0024098336818159927,
+   0.041642205036078385
+  ],
+  "mean": 0.02202601935894719,
+  "metric": "avg_max_reward",
+  "n": 5,
+  "note": null,
+  "outcome": "increases",
+  "per_seed": {
+   "1": 0.02074818772454043,
+   "2": 0.028923370792541037,
+   "3": -0.0028319069783172,
+   "4": 0.02309640051049934,
+   "5": 0.040194044745472335
+  },
+  "seeds": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "t": [
+   0.0024098336818159927,
+   0.041642205036078385
+  ]
+ },
+ "results": {
+  "bc": {
+   "1": {
+    "avg_max_reward": 0.1123054917728982,
+    "pc_success": 0.0,
+    "selected_step": 70000
+   },
+   "2": {
+    "avg_max_reward": 0.12510441848316126,
+    "pc_success": 0.0,
+    "selected_step": 80000
+   },
+   "3": {
+    "avg_max_reward": 0.13524884336618964,
+    "pc_success": 0.0,
+    "selected_step": 100000
+   },
+   "4": {
+    "avg_max_reward": 0.09017861071717605,
+    "pc_success": 0.0,
+    "selected_step": 80000
+   },
+   "5": {
+    "avg_max_reward": 0.15906308440025094,
+    "pc_success": 1.0,
+    "selected_step": 90000
+   }
+  },
+  "ccil": {
+   "1": {
+    "avg_max_reward": 0.1333058664758307,
+    "pc_success": 0.0,
+    "selected_step": 100000
+   },
+   "2": {
+    "avg_max_reward": 0.13472488418676476,
+    "pc_success": 0.0,
+    "selected_step": 90000
+   },
+   "3": {
+    "avg_max_reward": 0.14550926172723727,
+    "pc_success": 1.0,
+    "selected_step": 100000
+   },
+   "4": {
+    "avg_max_reward": 0.09938473531998702,
+    "pc_success": 0.0,
+    "selected_step": 100000
+   },
+   "5": {
+    "avg_max_reward": 0.14929386399127,
+    "pc_success": 0.0,
+    "selected_step": 60000
+   }
+  },
+  "duplication": {
+   "1": {
+    "avg_max_reward": 0.11255767875129027,
+    "pc_success": 0.0,
+    "selected_step": 70000
+   },
+   "2": {
+    "avg_max_reward": 0.10580151339422372,
+    "pc_success": 0.0,
+    "selected_step": 40000
+   },
+   "3": {
+    "avg_max_reward": 0.14834116870555447,
+    "pc_success": 0.0,
+    "selected_step": 90000
+   },
+   "4": {
+    "avg_max_reward": 0.07628833480948768,
+    "pc_success": 0.0,
+    "selected_step": 90000
+   },
+   "5": {
+    "avg_max_reward": 0.10909981924579767,
+    "pc_success": 0.0,
+    "selected_step": 70000
+   }
+  }
+ },
+ "secondary": [
+  {
+   "bca": [
+    -0.0021790824042641653,
+    0.014428410366312755
+   ],
+   "confidence": 0.95,
+   "contrast": "ccil - bc",
+   "interval": [
+    -0.005733998272085202,
+    0.021861263456650678
+   ],
+   "mean": 0.008063632592282738,
+   "metric": "avg_max_reward",
+   "n": 5,
+   "note": null,
+   "outcome": "no_detectable_difference",
+   "per_seed": {
+    "1": 0.021000374702932506,
+    "2": 0.009620465703603504,
+    "3": 0.01026041836104763,
+    "4": 0.009206124602810978,
+    "5": -0.009769220408980928
+   },
+   "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5
+   ],
+   "t": [
+    -0.005733998272085202,
+    0.021861263456650678
+   ]
+  },
+  {
+   "bca": [
+    0.0,
+    0.8
+   ],
+   "confidence": 0.95,
+   "contrast": "ccil - duplication",
+   "interval": [
+    -0.3552890210395598,
+    0.8
+   ],
+   "mean": 0.2,
+   "metric": "pc_success",
+   "n": 5,
+   "note": null,
+   "outcome": "no_detectable_difference",
+   "per_seed": {
+    "1": 0.0,
+    "2": 0.0,
+    "3": 1.0,
+    "4": 0.0,
+    "5": 0.0
+   },
+   "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5
+   ],
+   "t": [
+    -0.3552890210395598,
+    0.7552890210395597
+   ]
+  },
+  {
+   "bca": [
+    -0.6,
+    0.6
+   ],
+   "confidence": 0.95,
+   "contrast": "ccil - bc",
+   "interval": [
+    -0.8779890330850845,
+    0.8779890330850845
+   ],
+   "mean": 0.0,
+   "metric": "pc_success",
+   "n": 5,
+   "note": null,
+   "outcome": "no_detectable_difference",
+   "per_seed": {
+    "1": 0.0,
+    "2": 0.0,
+    "3": 1.0,
+    "4": 0.0,
+    "5": -1.0
+   },
+   "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5
+   ],
+   "t": [
+    -0.8779890330850845,
+    0.8779890330850845
+   ]
+  }
+ ],
+ "signal": {
+  "met": true,
+  "positive_seeds": 4,
+  "rule": "the mean primary contrast is above 0 and the primary contrast is positive on at least 4 of the 5 seeds; otherwise the pilot ends, and a null or unfavorable result is reported"
+ },
+ "smoke": false
+}

@@ -1,0 +1,92 @@
+{
+ "arm": "bc",
+ "checkpoints": [
+  {
+   "path": "units/bc-s2/train/checkpoints/010000/pretrained_model",
+   "sha256": "7656d266e69eaa8f5cf400169a70cb6dd3651df597ccb251606e6189a0ce09ea",
+   "step": 10000,
+   "weights": "units/bc-s2/train/checkpoints/010000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/bc-s2/train/checkpoints/020000/pretrained_model",
+   "sha256": "57958100dd3d47ddc781ec0af5d0a502fca8ce0eda6086437f2d4294ff0326be",
+   "step": 20000,
+   "weights": "units/bc-s2/train/checkpoints/020000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/bc-s2/train/checkpoints/030000/pretrained_model",
+   "sha256": "08e1cd26d623c177475de04a7f14b8bf400166f7cbd9b36f4c457540fcb05ed9",
+   "step": 30000,
+   "weights": "units/bc-s2/train/checkpoints/030000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/bc-s2/train/checkpoints/040000/pretrained_model",
+   "sha256": "ae4bf95886445fc666f822f859d44ddc2ba2da7bc4cb64ababdedf979f288c4b",
+   "step": 40000,
+   "weights": "units/bc-s2/train/checkpoints/040000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/bc-s2/train/checkpoints/050000/pretrained_model",
+   "sha256": "6d85c8e6e5875bec843f165ee86331c4787fe744828dde000a37ab52442352db",
+   "step": 50000,
+   "weights": "units/bc-s2/train/checkpoints/050000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/bc-s2/train/checkpoints/060000/pretrained_model",
+   "sha256": "e1a4733f1106cca5188c1b4a537235613c4df8d54c675520ab2311e0ec740420",
+   "step": 60000,
+   "weights": "units/bc-s2/train/checkpoints/060000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/bc-s2/train/checkpoints/070000/pretrained_model",
+   "sha256": "ec26060b1dbcffaee2455130ad6f1649f530c9d5ad92c7239911b45774beeeb7",
+   "step": 70000,
+   "weights": "units/bc-s2/train/checkpoints/070000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/bc-s2/train/checkpoints/080000/pretrained_model",
+   "sha256": "1f7e4af94bee921dbbabecea1d1bfa95eaf0519deb20e019478d67094271f296",
+   "step": 80000,
+   "weights": "units/bc-s2/train/checkpoints/080000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/bc-s2/train/checkpoints/090000/pretrained_model",
+   "sha256": "dea2605b75e001aaedd7ba8af496392752dff959f40b1f948ae2aaa5ff25161d",
+   "step": 90000,
+   "weights": "units/bc-s2/train/checkpoints/090000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/bc-s2/train/checkpoints/100000/pretrained_model",
+   "sha256": "bed530318355dcc48c8db582cf9e848e1d450c19959fe192fcadfa24ad9df132",
+   "step": 100000,
+   "weights": "units/bc-s2/train/checkpoints/100000/pretrained_model/model.safetensors"
+  }
+ ],
+ "command": [
+  "/home/siddh/code/CCIL-pusht/.lerobot/bin/lerobot-train",
+  "--dataset.repo_id=local/pusht-bc",
+  "--dataset.root=/home/siddh/code/ilsb-pusht-96f8445/runs/20261111T002414-pusht-m1-pilot/arms/bc",
+  "--policy.type=act",
+  "--policy.n_obs_steps=1",
+  "--policy.chunk_size=1",
+  "--policy.n_action_steps=1",
+  "--policy.use_vae=false",
+  "--policy.push_to_hub=false",
+  "--policy.device=cuda",
+  "--steps=100000",
+  "--batch_size=64",
+  "--save_freq=10000",
+  "--log_freq=1000",
+  "--num_workers=4",
+  "--seed=2",
+  "--output_dir=/home/siddh/code/ilsb-pusht-96f8445/runs/20261111T002414-pusht-m1-pilot/units/bc-s2/train",
+  "--wandb.enable=false"
+ ],
+ "completed": "2026-11-11T01:02:53+00:00",
+ "last_log": [
+  "Training: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2589| 99993/100000 [33:04<00:00, 70.59step/s]INFO 2026-11-10 17:02:29 ot_train.py:641 step:100K smpl:6M ep:52K epch:312.20 loss:0.079 grdn:4.430 lr:1.0e-05 updt_s:0.010 data_s:0.004 smp/s:4582 mem_gb:0.44 l1_loss:0.079"
+ ],
+ "samples": 6400000,
+ "seconds": 2012.8316338062286,
+ "seed": 2
+}
