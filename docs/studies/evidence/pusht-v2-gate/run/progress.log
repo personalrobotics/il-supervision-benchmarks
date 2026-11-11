@@ -1,0 +1,17 @@
+2026-11-11T04:10:09+00:00 root created: ilsb 4b2574651ec5, lerobot 0.6.1, plugin 3d4edc2b1f85, smoke False, gpus 0, NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition, 97887 MiB
+1, NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition, 97887 MiB
+2026-11-11T04:10:09+00:00 stage derive: start
+2026-11-11T04:10:10+00:00 derive: /home/siddh/code/ilsb-pusht-v2-4b25746/runs/20261111T041007-pusht-v2-gate/derived/full: 206 episodes, 25444 frames
+2026-11-11T04:10:10+00:00 derive: /home/siddh/code/ilsb-pusht-v2-4b25746/runs/20261111T041007-pusht-v2-gate/derived/train: 165 episodes, 20335 frames
+2026-11-11T04:10:19+00:00 derive: adapter check passed; bc trains on 165 episodes, 20335 frames
+2026-11-11T04:10:19+00:00 stage derive: done
+2026-11-11T04:10:19+00:00 stage train: start
+2026-11-11T04:10:19+00:00 train: 3 units to run, 0 verified; 4 slots on GPUs [0, 1]
+2026-11-11T04:10:19+00:00 train: started bc-s1 on GPU 0, pid 3005441, log units/bc-s1/train-1794370219.log
+2026-11-11T04:10:19+00:00 train: started bc-s2 on GPU 1, pid 3005442, log units/bc-s2/train-1794370219.log
+2026-11-11T04:10:19+00:00 train: started bc-s3 on GPU 0, pid 3005443, log units/bc-s3/train-1794370219.log
+2026-11-11T04:10:49+00:00 train: running ['bc-s1', 'bc-s2', 'bc-s3'], queued 0, completed 0/3; GPU memory 0, 2868 MiB; 1, 1224 MiB
+2026-11-11T04:15:49+00:00 train: running ['bc-s1', 'bc-s2', 'bc-s3'], queued 0, completed 0/3; GPU memory 0, 2868 MiB; 1, 1224 MiB
+2026-11-11T04:20:49+00:00 train: running ['bc-s1', 'bc-s2', 'bc-s3'], queued 0, completed 0/3; GPU memory 0, 2868 MiB; 1, 1224 MiB
+2026-11-11T04:25:49+00:00 train: running ['bc-s1', 'bc-s2', 'bc-s3'], queued 0, completed 0/3; GPU memory 0, 2868 MiB; 1, 1224 MiB
+2026-11-11T04:27:38+00:00 train: FAILED: 

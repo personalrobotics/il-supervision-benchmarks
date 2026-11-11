@@ -1,0 +1,40 @@
+{
+ "episodes": 206,
+ "derived_frames": 25444,
+ "identity_max": {
+  "position_px": 0.0,
+  "velocity_px_s": 3.0517578125e-05
+ },
+ "replay_episode_max": {
+  "position_px": {
+   "50": 4.5408381595279934e-05,
+   "90": 0.2388314194099337,
+   "100": 14.761674391107107
+  },
+  "velocity_px_s": {
+   "50": 0.0005251233037029124,
+   "90": 2.0742554907678823,
+   "100": 98.0673177083105
+  }
+ },
+ "rest_max_velocity": 0.0,
+ "vector_env_shapes": {
+  "agent_pos": [
+   2,
+   4
+  ],
+  "environment_state": [
+   2,
+   32
+  ]
+ },
+ "first_velocity_max": 0.0,
+ "plugin_sha256": "3d4edc2b1f85f953020220d29b007d11f141b47db089172f8ec28acdb6a3119c",
+ "checks": {
+  "identity": true,
+  "replay": true,
+  "rest": true,
+  "discovery": true
+ },
+ "pass": true
+}

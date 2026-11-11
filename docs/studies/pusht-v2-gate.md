@@ -1,6 +1,7 @@
 # PushT keypoints v2: BC feasibility gate
 
-**Status: predeclared, not yet run.** The commit that adds this file, with
+**Status: stopped before its decision; the learner changed** ([Result](#result)).
+The commit that adds this file, with
 [`tools/pusht_v2`](../../tools/pusht_v2/gate.py), freezes the gate before any of
 its policies trains. The machine-readable protocol is
 [`gate.json`](../../tools/pusht_v2/gate.json). Controlling issue:
@@ -90,4 +91,40 @@ exercised every stage and the resume before the freeze.
 
 ## Result
 
-Not yet run.
+**Stopped at about 80,000 of 100,000 steps; the gate never decided.** The run
+(root `20261111T041007-pusht-v2-gate`, from a clean checkout of `4b25746`) was
+interrupted by decision. The interrupt reached the scheduler: it stopped all
+three units, wrote its failure record, and marked none complete. Records:
+[`evidence/pusht-v2-gate`](evidence/pusht-v2-gate).
+
+The adapter check passed on the frozen commit. The stop followed monitoring
+peeks taken outside the gate's root: every saved checkpoint was scored on the
+held-out frames and on the first 50 evaluation starts. These peeks are not
+the gate's selection or evaluation.
+
+| seed | held-out error, 10k → 80k | 50-episode coverage, 10k–80k |
+|---|---|---|
+| 1 | 12.96 → 10.12 px | 0.047–0.084 (one checkpoint above 0.048) |
+| 2 | 13.99 → 9.62 px | 0.047–0.061 |
+| 3 | 10.99 → 11.03 px (70k) | 0.047–0.048 |
+
+On those 50 starts, holding still scores 0.0486, and the gate needs 0.5042
+(over 100 starts).
+
+- **The state works offline.** Held-out error fell from the pilot's 17.7–20.1 px
+  to about 10 px, close to extrapolating the agent's last displacement (9.0 px).
+- **Closed loop stays at the floor.** Two diagnostics on the 10k checkpoints
+  explain why it is not the evaluation path:
+  - fed the same demonstration frames from dataset rows and from the wrapped
+    simulator, bc-s2's actions agree to a median of 3.4e-5 px;
+  - rolled out from 10 starts, bc-s3 commands a target that pulls further
+    ahead of the agent each step, and the agent wanders 155–2,398 px without
+    moving the T.
+
+**Decision.** More training of this learner is unlikely to help. Its state is
+now velocity-aware, but a point-regression policy still averages PushT's
+multiple valid pushes, and that averaged action drifts in closed loop.
+Normalization cannot repair either problem. The v2 learner becomes an
+implicit (energy-based) BC policy over the two-frame history with one-action
+inference, the published IBC configuration for PushT. Its own BC gate is
+predeclared before any CCIL arm runs.

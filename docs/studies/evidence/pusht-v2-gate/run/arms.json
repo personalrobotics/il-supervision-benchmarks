@@ -1,0 +1,23 @@
+{
+ "arms": {
+  "bc": {
+   "episodes": 165,
+   "files": {
+    "data/chunk-000/file-000.parquet": "a688ae66842d8448d406fbef73041a6452a7558737db92f8199b6109f46e7dbe",
+    "meta/episodes/chunk-000/file-000.parquet": "2ad033f54f70a06c8faa9b317ab1b7b89df8c1e48b028a2b7df2a88190f226ff",
+    "meta/info.json": "3a2cd6a3ff2670c5d8e251b5ece8b705ca1d53ec4b51f23f8e5d5247f739eba8",
+    "meta/stats.json": "27f16c79e25fbab927e0b7e50fe3b760268bce2c727767c369459a69394016ef",
+    "meta/tasks.parquet": "a44d7f052b0a70e9e46b3fd1a7731e7a390d4da72626e5d088629ac715f17f20"
+   },
+   "frames": 20335,
+   "path": "derived/train"
+  }
+ },
+ "check": {
+  "discovery": true,
+  "identity": true,
+  "replay": true,
+  "rest": true
+ },
+ "completed": "2026-11-11T04:10:19+00:00"
+}

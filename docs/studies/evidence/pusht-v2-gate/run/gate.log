@@ -1,0 +1,26 @@
+root created: ilsb 4b2574651ec5, lerobot 0.6.1, plugin 3d4edc2b1f85, smoke False, gpus 0, NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition, 97887 MiB
+1, NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition, 97887 MiB
+stage derive: start
+derive: /home/siddh/code/ilsb-pusht-v2-4b25746/runs/20261111T041007-pusht-v2-gate/derived/full: 206 episodes, 25444 frames
+derive: /home/siddh/code/ilsb-pusht-v2-4b25746/runs/20261111T041007-pusht-v2-gate/derived/train: 165 episodes, 20335 frames
+derive: adapter check passed; bc trains on 165 episodes, 20335 frames
+stage derive: done
+stage train: start
+train: 3 units to run, 0 verified; 4 slots on GPUs [0, 1]
+train: started bc-s1 on GPU 0, pid 3005441, log units/bc-s1/train-1794370219.log
+train: started bc-s2 on GPU 1, pid 3005442, log units/bc-s2/train-1794370219.log
+train: started bc-s3 on GPU 0, pid 3005443, log units/bc-s3/train-1794370219.log
+train: running ['bc-s1', 'bc-s2', 'bc-s3'], queued 0, completed 0/3; GPU memory 0, 2868 MiB; 1, 1224 MiB
+train: running ['bc-s1', 'bc-s2', 'bc-s3'], queued 0, completed 0/3; GPU memory 0, 2868 MiB; 1, 1224 MiB
+train: running ['bc-s1', 'bc-s2', 'bc-s3'], queued 0, completed 0/3; GPU memory 0, 2868 MiB; 1, 1224 MiB
+train: running ['bc-s1', 'bc-s2', 'bc-s3'], queued 0, completed 0/3; GPU memory 0, 2868 MiB; 1, 1224 MiB
+train: FAILED: 
+Traceback (most recent call last):
+  File "/home/siddh/code/ilsb-pusht-v2-4b25746/tools/pusht_v2/gate.py", line 157, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/siddh/code/ilsb-pusht-v2-4b25746/tools/pusht_v2/gate.py", line 146, in main
+    getattr(g, s)()
+  File "/home/siddh/code/ilsb-pusht-v2-4b25746/tools/pusht_pilot/run.py", line 348, in train
+    time.sleep(5 if self.smoke else 30)
+KeyboardInterrupt

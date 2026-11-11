@@ -1,0 +1,10 @@
+{"seed": 1000, "path_px": 912.3, "net_px": 368.5, "first_offsets_px": [13.0, 23.9, 37.3, 50.5, 63.0], "max_reward": 0.016}
+{"seed": 1001, "path_px": 434.3, "net_px": 317.3, "first_offsets_px": [10.3, 18.5, 26.9, 33.1, 37.2], "max_reward": 0.0}
+{"seed": 1002, "path_px": 373.3, "net_px": 164.3, "first_offsets_px": [9.3, 16.9, 25.5, 33.7, 41.2], "max_reward": 0.01}
+{"seed": 1003, "path_px": 490.0, "net_px": 202.3, "first_offsets_px": [8.7, 14.9, 21.7, 27.9, 33.6], "max_reward": 0.106}
+{"seed": 1004, "path_px": 546.8, "net_px": 206.3, "first_offsets_px": [14.6, 23.1, 31.3, 38.1, 44.2], "max_reward": 0.0}
+{"seed": 1005, "path_px": 598.6, "net_px": 440.2, "first_offsets_px": [32.6, 55.5, 74.3, 84.6, 85.8], "max_reward": 0.0}
+{"seed": 1006, "path_px": 2397.7, "net_px": 253.7, "first_offsets_px": [6.9, 12.2, 18.6, 25.5, 33.5], "max_reward": 0.147}
+{"seed": 1007, "path_px": 791.5, "net_px": 551.1, "first_offsets_px": [23.8, 43.5, 66.6, 89.4, 109.0], "max_reward": 0.0}
+{"seed": 1008, "path_px": 984.4, "net_px": 411.9, "first_offsets_px": [12.6, 22.7, 34.4, 46.5, 58.5], "max_reward": 0.003}
+{"seed": 1009, "path_px": 155.0, "net_px": 62.1, "first_offsets_px": [7.7, 12.9, 17.6, 20.2, 20.9], "max_reward": 0.276}
