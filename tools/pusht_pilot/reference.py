@@ -2,6 +2,7 @@
 
     python reference.py hold OUT_JSON                        a policy that holds the agent still, on the pilot's starts
     python reference.py replay SOURCE OUT_JSON               every demonstration replayed in gym_pusht from its first frame
+    python reference.py predictors SOURCE LABELS_JSON OUT_JSON   trivial predictors' held-out action error
     python reference.py act SOURCE_ARM OUT_DIR [--policy TYPE] [--steps N] [--train-arg ARG ...]
                                                              a LeRobot policy (default ACT, chunk 100) on the bc arm, then
                                                              evaluated; each --train-arg is passed on to lerobot-train
@@ -105,6 +106,24 @@ def replay(source, out):
         "replayed_pc_success": 100 * float(col("replayed_success").mean())}})
 
 
+def predictors(source, labels, out):
+    """Held-out mean L2 action error of trivial predictors, on the frames the pilot's selection scores."""
+    held = {int(e) for e in json.loads(Path(labels).read_text())["held_out"]}
+    df = pd.concat([pd.read_parquet(p) for p in sorted((Path(source) / "data").rglob("*.parquet"))])
+    df = df.sort_values(["episode_index", "frame_index"])
+    train, ho = df[~df.episode_index.isin(held)], df[df.episode_index.isin(held)]
+    act_ = np.stack(ho["action"].to_numpy()).astype(np.float64)
+    pos = np.stack(ho["observation.state"].to_numpy()).astype(np.float64)
+    first = ho["frame_index"].to_numpy() == 0
+    prev_act, prev_pos = np.roll(act_, 1, axis=0), np.roll(pos, 1, axis=0)
+    prev_act[first], prev_pos[first] = pos[first], pos[first]
+    l2 = lambda pred: float(np.linalg.norm(pred - act_, axis=1).mean())
+    write(out, {"episodes": len(held), "frames": len(ho), "summary": {
+        "training mean action": l2(np.stack(train["action"].to_numpy()).astype(np.float64).mean(0)),
+        "agent position": l2(pos), "previous action": l2(prev_act),
+        **{f"agent position + {k} x velocity": l2(pos + k * (pos - prev_pos)) for k in (1, 2, 3)}}})
+
+
 def act(arm, out_dir, policy, steps, extra):
     sys.path.insert(0, str(Path(__file__).parent))
     from run import per_episode
@@ -152,6 +171,9 @@ if __name__ == "__main__":
     p = sub.add_parser("replay")
     p.add_argument("source")
     p.add_argument("out")
+    p = sub.add_parser("predictors")
+    for k in ("source", "labels", "out"):
+        p.add_argument(k)
     p = sub.add_parser("act")
     p.add_argument("arm")
     p.add_argument("out_dir")
@@ -160,4 +182,5 @@ if __name__ == "__main__":
     p.add_argument("--train-arg", action="append", default=[])
     a = ap.parse_args()
     {"hold": lambda: hold(a.out), "replay": lambda: replay(a.source, a.out),
+     "predictors": lambda: predictors(a.source, a.labels, a.out),
      "act": lambda: act(a.arm, a.out_dir, a.policy, a.steps, a.train_arg)}[a.cmd]()
