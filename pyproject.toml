@@ -7,7 +7,7 @@ requires-python = ">=3.11"
 dependencies = [
     # ccil supplies the supervision method (labels, nested views, supervision manifests) and the dynamics fit; the
     # learners are ilsb.learners.vector. Pinned to one commit; bump deliberately.
-    "ccil[torch,lerobot] @ git+https://github.com/personalrobotics/CCIL@56b64b4fc69e4219f2096a83c530ea3d46c5f0cf",
+    "ccil[torch,lerobot] @ git+https://github.com/personalrobotics/CCIL@a995ff9b38ec0044917842c950d1718bfba7f0b7",
     "numpy>=1.24",
     "pyyaml>=6.0",
     "scipy==1.16.3",
