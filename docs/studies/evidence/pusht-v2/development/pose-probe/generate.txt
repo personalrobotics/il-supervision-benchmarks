@@ -1,0 +1,11 @@
+data.prepare       wrote  runs/data-prepare-29ea3198fb9c
+transition.fit     wrote  runs/transition-fit-c98acade6fc0
+labels.diagnose    wrote  runs/labels-diagnose-f31643cfddb1
+labels.generate    wrote  runs/labels-generate-c1895a49c5f1
+
+candidates     runs/labels-generate-c1895a49c5f1/labels/candidates.npz: 100952 rows, 100871 accepted
+rejected       action_out_of_bounds 81
+evidence       no certificate.profile: no quality evidence
+admitted       recovery length 1
+result         runs/generate-dcbb563bca24.json (latest: runs/generate-result.json)
+next           ccil curate runs/generate-result.json

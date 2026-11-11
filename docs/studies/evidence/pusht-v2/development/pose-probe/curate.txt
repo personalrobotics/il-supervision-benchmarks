@@ -1,0 +1,6 @@
+labels.curate      wrote  runs/labels-curate-cafa4370f85a
+
+selection      runs/labels-curate-cafa4370f85a/labels/selection.npz: 100871 of 100952 rows selected (accepted)
+not selected   selection.not_accepted 81
+result         runs/curate-649962314265.json
+next           ccil inspect runs/curate-649962314265.json: the usable rows, and how to load them

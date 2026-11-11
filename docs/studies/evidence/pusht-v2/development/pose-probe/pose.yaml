@@ -1,0 +1,35 @@
+config_version: 4
+data:
+  path: /home/siddh/code/ilsb-pusht-v2-pose-57244ff/runs/20261111T150215-pose-probe/pose.npz
+  action_low:
+  - 0.0
+  - 0.0
+  action_high:
+  - 512.0
+  - 512.0
+run:
+  output_dir: runs
+compute:
+  device: cpu
+representation:
+  modality: state+state.pose
+transition_model:
+  kind: mlp
+  fit_episodes: train
+  trainer_version: '1'
+  structure: history_shift
+  history_steps: 2
+  hidden_layers:
+  - 256
+  - 256
+  activation: relu
+  lipschitz_type: spectral_normalization
+  lipschitz_constraint: 3.0
+  epochs: 50
+  batch_size: 256
+generation:
+  method: noisy_action_fe
+  labels_per_transition: 4
+  action_noise_scale: training_std
+  action_noise_std: 0.1
+  recovery_steps: '1'

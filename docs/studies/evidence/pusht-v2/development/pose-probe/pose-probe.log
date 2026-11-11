@@ -1,0 +1,26 @@
+commit 57244ffeecb19ba0a77794b53d0ee56761b22df0 clean
+Wed Nov 11 03:02:15 PM UTC 2026
+ 07:02:15 up 19 days,  1:48,  3 users,  load average: 0.01, 0.40, 0.80
+{
+ "dataset": {
+  "episodes": 206,
+  "frames": 25444,
+  "round_trip_max_px": 4.715183604275808e-05
+ },
+ "proposals": 100952,
+ "accepted": 100871,
+ "rejected_by_reason": {
+  "action_out_of_bounds": 81
+ },
+ "usable": 100871,
+ "usable_fraction": 0.9991976384816547,
+ "violations": {
+  "residual": 0,
+  "invariant": 0,
+  "rigidity": 0
+ },
+ "pass": true
+}
+conditioning {'10': 106.0018625393307, '50': 274.66405045645007, '90': 803.7914929887598, '100': 2396.0748496564565} residual {'10': 2.6550360158474665e-06, '50': 5.159531097978605e-06, '90': 8.782463161711967e-06, '100': 9.995923136883056e-05}
+EXIT=0
+Wed Nov 11 03:02:33 PM UTC 2026
