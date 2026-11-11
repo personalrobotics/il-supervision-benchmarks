@@ -1,8 +1,10 @@
 # PushT keypoints v2: does one-step CCIL help an IBC policy on a history state?
 
-**Status: protocol frozen, not yet run.** The commit that adds this text, with
-[`tools/pusht_v2`](../../tools/pusht_v2/study.py), freezes the study before any
-of its policies trains. The machine-readable protocol is
+**Status: protocol frozen as v2.1, not yet run.** The commit that adds this
+text, with [`tools/pusht_v2`](../../tools/pusht_v2/study.py), freezes the study
+before any of its v2.1 policies trains. v2.1 differs from v2 (frozen at
+`c91a87a`) only in its training settings; v2's run was stopped before any
+outcome ([below](#v2s-stopped-run)). The machine-readable protocol is
 [`protocol.json`](../../tools/pusht_v2/protocol.json); the CCIL configuration is
 [`pusht.yaml`](../../tools/pusht_v2/pusht.yaml). Controlling issue:
 personalrobotics/CCIL#30.
@@ -27,7 +29,8 @@ these respects only:
    - **Adapter check:** [`check.py`](../../tools/pusht_v2/check.py).
 2. **IBC downstream** ([`lerobot_policy_ibc`](../../tools/pusht_v2/ibc_plugin/lerobot_policy_ibc/modeling_ibc.py)).
    It passed its [competency gate](pusht-v2-ibc-gate.md): 0.8213 coverage,
-   0.859 of the hold-to-demonstrator gap. Two earlier learners failed: the
+   0.859 of the hold-to-demonstrator gap. Under v2.1's training settings it
+   passed again: 0.8105, 0.846 of the gap. Two earlier learners failed: the
    pilot's single-frame ACT and a [velocity-aware ACT](pusht-v2-gate.md).
 3. **CCIL generates in physical coordinates and the labels are decoded.** Each
    frame's T pose (x, y, θ) is recovered from its keypoints by the rigid fit,
@@ -84,14 +87,16 @@ Jacobian of median condition 275
   - **duplication**: for each decoded label, in order, a one-frame copy of its
     source frame. These are the same rows as ccil's, matched by source-index
     hash.
-- **Policy.** IBC as in the gate, through unchanged `lerobot-train`.
-- **Training.** 200,000 steps at batch 256 for every arm and seed, a checkpoint
-  every 20,000, seeds 1–5.
+- **Policy.** IBC as in the gate, through unchanged `lerobot-train`
+  (`lerobot_policy_ibc` 1.1.0): the energy network compiled in training, and
+  bf16 autocast over float32 weights.
+- **Training.** 50,000 steps at batch 256 for every arm and seed, a checkpoint
+  every 5,000, seeds 1–5.
 - **Checkpoint selection under a common ceiling.** Each unit's checkpoint with
   the lowest held-out InfoNCE. The negatives are fixed from seed 0 and shared by
   every checkpoint and arm. Ties go to the earlier checkpoint, and simulator
-  returns are never used. In the gate, this rule picked the first checkpoint on
-  every seed.
+  returns are never used. In the gate's rerun under these settings, this rule
+  picked 10k on every seed.
 - **Evaluation.** Unchanged `lerobot-eval`, env `pusht_history`, 100 episodes
   from start seed 1000. The audit's repeat evaluation requires seeds and
   successes to repeat exactly, and rewards within 1e-12 (max) and 1e-9
@@ -126,8 +131,20 @@ uv run python tools/pusht_v2/study.py --root runs/<timestamp>-pusht-v2 \
 The stages are `derive → labels → arms → train → select → evaluate → audit →
 report`. A smoke run from `9a69f4d` (200 steps, one seed, four episodes)
 passed every stage before the freeze. It selected 100,871 of 100,952
-proposals with no violations, and its three arms reconciled.
+proposals with no violations, and its three arms reconciled. The fast
+settings' training path was exercised end to end by the
+[gate's rerun](pusht-v2-ibc-gate.md#rerun-result).
 
 ## Result
 
 Not yet run.
+
+### v2's stopped run
+
+v2 as frozen at `c91a87a` (200,000 steps, a checkpoint every 20,000) started as
+root `20261111T151532-pusht-v2` on `siddh`, a run of about 40 hours. Its derive,
+labels and arms stages completed: 100,871 of 100,952 proposals selected, 81
+outside the action bounds, no violations. It was stopped during training, at
+17:02 UTC, before any checkpoint was selected or evaluated. The reason was cost:
+the gate's selection had kept 20k of 200k on every seed. No outcome was
+observed, and none of its records enters v2.1.
