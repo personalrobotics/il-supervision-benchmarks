@@ -1,0 +1,40 @@
+{
+ "episodes": 206,
+ "derived_frames": 25444,
+ "identity_max_px": {
+  "previous": 0.0,
+  "current": 0.0
+ },
+ "replay_episode_max_px": {
+  "previous": {
+   "50": 4.5408381595279934e-05,
+   "90": 0.2388314194099337,
+   "100": 14.761674391107107
+  },
+  "current": {
+   "50": 4.5408381595279934e-05,
+   "90": 0.2388314194099337,
+   "100": 14.761674391107107
+  }
+ },
+ "rest_max_velocity": 0.0,
+ "vector_env_shapes": {
+  "agent_pos": [
+   2,
+   4
+  ],
+  "environment_state": [
+   2,
+   32
+  ]
+ },
+ "first_frames_gap": 0.0,
+ "plugin_sha256": "0f4d038f0c86e19cc7212055b3c40d1e148a01f6997757cb9f5fa9b1e696e451",
+ "checks": {
+  "identity": true,
+  "replay": true,
+  "rest": true,
+  "discovery": true
+ },
+ "pass": true
+}

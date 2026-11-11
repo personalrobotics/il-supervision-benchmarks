@@ -1,0 +1,23 @@
+{
+ "check": {
+  "discovery": true,
+  "identity": true,
+  "replay": true,
+  "rest": true
+ },
+ "completed": "2026-11-11T17:07:25+00:00",
+ "full": {
+  "data/chunk-000/file-000.parquet": "04e9ae2e060b3d6c08de5ca4cbf4e47e9c0393c176245548f435a419c79617c3",
+  "meta/episodes/chunk-000/file-000.parquet": "e88b0ddf8474907814ee41d8c60d925daae3d35e76f0b55123da440fb0f6c547",
+  "meta/info.json": "0a94963973093e66033ce3eb7381fccff0f79a41d96d90ff519818138af3edf8",
+  "meta/stats.json": "c06b86804db610545382ed904aad66ccbd04e4d74c0d3f62db0b5168dcc43de4",
+  "meta/tasks.parquet": "a44d7f052b0a70e9e46b3fd1a7731e7a390d4da72626e5d088629ac715f17f20"
+ },
+ "train": {
+  "data/chunk-000/file-000.parquet": "724d620b9fd5fa6db563a0435fd749cb4f86b3be7be21eb7e1c2062ee537e184",
+  "meta/episodes/chunk-000/file-000.parquet": "ae6fc8cfc793b72f5a33000729d0e978c4e8bc92cdfaad9a4bfcaa4b4e66bf33",
+  "meta/info.json": "3a2cd6a3ff2670c5d8e251b5ece8b705ca1d53ec4b51f23f8e5d5247f739eba8",
+  "meta/stats.json": "664984fa15d6070e6b507bd4412df380843c9b2fcf9cf331ed7dd2e09017f19f",
+  "meta/tasks.parquet": "a44d7f052b0a70e9e46b3fd1a7731e7a390d4da72626e5d088629ac715f17f20"
+ }
+}

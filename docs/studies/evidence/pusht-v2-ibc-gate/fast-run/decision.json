@@ -1,0 +1,32 @@
+{
+ "completed": "2026-11-11T18:13:58+00:00",
+ "gap_fraction": 0.8463127519072404,
+ "pass": true,
+ "per_seed": {
+  "1": {
+   "avg_max_reward": 0.8671699012410792,
+   "held_out_infonce": 1.1550079274023553,
+   "held_out_mean_l2_diagnostic": 9.045110396452694,
+   "pc_success": 28.000000000000004,
+   "selected_step": 10000
+  },
+  "2": {
+   "avg_max_reward": 0.8493996114608146,
+   "held_out_infonce": 1.175267373169208,
+   "held_out_mean_l2_diagnostic": 9.049624352031477,
+   "pc_success": 22.0,
+   "selected_step": 10000
+  },
+  "3": {
+   "avg_max_reward": 0.7149456395860393,
+   "held_out_infonce": 1.1680864418852608,
+   "held_out_mean_l2_diagnostic": 9.055902103469059,
+   "pc_success": 20.0,
+   "selected_step": 10000
+  }
+ },
+ "rule": "pass iff (statistic - hold) / (demonstration_replay - hold) >= 0.5. Pass: freeze v2 and run bc, duplication and ccil with this learner and state. Fail: no CCIL run",
+ "smoke": false,
+ "statistic": 0.8105050507626443,
+ "threshold": 0.5042225019032504
+}

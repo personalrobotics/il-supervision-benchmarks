@@ -1,0 +1,34 @@
+{
+ "definition": "x_bar_t = [x_{t-1}, x_t] for observation.state and observation.environment_state; each episode's first frame dropped",
+ "episodes": 206,
+ "excluded_episodes": [],
+ "frames": 25444,
+ "out_sha256": {
+  "data/chunk-000/file-000.parquet": "04e9ae2e060b3d6c08de5ca4cbf4e47e9c0393c176245548f435a419c79617c3",
+  "meta/episodes/chunk-000/file-000.parquet": "e88b0ddf8474907814ee41d8c60d925daae3d35e76f0b55123da440fb0f6c547",
+  "meta/info.json": "0a94963973093e66033ce3eb7381fccff0f79a41d96d90ff519818138af3edf8",
+  "meta/stats.json": "c06b86804db610545382ed904aad66ccbd04e4d74c0d3f62db0b5168dcc43de4",
+  "meta/tasks.parquet": "a44d7f052b0a70e9e46b3fd1a7731e7a390d4da72626e5d088629ac715f17f20"
+ },
+ "source": "/home/siddh/code/CCIL-pusht/data/pusht_keypoints-ace8c161",
+ "source_sha256": {
+  ".cache/huggingface/.gitignore": "684888c0ebb17f374298b65ee2807526c066094c701bcc7ebbe1c1095f494fc1",
+  ".cache/huggingface/CACHEDIR.TAG": "f6572428f6d5e1575e73a1502895a8731f10757dfbb634909c6e154b849af91d",
+  ".cache/huggingface/download/data/chunk-000/file-000.parquet.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  ".cache/huggingface/download/data/chunk-000/file-000.parquet.metadata": "934a95a13d92519a69328371180c215c9280c9c71bccd4101af7db5454588bbc",
+  ".cache/huggingface/download/meta/episodes/chunk-000/file-000.parquet.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  ".cache/huggingface/download/meta/episodes/chunk-000/file-000.parquet.metadata": "51161eb34f676a1ff5e79e0f60c48e3bd2c0ab624f8da2d566fa93437a8d59e5",
+  ".cache/huggingface/download/meta/info.json.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  ".cache/huggingface/download/meta/info.json.metadata": "7f590df5a99135557f7b9b5a7a00fa9a621c6ffb1b441302f9d0e25a4064e6e6",
+  ".cache/huggingface/download/meta/stats.json.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  ".cache/huggingface/download/meta/stats.json.metadata": "39053e4f3d8e5224036083d7bb3f54035ad9f2343ccac15047ff6ac59ab99a99",
+  ".cache/huggingface/download/meta/tasks.parquet.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  ".cache/huggingface/download/meta/tasks.parquet.metadata": "bfcedbd82a44d793b7f87e7b6dd51502afd6dbb1d0e0639b1ffc03a18be7b66b",
+  ".cache/huggingface/trees/ace8c161a68bc025c21a5f29f85b86a9a2c5e64b.json": "61551ce70381003fea626da128502184f5c73dc2162dae415cedb2eeffdfc011",
+  "data/chunk-000/file-000.parquet": "8b4d978eeeb99254ddead01e79ee70d95a0416e27438ca9438c89a1682598ae0",
+  "meta/episodes/chunk-000/file-000.parquet": "cdeb650a03b1a0e321469bbdc6749c8d9749bac2657a7bf64466e21ed40792e1",
+  "meta/info.json": "3a6d3d438106d5771b811802a51f9ceeba8b13e83297b01bc467456e2fcdc2e3",
+  "meta/stats.json": "ecc50b78e9e10b7ad1ff1f5a131bf379395144f861902a5d802b7d25667760dd",
+  "meta/tasks.parquet": "5bca7125a8c9e40408f3177487abfc1120dbf535ed61268613627c0311c2404c"
+ }
+}

@@ -1,6 +1,7 @@
 # PushT keypoints v2: IBC BC feasibility gate
 
-**Status: run; the gate passed** ([Result](#result)). The commit that adds this file, with
+**Status: run; the gate passed** ([Result](#result)), and passed again under
+v2.1's faster settings ([rerun](#rerun-result)). The commit that adds this file, with
 [`tools/pusht_v2`](../../tools/pusht_v2/gate.py), freezes the gate before any of
 its policies trains. The machine-readable protocol is
 [`gate.json`](../../tools/pusht_v2/gate.json). Controlling issue:
@@ -175,3 +176,24 @@ A smoke run of these settings passed every stage before the freeze.
 checkpoint was evaluated twice under the same seed (10 episodes). Every success
 repeated, and rewards agreed to 2.2e-16 (maximum) and 1.4e-14 (summed). v2's
 audit predeclares those tolerances.
+
+### Rerun result
+
+**The gate passed again.** The run is root
+`20261111T170711-pusht-v2-ibc-gate-fast` on `siddh`, from a clean checkout of
+`28388ee`. Both plugins were installed from that commit, and the adapter check
+passed. All three units trained 50,000 steps. Seed 2, alone on a GPU, took
+1,860 s; seeds 1 and 3, sharing a GPU, took 3,721 s each. Records:
+[`evidence/pusht-v2-ibc-gate/fast-run`](evidence/pusht-v2-ibc-gate/fast-run).
+
+| seed | selected step | held-out InfoNCE | coverage (100 starts) | success |
+|---|---|---|---|---|
+| 1 | 10k | 1.155 | 0.8672 | 28% |
+| 2 | 10k | 1.175 | 0.8494 | 22% |
+| 3 | 10k | 1.168 | 0.7149 | 20% |
+| **mean** | | | **0.8105** | |
+
+(0.8105 − 0.0620) / (0.9464 − 0.0620) = **0.846** of the gap; the gate needs
+0.5. The 200k run gave 0.859. Held-out InfoNCE again bottomed early, at 10k on
+every seed (1.155–1.175), and rose to 1.50–1.54 at 50k. v2 runs under these
+settings.
