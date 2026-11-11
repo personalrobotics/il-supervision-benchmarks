@@ -2,7 +2,9 @@
 
     python reference.py hold OUT_JSON                        a policy that holds the agent still, on the pilot's starts
     python reference.py replay SOURCE OUT_JSON               every demonstration replayed in gym_pusht from its first frame
-    python reference.py act SOURCE_ARM OUT_DIR [--steps N]   LeRobot's default ACT (chunk 100) on the bc arm, then evaluated
+    python reference.py act SOURCE_ARM OUT_DIR [--steps N] [--train-arg ARG ...]
+                                                             LeRobot's default ACT (chunk 100) on the bc arm, then evaluated;
+                                                             each --train-arg is passed on to lerobot-train
 
 hold and replay place the pilot's coverage numbers between a do-nothing floor and the demonstrator. replay also checks
 that the dataset's observations are gym_pusht's: each first frame's 16 keypoints are fitted by a rigid motion of the
@@ -103,7 +105,7 @@ def replay(source, out):
         "replayed_pc_success": 100 * float(col("replayed_success").mean())}})
 
 
-def act(arm, out_dir, steps):
+def act(arm, out_dir, steps, extra):
     sys.path.insert(0, str(Path(__file__).parent))
     from run import per_episode
     t, bin_ = PROTOCOL["training"], Path(sys.executable).parent
@@ -112,7 +114,8 @@ def act(arm, out_dir, steps):
     train = [str(bin_ / "lerobot-train"), "--dataset.repo_id=local/pusht-bc", f"--dataset.root={arm}",
              "--policy.type=act", "--policy.push_to_hub=false", f"--policy.device={t['device']}", f"--steps={steps}",
              f"--batch_size={t['batch_size']}", f"--save_freq={steps}", "--log_freq=1000",
-             f"--num_workers={t['num_workers']}", "--seed=1", f"--output_dir={out_dir / 'train'}", "--wandb.enable=false"]
+             f"--num_workers={t['num_workers']}", "--seed=1", f"--output_dir={out_dir / 'train'}", "--wandb.enable=false",
+             *extra]
     run(train, out_dir / "train.log")
     model = out_dir / "train" / "checkpoints" / "last" / "pretrained_model"
     ev = [str(bin_ / "lerobot-eval"), f"--policy.path={model}", f"--env.type={EVAL['env']}",
@@ -121,8 +124,8 @@ def act(arm, out_dir, steps):
           f"--seed={EVAL['start_seed']}", f"--policy.device={t['device']}", f"--output_dir={out_dir / 'eval'}"]
     run(ev, out_dir / "eval.log")
     eps = per_episode(json.loads((out_dir / "eval" / "eval_info.json").read_text()), EVAL["start_seed"])
-    write(out_dir / "result.json", {"policy": "act-default-chunking", "train": train, "eval": ev, "episodes": eps,
-                                    **summary(eps)})
+    write(out_dir / "result.json", {"policy": "act" if extra else "act-default-chunking", "train": train, "eval": ev,
+                                    "episodes": eps, **summary(eps)})
 
 
 def run(cmd, log):
@@ -153,6 +156,7 @@ if __name__ == "__main__":
     p.add_argument("arm")
     p.add_argument("out_dir")
     p.add_argument("--steps", type=int, default=PROTOCOL["training"]["steps"])
+    p.add_argument("--train-arg", action="append", default=[])
     a = ap.parse_args()
     {"hold": lambda: hold(a.out), "replay": lambda: replay(a.source, a.out),
-     "act": lambda: act(a.arm, a.out_dir, a.steps)}[a.cmd]()
+     "act": lambda: act(a.arm, a.out_dir, a.steps, a.train_arg)}[a.cmd]()
