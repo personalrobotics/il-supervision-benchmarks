@@ -1,9 +1,51 @@
-# Validation reweighting, Stage A: a read-only retrospective diagnostic (protocol)
+# Validation reweighting, Stage A: a read-only retrospective diagnostic
 
-This is the Stage A protocol of [#40](https://github.com/personalrobotics/il-supervision-benchmarks/issues/40). It is
-frozen before any label-level utility is computed. Stage A trains no policy, runs no simulator, reads no final-test
-set and uses no paid compute. The machine-readable form is
+This is the Stage A protocol of [#40](https://github.com/personalrobotics/il-supervision-benchmarks/issues/40). It was
+frozen in #41 before any label-level utility was computed, and its result is recorded below. Stage A trains no policy,
+runs no simulator, reads no final-test set and uses no paid compute. The machine-readable form is
 [`tools/reweight_stage_a.json`](../../tools/reweight_stage_a.json).
+
+## Result
+
+**Stage A fails both directional checks. By the frozen rule, the investigation ends in #40, and no Stage B is opened.**
+- **F1 fails.** The helpful capture relabels score above their demonstration comparator on 5 of 10 seeds; the rule
+  needs 8.
+- **F2 fails, in the wrong direction.** The harmful PushT pools score far above their source rows: D = +109 at
+  r = 0.1 and +263 at r = 0.5.
+- **The reported-only cases agree with this failure.**
+  - Pumping relabels score positive on 7 of 10 seeds, more often than capture. This is the limit stated in advance:
+    the statistic measures held-out action fit, which the pumping relabels did improve.
+  - Every other PushT case is positive: r = 0.25 on both seeds, r = 1, and all five v2.2 seeds.
+
+The first-order validation utility, as frozen, does not separate the known helpful supervision from the known harmful
+supervision on these artifacts. This is a statement about this statistic on uncertified and oracle labels. It says
+nothing about certified labels, which no artifact has, or about other routing rules.
+
+**Observation (post hoc, not a basis for continuing).** On PushT, CCIL labels have a smaller positive fraction than
+their sources in every case, and a lower signed mean alignment in every case except r = 0.25 on seed 1. Their alignments are
+larger in magnitude in both directions, so the clipped utility max(0, g) keeps their large positive terms and inflates
+their mean. Searching for a different statistic after seeing outcomes is a non-goal of #40, so none is proposed.
+
+**Mass.** On every PushT pool about half the rows are positive. A batch of 64 or more synthetic rows therefore
+almost surely holds a positive row, and the realizable mass equals the requested α to four decimals. Utility routing
+would not have reduced synthetic exposure.
+
+**Record.** [`evidence/reweight/stage-a.json`](evidence/reweight/stage-a.json) (`ilsb.reweight.stage_a 1`) holds the
+following, with one entry per case and seed:
+- the commit `c9ba2b4`, clean;
+- the hashes of the inventory and the specification;
+- each checkpoint's SHA-256 and the content SHA-256 of its rows and g files;
+- the aggregates, the mass, both checks and the decision.
+
+The per-row files stay on siddh, under `runs/20261112T203149Z-stage-a`, identified by those content hashes.
+
+**Verification.**
+- The forward-mode g agrees with independent reverse-mode per-row gradients to FP32 precision, at a relative error
+  of at most 5 × 10⁻⁶. Rows were checked in both learners.
+- Recomputing g on a second run gives bit-identical values in all 30 cases. A recomputation on the other GPU was also
+  identical.
+- The report regenerates to the same SHA-256.
+- Nothing trained, no simulator ran, D_test was not read, and no paid compute was used.
 
 ## Scope
 
