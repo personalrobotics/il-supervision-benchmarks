@@ -1,0 +1,129 @@
+{
+ "ccil": "a995ff9b38ec0044917842c950d1718bfba7f0b7",
+ "config": "tools/pusht_v2/pusht.yaml",
+ "note": "development evidence observed before v2's freeze; no labels",
+ "structured": {
+  "checkpoint_sha256": "81fa9754dd0cf62b861e6b53bd52cdfaa0239095874a9f1c9dc01ba6a31b483e",
+  "errors": {
+   "held_out": {
+    "history_shift_px": {
+     "50": 0.0,
+     "90": 0.0,
+     "99": 0.0,
+     "100": 0.0
+    },
+    "history_shift_within_1e-3_px": 1.0,
+    "newest_slot_px": {
+     "50": 1.439022421836853,
+     "90": 3.3521104186773307,
+     "99": 6.152301220893859,
+     "100": 13.685211420059204
+    },
+    "transitions": 5068
+   },
+   "train": {
+    "history_shift_px": {
+     "50": 0.0,
+     "90": 0.0,
+     "99": 0.0,
+     "100": 0.0
+    },
+    "history_shift_within_1e-3_px": 1.0,
+    "newest_slot_px": {
+     "50": 1.2959316968917847,
+     "90": 2.811101579666138,
+     "99": 4.994613466262841,
+     "100": 12.646154403686523
+    },
+    "transitions": 20170
+   }
+  },
+  "held_out_mean_l2": 3.620654628684677,
+  "lipschitz_measured": {
+   "action": {
+    "activation": "relu",
+    "factors": [
+     0.035840273911887294,
+     3.2683753874394554,
+     11.545146188425726
+    ],
+    "value": 1.3523922955716141
+   },
+   "known_shift": {
+    "action": 0.0,
+    "state": 1.4142135623730951
+   },
+   "scope": "the learned head of a history_shift model (the newest slots' residual) in raw state and action units, recomputed from the saved checkpoint with its normalization, output scaling and mask; a measurement, not a certificate. known_shift is the exact constant of the older slots' residual, which is not learned",
+   "state": {
+    "activation": "relu",
+    "factors": [
+     0.05991138201926002,
+     3.2683753874394554,
+     11.545146188425726
+    ],
+    "value": 2.260688399287638
+   }
+  },
+  "structure": "history_shift"
+ },
+ "unstructured": {
+  "checkpoint_sha256": "3a18d6b02b676ba37c380929e05d38870a832619f0b8b46d63037ede80c56266",
+  "errors": {
+   "held_out": {
+    "history_shift_px": {
+     "50": 2.5836284160614014,
+     "90": 6.090981960296632,
+     "99": 11.369936504364013,
+     "100": 30.544017791748047
+    },
+    "history_shift_within_1e-3_px": 0.0,
+    "newest_slot_px": {
+     "50": 1.6350865364074707,
+     "90": 3.9553885936737068,
+     "99": 7.50305660009384,
+     "100": 14.085458755493164
+    },
+    "transitions": 5068
+   },
+   "train": {
+    "history_shift_px": {
+     "50": 2.304176151752472,
+     "90": 5.148002624511719,
+     "99": 10.608532371520997,
+     "100": 27.62787628173828
+    },
+    "history_shift_within_1e-3_px": 0.0,
+    "newest_slot_px": {
+     "50": 1.4981096982955933,
+     "90": 3.4966238498687745,
+     "99": 6.216547927856445,
+     "100": 15.54690933227539
+    },
+    "transitions": 20170
+   }
+  },
+  "held_out_mean_l2": 7.278308290383992,
+  "lipschitz_measured": {
+   "action": {
+    "activation": "relu",
+    "factors": [
+     0.03440578985232841,
+     3.046993237902518,
+     15.019632599492038
+    ],
+    "value": 1.5745713034099433
+   },
+   "scope": "the residual map f_hat in raw state and action units, recomputed from the saved checkpoint with its normalization, output scaling and mask; a measurement, not a certificate",
+   "state": {
+    "activation": "relu",
+    "factors": [
+     0.058528917886816995,
+     3.046993237902518,
+     15.019632599492038
+    ],
+    "value": 2.678559478499582
+   }
+  },
+  "structure": "none"
+ }
+}
