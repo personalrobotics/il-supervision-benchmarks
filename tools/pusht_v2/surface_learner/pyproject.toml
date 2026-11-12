@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pusht_surface_learner"
+version = "1.0.0"
+description = "The PushT surface study's IBC training loop (fixed synthetic fraction per minibatch) for LeRobot 0.6.1"
+requires-python = ">=3.10"
+
+[tool.setuptools]
+packages = ["pusht_surface_learner"]

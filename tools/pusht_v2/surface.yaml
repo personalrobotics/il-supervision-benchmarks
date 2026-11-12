@@ -1,0 +1,27 @@
+# The CCIL configuration of the PushT surface study (docs/studies/pusht-surface.md): PushT v2's (pusht.yaml), with the
+# subset's own episodes as the whole dataset. The harness writes pose.npz, the subset's pose history
+# [q_{t-1}, q_t], q = (agent x, y, T x, y, theta), so the dynamics are fitted on the subset alone (fit_episodes all,
+# no validation split: held-out episodes never reach this file). Labels are decoded back to the keypoint history.
+config_version: 4
+data: {path: pose.npz, validation_fraction: 0.0, action_low: [0.0, 0.0], action_high: [512.0, 512.0]}
+run: {output_dir: runs}
+compute: {device: cpu}
+representation: {modality: state+state.pose}
+transition_model:
+  kind: mlp
+  fit_episodes: all
+  trainer_version: "1"
+  structure: history_shift
+  history_steps: 2
+  hidden_layers: [256, 256]
+  activation: relu
+  lipschitz_type: spectral_normalization
+  lipschitz_constraint: 3.0
+  epochs: 50
+  batch_size: 256
+generation:
+  method: noisy_action_fe
+  labels_per_transition: 4
+  action_noise_scale: training_std
+  action_noise_std: 0.1
+  recovery_steps: "1"
