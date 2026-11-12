@@ -10,6 +10,8 @@ Outcome-free: no label is generated, no policy is read. Over the r = 0.25 develo
   reassign    a second replay in lockstep whose velocities are reassigned (to their own values) before every step:
               it must equal the plain replay bitwise, so substituting velocities keeps the live contact cache intact
   spacing     the demonstrations' frame-to-frame displacement
+  envelope    the demonstrations' previous slots: the agent disk's deepest penetration into the T and the extent of
+              the agent disk and the T's keypoints (the simulator lets the kinematic agent penetrate both)
 Distances are in pixels: the larger of the agent's displacement and the T's largest keypoint displacement.
 """
 import argparse
@@ -67,6 +69,25 @@ def distance(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     return np.maximum(agent, np.hypot(kp[..., 0], kp[..., 1]).max(1))
 
 
+def penetration(agent: np.ndarray, kp: np.ndarray, radius: float = 15.0) -> np.ndarray:
+    """(N, 2) agent centres, (N, 16) keypoints -> depth (px) of the agent disk in the T's nearer rectangle (keypoints
+    0-3 or 4-7); <= 0 when they do not overlap."""
+    out = np.full(len(agent), -np.inf)
+    for part in (kp.reshape(-1, 8, 2)[:, 0:4], kp.reshape(-1, 8, 2)[:, 4:8]):
+        e, w = np.roll(part, -1, axis=1) - part, agent[:, None, :] - part
+        t = np.clip((w * e).sum(-1) / (e * e).sum(-1), 0, 1)
+        d = np.linalg.norm(w - t[..., None] * e, axis=-1).min(1)
+        cross = e[..., 0] * w[..., 1] - e[..., 1] * w[..., 0]
+        inside = (cross >= 0).all(1) | (cross <= 0).all(1)
+        out = np.maximum(out, radius - np.where(inside, -d, d))
+    return out
+
+
+def extent(agent: np.ndarray, kp: np.ndarray, radius: float = 15.0) -> tuple:
+    """Per row, the lowest and highest coordinate of the agent disk and the T's keypoints."""
+    return np.minimum((agent - radius).min(1), kp.min(1)), np.maximum((agent + radius).max(1), kp.max(1))
+
+
 def q(x) -> dict | None:
     x = np.asarray(x, np.float64)
     return {str(p): float(np.percentile(x, p)) for p in (10, 50, 90, 99, 100)} if len(x) else None
@@ -84,6 +105,13 @@ def main():
     eps = subset(SPEC["roles"]["train"], R, SPEC["subset_seed"])
     if len(eps) != SPEC["expected"]["subset_episodes"]["r0.25"]:
         sys.exit(f"refused: {len(eps)} subset episodes")
+    sub = np.flatnonzero(np.isin(src["episode"], eps))
+    prev_agent = src["state"][sub][:, 0:2].astype(np.float64)
+    prev_kp = pose.keypoints(src["pose"][sub][:, 0:3].astype(np.float64))
+    depth, (lo, hi) = penetration(prev_agent, prev_kp), extent(prev_agent, prev_kp)
+    envelope = {"rows": int(len(sub)), "max_penetration_px": float(depth.max()),
+                "penetrating_rows": int((depth > 0).sum()), "penetration_px": q(depth[depth > 0]),
+                "extent_px": [float(lo.min()), float(hi.max())]}
     env, fresh, twin = make_env(), make_env(), make_env()
     reassigned_equal, reassigned_steps = 0, 0
     replay_err, verified, fresh_free, fresh_contact, spacing, per_episode = [], 0, [], [], [], {}
@@ -132,10 +160,10 @@ def main():
                           "steps": {"no_contact": len(fresh_free), "contact": len(fresh_contact)},
                           "exact_no_contact_fraction": float(np.mean(np.array(fresh_free) == 0)) if fresh_free else None},
            "reassign": {"steps": reassigned_steps, "bitwise_equal": reassigned_equal},
-           "spacing_px": q(spacing)}
+           "spacing_px": q(spacing), "envelope": envelope}
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(out, indent=1, sort_keys=True) + "\n")
-    print(json.dumps({k: out[k] for k in ("fresh_step", "spacing_px", "reassign")} | {"verified": verified,
+    print(json.dumps({k: out[k] for k in ("fresh_step", "spacing_px", "reassign", "envelope")} | {"verified": verified,
                                                                          "frames": len(replay_err)}))
 
 
