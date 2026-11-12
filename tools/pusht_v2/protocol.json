@@ -192,5 +192,9 @@
    1
   ],
   "stall_minutes": 15
+ },
+ "containment": {
+  "training_proposals": 80680,
+  "rule": "CCIL generates on every episode; only labels whose source is a training episode enter an arm (4 proposals x 20,170 training transitions = training_proposals, checked exactly; the yield floor applies to them). Every arm's demonstrations must be exactly the training episodes, every added row's ccil.source_episode a training episode, and no row's current frame (observation.state[2:4], observation.environment_state[16:32]) byte-equal to a held-out frame's. Checked when the arms are built and again by the audit from the written datasets; one violation stops the run"
  }
 }

@@ -9,12 +9,15 @@ plugins installed (tools/pusht_v2/env_plugin, tools/pusht_v2/ibc_plugin). The po
   labels    the pose history [q_{t-1}, q_t], q = (agent x, y, T x, y, theta), with derive.py's rows; the pinned CCIL
             generates on it (pusht.yaml: a structured spectral MLP fitted on the training episodes, noisy_action_fe,
             M = 1) and curates every accepted label with weight 1
-  arms      every selected label must have a residual within the root tolerance, newest slots equal to its source's
+  arms      only labels sourced in a training episode enter an arm (CCIL proposes from every episode; the protocol's
+            containment count is checked exactly). Every selected label must have a residual within the root tolerance, newest slots equal to its source's
             q_t within eps_struct = max(10 root_tolerance, 10 eps32 max(1, ||q_t||_inf)), and a decoded T as rigid as
             the demonstrations' in both slots: one violation is a defect and stops the run. Usable labels below the
             protocol's yield floor stop it too. A label decodes to [agent_{t-1}~, agent_t, keypoints(T_{t-1}~),
             keypoints(T_t)] with its action, the current halves the source frame's own. bc is the training episodes;
-            ccil adds the decoded labels; duplication adds, for each, in order, a one-frame copy of its source frame
+            ccil adds the decoded labels; duplication adds, for each, in order, a one-frame copy of its source frame.
+            Containment is then read back from the written datasets, and again by the audit: demonstrations exactly
+            the training episodes, every added row sourced in one, no row's current frame a held-out frame's
   train, select, evaluate, audit, report   as the pilot's runner, with IBC, held-out InfoNCE selection, env
             pusht_history, and the protocol's repeat-evaluation tolerances
 A rerun resumes: a verified stage or unit is never recomputed.
@@ -127,6 +130,14 @@ class V2(Gate):
         mask = np.asarray(sel.mask, bool)
         if not np.array_equal(mask, np.asarray(c.accepted, bool)) or (np.asarray(sel.weight)[mask] != 1).any():
             raise PilotError("the curation is not every accepted label with weight 1")
+        # CCIL proposes from every episode: only labels sourced in a training episode may enter an arm
+        cont = self.protocol["containment"]
+        train_ids = set(lab["train"])
+        from_train = np.isin(np.asarray(c.source_episode_id).astype(np.int64), sorted(train_ids))
+        if train_ids & set(lab["held_out"]) or int(from_train.sum()) != cont["training_proposals"]:
+            raise PilotError(f"{int(from_train.sum())} proposals from training episodes, the protocol expects "
+                             f"{cont['training_proposals']}")
+        mask = mask & from_train
         rows = np.flatnonzero(mask)
         z = np.concatenate([np.asarray(c.observations[n], np.float64) for n in NAMES], 1)[rows]
         tgt = np.concatenate([np.asarray(c.target_observations[n], np.float64) for n in NAMES], 1)[rows]
@@ -144,8 +155,8 @@ class V2(Gate):
         rig = rigidity_error(np.concatenate([kp_prev, kp_cur], 1), np.asarray(inv["rigidity"]["reference_pair_distances_px"]))
         bad = {"residual": resid > tol, "invariant": err > eps, "rigidity": rig > inv["rigidity"]["tolerance_px"]}
         q = lambda x: {str(p): float(np.percentile(x, p)) for p in (50, 90, 100)} if len(x) else None  # noqa: E731
-        stats = {"proposals": int(len(mask)), "selected": int(len(rows)),
-                 "usable_fraction": float(len(rows) / len(mask)), "violations": {k: int(v.sum()) for k, v in bad.items()},
+        stats = {"proposals": int(from_train.sum()), "proposals_all_episodes": int(len(mask)), "selected": int(len(rows)),
+                 "usable_fraction": float(len(rows) / from_train.sum()), "violations": {k: int(v.sum()) for k, v in bad.items()},
                  "residual": q(resid), "invariant_error": q(err), "rigidity_error_px": q(rig),
                  "previous_slot_change": q(np.abs(z[:, np.r_[0:2, 4:7]] - q_src[:, np.r_[0:2, 4:7]]).max(1)),
                  "yield_floor": inv["min_usable_fraction"], "yield": lab["counts"]}
@@ -222,8 +233,57 @@ class V2(Gate):
               and summary["bc"]["added_rows"] == 0 and len({v["demonstration_index_sha256"] for v in summary.values()}) == 1)
         if not ok:
             raise PilotError(f"the arms do not reconcile: {json.dumps({k: {x: y for x, y in v.items() if x != 'files'} for k, v in summary.items()})}")
-        write_json(self.root / "arms.json", {"arms": summary, "labels": stats, "study": study, "completed": now()})
+        split = self.containment(paths)
+        write_json(self.root / "arms.json", {"arms": summary, "labels": stats, "study": study, "containment": split,
+                                             "completed": now()})
         self.log("arms: " + ", ".join(f"{k} {v['frames']} frames ({v['added_rows']} added)" for k, v in summary.items()))
+
+    def containment(self, paths: dict) -> dict:
+        """The protocol's containment, read back from the written datasets: demonstrations exactly the training episodes,
+        every added row sourced in a training episode, and no row's current frame byte-equal to a held-out frame's."""
+        import pyarrow.parquet as pq
+        held = set(self.held_out())
+        current = lambda t: np.ascontiguousarray(np.concatenate(  # noqa: E731
+            [np.array(t["observation.state"], np.float32)[:, 2:4],
+             np.array(t["observation.environment_state"], np.float32)[:, 16:32]], 1))
+        full = pq.read_table(sorted((self.root / "derived" / "full" / "data").rglob("*.parquet"))).to_pydict()
+        fe = np.array(full["episode_index"], np.int64)
+        train = set(fe.tolist()) - held
+        if train != set(self.need("labels")["train"]):
+            raise PilotError("the derived dataset's training episodes are not CCIL's")
+        held_frames = {r.tobytes() for r in current(full)[np.isin(fe, sorted(held))]}
+        out, problems = {}, []
+        for arm, path in paths.items():
+            t = pq.read_table(sorted((path / "data").rglob("*.parquet"))).to_pydict()
+            syn, src = np.array(t["ccil.synthetic"], bool), np.array(t["ccil.source_episode"], np.int64)
+            hits = int(sum(r.tobytes() in held_frames for r in current(t)))
+            out[arm] = {"demonstration_episodes": len(set(src[~syn].tolist())),
+                        "added_from_held_out": int(np.isin(src[syn], sorted(held)).sum()),
+                        "rows_with_a_held_out_current_frame": hits}
+            if set(src[~syn].tolist()) != train or out[arm]["added_from_held_out"] or hits:
+                problems.append(f"{arm}: {out[arm]}")
+        if problems:
+            write_json(self.root / f"containment-failure-{int(time.time())}.json", {"arms": out, "at": now()})
+            raise PilotError("held-out data reached an arm: " + "; ".join(problems))
+        return out
+
+    def select(self) -> None:
+        super().select()
+        import pyarrow.parquet as pq
+        fe = np.asarray(pq.read_table(sorted((self.root / "derived" / "full" / "data").rglob("*.parquet")),
+                                      columns=["episode_index"])["episode_index"])
+        expected = int(np.isin(fe, self.held_out()).sum())
+        for arm, seed in self.units():
+            scores = json.loads((self.root / "units" / f"{arm}-s{seed}" / "select-scores.json").read_text())
+            if scores["frames"] != expected or sorted(scores["episodes"]) != sorted(self.held_out()):
+                raise PilotError(f"{arm}-s{seed}: selection scored {scores['frames']} frames, the held-out episodes have "
+                                 f"{expected}")
+
+    def audit(self) -> None:
+        arms = self.need("arms")["arms"]
+        self.containment({arm: self.root / a["path"] for arm, a in arms.items()})
+        self.log("audit: containment verified on every arm")
+        super().audit()
 
 
 if __name__ == "__main__":

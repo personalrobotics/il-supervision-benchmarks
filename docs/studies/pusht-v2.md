@@ -1,10 +1,18 @@
 # PushT keypoints v2: does one-step CCIL help an IBC policy on a history state?
 
-**Status: protocol frozen as v2.1, not yet run.** The commit that adds this
+**Status: protocol frozen as v2.2, not yet run.** The commit that adds this
 text, with [`tools/pusht_v2`](../../tools/pusht_v2/study.py), freezes the study
-before any of its v2.1 policies trains. v2.1 differs from v2 (frozen at
-`c91a87a`) only in its training settings; v2's run was stopped before any
-outcome ([below](#v2s-stopped-run)). The machine-readable protocol is
+before any of its v2.2 policies trains. Two earlier runs produced no result:
+- **v2** (frozen at `c91a87a`) was stopped before any outcome
+  ([below](#v2s-stopped-run)).
+- **v2.1** (`c9c7666`, v2 under faster training settings) ran to completion,
+  but its augmented arms contained held-out data, so it is void
+  ([below](#v21-void-held-out-data-in-the-arms)).
+
+v2.2 is v2.1 with that defect fixed and nothing else changed: the labels, the bc
+arm, the learner, the training settings, selection, evaluation and the analysis
+are as frozen. v2.1's coverages were seen before this freeze; they are reported
+below only as void. The machine-readable protocol is
 [`protocol.json`](../../tools/pusht_v2/protocol.json); the CCIL configuration is
 [`pusht.yaml`](../../tools/pusht_v2/pusht.yaml). Controlling issue:
 personalrobotics/CCIL#30.
@@ -81,6 +89,14 @@ Jacobian of median condition 275
 - **Yield and round trip.** Separately, the run stops if fewer than 50% of the
   proposals are selected, or if the stored poses fail to decode to the
   keypoints within 4.14 × 10⁻⁴ px.
+- **Containment.** CCIL proposes labels from every episode. Only labels whose
+  source frame is in a training episode enter an arm: 80,680 proposals, 4 for
+  each of the 20,170 training transitions, a count checked exactly. The yield
+  floor applies to them. Every arm's demonstrations must be exactly the
+  training episodes, every added row must name a training source, and no row's
+  current frame may equal a held-out frame's byte for byte. This is checked when
+  the arms are built and again by the audit, from the written datasets; one
+  violation stops the run.
 - **Arms**, each a LeRobot v3.0 dataset of the training episodes plus:
   - **bc**: nothing;
   - **ccil**: one one-frame episode per decoded label;
@@ -138,6 +154,21 @@ settings' training path was exercised end to end by the
 ## Result
 
 Not yet run.
+
+### v2.1: void, held-out data in the arms
+
+v2.1 ran as root `20261111T181617-pusht-v21` on `siddh` from a clean `c9c7666`,
+and every stage, including the audit, passed. It is void. CCIL proposes labels
+from every episode and drops held-out ones only when it builds supervision; the
+arms stage read the proposals directly and applied no split. So 20,267 of the
+100,871 added rows in both the ccil and the duplication arm had a source frame
+in one of the 41 held-out episodes. The duplication arm thereby trained on real
+held-out demonstrations, and both arms' held-out InfoNCE, the selection
+criterion, was contaminated: duplication's fell to 0.38 against bc's 1.15, and
+it selected 50k on every seed. Its coverage (mean 0.925 against bc's 0.822 and
+ccil's 0.816) is not a measurement of the study's question and is not reported
+as one. v2.2's containment check rejects v2.1's arms on both counts: by source
+episode and by content.
 
 ### v2's stopped run
 
