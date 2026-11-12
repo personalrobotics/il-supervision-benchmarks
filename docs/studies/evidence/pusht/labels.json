@@ -1,0 +1,137 @@
+{
+ "arms": {
+  "bc": {
+   "added_rows": 0,
+   "added_source_index_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "demonstration_frames": 20335,
+   "demonstration_index_sha256": "0c508e546152ec312b7ab32e57b7a2fff1ce20f434d47fce7c08c962771f6c62",
+   "frames": 20335,
+   "path": "arms/bc"
+  },
+  "ccil": {
+   "added_rows": 80604,
+   "added_source_index_sha256": "dc10f74e00a304480c8986394a8eb83728ea1ee3309327f4b7f97b9545c1410f",
+   "demonstration_frames": 20335,
+   "demonstration_index_sha256": "0c508e546152ec312b7ab32e57b7a2fff1ce20f434d47fce7c08c962771f6c62",
+   "frames": 100939,
+   "path": "arms/ccil"
+  },
+  "duplication": {
+   "added_rows": 80604,
+   "added_source_index_sha256": "dc10f74e00a304480c8986394a8eb83728ea1ee3309327f4b7f97b9545c1410f",
+   "demonstration_frames": 20335,
+   "demonstration_index_sha256": "0c508e546152ec312b7ab32e57b7a2fff1ce20f434d47fce7c08c962771f6c62",
+   "frames": 100939,
+   "path": "arms/duplication"
+  }
+ },
+ "containment": {
+  "bc": {
+   "added_from_held_out": 0,
+   "demonstration_episodes": 165,
+   "rows_with_a_held_out_current_frame": 0
+  },
+  "ccil": {
+   "added_from_held_out": 0,
+   "demonstration_episodes": 165,
+   "rows_with_a_held_out_current_frame": 0
+  },
+  "duplication": {
+   "added_from_held_out": 0,
+   "demonstration_episodes": 165,
+   "rows_with_a_held_out_current_frame": 0
+  }
+ },
+ "generation": {
+  "accepted": 100871,
+  "admitted": 1,
+  "by_classification": null,
+  "candidates": 100952,
+  "rejected_by_reason": {
+   "action_out_of_bounds": 81,
+   "generation_failed": 0,
+   "non_finite": 0,
+   "out_of_support": 0
+  }
+ },
+ "identity": {
+  "ccil_commit": "a995ff9b38ec0044917842c950d1718bfba7f0b7",
+  "config_sha256": "73ada75d1631ce2fdeda45dfb08dccc178c5d7f936a4154bfed4a13f849c9509",
+  "created": "2026-11-12T00:24:59+00:00",
+  "host": "siddh",
+  "ilsb_commit": "1ddeb1185357eeb915f2a75da76b0cd289aebb97",
+  "ilsb_dirty": false,
+  "lerobot": "0.6.1",
+  "lerobot_freeze_sha256": "7a5b72635b1424d06e32355adc64279190c772a35d1d054d645a9771246a792f",
+  "plugins": {
+   "lerobot_env_pusht_history": "f2c908c5ce633361a7110c53010ee813930a3326c578cf2f60a33e1d777780d3",
+   "lerobot_policy_ibc": "158d556564fa4bd9c01f52b194933d595563370ee8d82d891574a2e2a29a60fd"
+  },
+  "protocol_sha256": "74eeff1d29ab9ccd7800eafef8d84cc76c8845a4d25458c34fe2b2cf8b3b789b",
+  "root": "20261112T002452-pusht-v22"
+ },
+ "pose_dataset": {
+  "episodes": 206,
+  "frames": 25444,
+  "round_trip_max_px": 4.715183604275808e-05
+ },
+ "selected_labels": {
+  "invariant_error": {
+   "100": 0.0,
+   "50": 0.0,
+   "90": 0.0
+  },
+  "previous_slot_change": {
+   "100": 74.72956657409668,
+   "50": 14.52016830444336,
+   "90": 26.94114303588866
+  },
+  "proposals": 80680,
+  "proposals_all_episodes": 100952,
+  "residual": {
+   "100": 9.995923136883056e-05,
+   "50": 5.162276525220347e-06,
+   "90": 8.773723406525669e-06
+  },
+  "rigidity_error_px": {
+   "100": 5.303533470168986e-07,
+   "50": 5.303532901734798e-07,
+   "90": 5.303533043843345e-07
+  },
+  "selected": 80604,
+  "usable_fraction": 0.9990580069410014,
+  "violations": {
+   "invariant": 0,
+   "residual": 0,
+   "rigidity": 0
+  },
+  "yield": {
+   "accepted": 100871,
+   "admitted": 1,
+   "by_classification": null,
+   "candidates": 100952,
+   "rejected_by_reason": {
+    "action_out_of_bounds": 81,
+    "generation_failed": 0,
+    "non_finite": 0,
+    "out_of_support": 0
+   }
+  },
+  "yield_floor": 0.5
+ },
+ "sources": {
+  "archive_commit": "d1c57b2b4f68078e0b249bd46ba5d4f6795abc67",
+  "archive_tag": "pusht-evidence-archive-v1",
+  "sha256": {
+   "docs/studies/evidence/pusht-v2/run/arms.json": "dce38d9a706615b6bbfcb606c932785a68a32716895dace4a744d5cdb2360bc3",
+   "docs/studies/evidence/pusht-v2/run/labels.json": "88665867304f6ca5430ac1643d6b11123dec09343bde9d47352e3a0feaddf0c3",
+   "docs/studies/evidence/pusht-v2/run/root.json": "5e9ca87827fccfaf63bf561afc6ea52169ef97b8572673c3608318f0c8d9d5bc"
+  }
+ },
+ "study_config": {
+  "fit_episodes": "train",
+  "method": "noisy_action_fe",
+  "modality": "state+state.pose",
+  "structure": "history_shift"
+ }
+}
