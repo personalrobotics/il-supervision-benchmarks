@@ -78,8 +78,10 @@ def chain(work: Path) -> dict:
                                           "previous_slot_displacement_px", "nearest_real_distance",
                                           "outside_frozen_range_fraction", "ccil_counts", "problems")},
             "audit": {"all_pass": au["all_pass"], "problems": au["problems"]},
+            # the repeat's deviations are rounding-level and vary between runs; the record is whether they are
+            # within the protocol's tolerance (the evaluation audit's own test)
             "evaluation_audit": {"all_pass": ea["all_pass"], "problems": ea["problems"],
-                                 "repeat_max_deviation": ea["repeat"]["max_deviation"]},
+                                 "repeat_within_tolerance": "repeat" not in ea["problems"]},
             "units": units_of(root, root / "store")}
 
 
