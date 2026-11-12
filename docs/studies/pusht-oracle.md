@@ -121,9 +121,17 @@ history cannot carry more than that.
 
 **Validity.** Each label is checked on its previous slot, its history invariant and its finiteness, with these
 rejection reasons:
-- **Previous slot inside the arena:** the agent disk (radius 15) and the T inside the walls' interior, x and y in
-  [7, 504]. Otherwise `outside_arena`.
-- **No overlap:** the agent disk and the T polygons do not overlap. Otherwise `interpenetration`.
+- **Previous slot within the demonstrated envelope.** The simulator lets its kinematic agent penetrate the T and
+  the walls, and it can push the T past them. The demonstrations' own previous slots in the subset show both: 2,288
+  of 5,040 rows have the agent disk inside the T, with a median depth of 0.13 px and a maximum of 22.98 px, and the
+  agent disk and T reach from 7.49 to 523.06 px (`envelope` in the probe). A label's previous slot is therefore
+  checked against those maxima, never against an ideal non-penetrating geometry:
+  - the agent disk (radius 15) penetrates the T's nearer rectangle by at most **22.981 px**. Otherwise
+    `beyond_penetration_envelope`;
+  - every coordinate of the agent disk and the T's keypoints lies in **[7.4939, 523.0609] px**. Otherwise
+    `beyond_extent_envelope`.
+
+  These are envelope checks: no label is less physical than a demonstrated state. They are not physical feasibility.
 - **History invariant:** the current slot equals the source's bitwise. Otherwise `invariant`.
 - **Finite:** every value is finite. Otherwise `non_finite`.
 

@@ -21,7 +21,7 @@
   "proposals": 19996,
   "learned_labels": 19982
  },
- "probe_sha256": "049272ac2eb5c100fb56ee91f2d25a9e36e92fe4694cdead3d3cb1fd85dbd2a3",
+ "probe_sha256": "8a9d5d26804f21244e4152849f1955ee68327b7551dabe30c02bcb24891fdd1a",
  "simulator": {
   "gym_pusht": "0.1.8",
   "pymunk": "6.11.1",
@@ -61,19 +61,23 @@
   "keypoints": "pose.keypoints"
  },
  "validity": {
-  "arena": [
-   7,
-   504
-  ],
   "agent_radius": 15,
+  "envelope": {
+   "source": "the probe's envelope: the subset demonstrations' previous slots",
+   "max_penetration_px": 22.981424055412056,
+   "extent_px": [
+    7.493940353393555,
+    523.0608215332031
+   ]
+  },
   "reasons": [
    "source_not_verified",
    "singular_jacobian",
    "solve_failed",
    "fails_actual_history",
    "non_finite",
-   "outside_arena",
-   "interpenetration",
+   "beyond_penetration_envelope",
+   "beyond_extent_envelope",
    "invariant"
   ]
  },
