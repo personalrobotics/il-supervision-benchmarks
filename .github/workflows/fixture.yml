@@ -52,7 +52,6 @@ jobs:
   installed-wheel:
     needs: changes
     runs-on: ubuntu-24.04
-    # The fixture takes about N minutes on this runner.
     timeout-minutes: 45
     strategy:
       fail-fast: false
