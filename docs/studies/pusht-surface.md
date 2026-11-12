@@ -204,10 +204,24 @@ any measurement. One off-study timing unit fixes the projection:
 
 If the projection exceeds the ceiling, the protocol is amended before Stage 1 starts.
 
-| measurement | value |
-|---|---|
-| timing unit, 20k steps | pending |
-| projected Stage 1 GPU-hours | pending |
+The timing unit ran as Tillicum job 458493, on one H200 at `37f396a`:
+- 20,000 steps took 339 s, a steady 0.0165 s/step;
+- the first step came 8.5 s after start, compilation included;
+- peak GPU memory was 4.7 GB allocated and 7.7 GB in use;
+- peak host memory was 1.7 GB;
+- GPU utilization was 93–94%, so one unit per GPU.
+
+The whole job took 6.6 minutes, including the CCIL pool at r = 1. That pool held 80,680 proposals, 80,604 of them usable: v2.2's counts exactly.
+
+The projection takes 0.11 GPU-hours per unit that stops at 20k and 0.38 for one that runs to 80k. It adds about 0.4 GPU-hours for the preflight, audit, evaluation and report jobs.
+
+| Stage 1 | GPU-hours | cost at $0.90 |
+|---|---|---|
+| every unit stops at 20k | about 3.5 | about $3 |
+| every unit runs to 80k (the worst case) | about 11 | about $10 |
+| declared ceiling | 24 | $21.60 |
+
+The worst case is within the ceiling, so Stage 1 runs as declared. The wall time with 8 concurrent units is about 25 minutes of training if every unit stops at 20k, and about 1.5 hours in the worst case. The stage jobs add about 25 minutes.
 
 ## Pre-run evidence
 
@@ -234,4 +248,4 @@ plugin, the IBC plugin and the learner of this tree installed. The harness check
 content.
 
 On Tillicum, [`slurm/setup.sh`](../../tools/pusht_v2/slurm/setup.sh) builds both environments at the protocol commit on
-the login node. [`slurm/timing.sbatch`](../../tools/pusht_v2/slurm/timing.sbatch) is the timing unit.
+the login node. [`slurm/timing.sbatch`](../../tools/pusht_v2/slurm/timing.sbatch) is the timing unit. Stage 1 runs [`slurm/stages.sbatch`](../../tools/pusht_v2/slurm/stages.sbatch) with `STAGES=preflight`, then the array [`slurm/units.sbatch`](../../tools/pusht_v2/slurm/units.sbatch) (`--array=0-27%8`), then `stages.sbatch` with the remaining stages. Submit each from the clone, with `--output` in the run directory.
