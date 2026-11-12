@@ -3,7 +3,7 @@
 
     uv run --with matplotlib==3.10.9 python tools/pusht_v2/lesson_figures.py draw [--check]
 
-Inputs are the committed records in docs/studies/evidence/pusht/lesson: lesson.json (lesson_records.py), the
+Inputs are the committed records in docs/studies/evidence/pusht/lesson: lesson.json, the
 keypoint-space preimage probe, the pose-space probe, the history fit and the demonstrations' rigidity.
 """
 from __future__ import annotations
@@ -20,11 +20,18 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 EV = REPO / "docs/studies/evidence/pusht"
 LESSON = EV / "lesson"
-sys.path.insert(0, str(HERE))
-from preimage_probe import pair_distances  # noqa: E402
 
 INK, MUTED, GRID, SURFACE = "#0b0b0b", "#52514e", "#e4e3df", "#ffffff"
 KEYPOINT, POSE, DEMO = "#d08a2e", "#2a6fdb", "#1baf7a"  # validated categorical slots (dataviz validate_palette)
+
+
+def pair_distances(kp):
+    """(N, 16) keypoints -> (N, 28) pairwise distances of the 8 points."""
+    p = kp.reshape(len(kp), 8, 2)
+    i, j = np.triu_indices(8, 1)
+    return np.linalg.norm(p[:, i] - p[:, j], axis=-1)
+
+
 FIGURES = ("pusht-label-t-shapes.svg", "pusht-label-validity.svg", "pusht-history-shift.svg")
 
 

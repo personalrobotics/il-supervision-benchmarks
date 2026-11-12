@@ -5,10 +5,10 @@ installed.
 
 - identity: the plugin's HistoryObservation, fed the source's recorded positions frame by frame, reproduces every
   derived row exactly;
-- replay: each demonstration placed at its first frame's pose (reference.py's rigid fit) and stepped with its recorded
+- replay: each demonstration placed at its first frame's pose (pose.py's rigid fit) and stepped with its recorded
   actions through the wrapped simulator reproduces its derived rows; the median episode's largest error must stay
   below 1e-3 px in both frames (drift on contact-rich episodes is reported, not gated);
-- rest: every evaluation start (the pilot's 100 seeds) resets the agent and the T at rest, so repeating the first frame
+- rest: every evaluation start (protocol.json's 100 seeds) resets the agent and the T at rest, so repeating the first frame
   as its own predecessor is the true history;
 - discovery: LeRobot's own plugin import finds env type pusht_history, and its vector env observes 4 + 32 values,
   the first observation's two frames equal.
@@ -18,13 +18,12 @@ import json
 import sys
 from pathlib import Path
 
+import lerobot_env_pusht_history as plugin
 import numpy as np
+import pose
 import pyarrow.parquet as pq
 
-sys.path.insert(0, str(Path(__file__).parents[1] / "pusht_pilot"))
-from reference import EVAL, fit_pose, local_keypoints  # noqa: E402
-
-import lerobot_env_pusht_history as plugin  # noqa: E402
+EVAL = json.loads((Path(__file__).parent / "protocol.json").read_text())["evaluation"]
 
 KEYS = (("agent_pos", "observation.state"), ("environment_state", "observation.environment_state"))
 
@@ -56,7 +55,6 @@ def main(source, derived, out):
     while not isinstance(w, plugin.HistoryObservation):
         w = w.env
     u = w.env.unwrapped
-    local = local_keypoints(gym.make("gym_pusht/PushT-v0", obs_type="environment_state_agent_pos"))
 
     ident, replay = [], []
     if len(der) != len(src):
@@ -73,8 +71,8 @@ def main(source, derived, out):
         ident.append(np.max([errors(aug[i + 1], {c: d[c][i] for _, c in KEYS}) for i in range(n - 1)], axis=0))
         # replay: the simulator through the wrapper
         env.reset(seed=0)
-        angle, t, _ = fit_pose(local, s["observation.environment_state"][0].reshape(8, 2))
-        u.block.angle, u.block.position = angle, t.tolist()
+        x, y, angle = pose.fit(s["observation.environment_state"][:1])[0]
+        u.block.angle, u.block.position = float(angle), [float(x), float(y)]
         u.agent.position, u.agent.velocity = s["observation.state"][0].tolist(), (0, 0)
         w.prev = None
         w.augment(u.get_obs())

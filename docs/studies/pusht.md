@@ -57,9 +57,9 @@ current position alone, to 24.2 px. Chunking and observation history recover wha
 
 CCIL's labels are one (state, action) pair each, so the learner must predict one action.
 
-- **Point regression fails closed loop.** Single-frame ACT on a velocity-aware state cut held-out action error to about
-  10 px. On 50 starts, though, no checkpoint through 80k scored above 0.084, against 0.049 for holding still. A
-  regressor averages PushT's several valid pushes, and the averaged action drifts.
+- **Point regression fails closed loop.** Single-action regression on the two-frame history state cut held-out action
+  error to about 10 px. On 50 starts, though, no checkpoint through 80k scored above 0.084, against 0.049 for holding
+  still. A regressor averages PushT's several valid pushes, and the averaged action drifts.
 - **IBC succeeds.** The learner is an energy MLP over [o_{t−1}, o_t, a] (4 × 1024), trained by InfoNCE against 1024
   uniform negatives, with sampling-and-refinement inference. It ports the published PushT low-dimensional IBC and
   runs as a LeRobot plugin. Checkpoints are selected by held-out InfoNCE and never by simulator returns.
@@ -193,18 +193,13 @@ Compact records, each naming the sha256 of the original files it was extracted f
 The complete records, including every run's logs and per-unit files and the development history, are at tag
 [`pusht-evidence-archive-v1`](https://github.com/personalrobotics/il-supervision-benchmarks/tree/pusht-evidence-archive-v1).
 
-To reproduce, run from a clean checkout on a CUDA host. Use a LeRobot 0.6.1 environment (`dataset`, `pusht`,
-`training` extras) with this repository's plugins installed:
-`uv pip install tools/pusht_v2/env_plugin tools/pusht_v2/ibc_plugin`.
+The study's runners, gates and probes are at that tag too. To reproduce the study exactly, check it out and follow
+its `docs/studies/pusht-v2.md`. This tree keeps the reusable pieces:
 
-```bash
-uv run python tools/pusht_v2/gate.py --protocol tools/pusht_v2/gate_fast.json --root runs/<timestamp>-gate \
-    --source <lerobot/pusht_keypoints at ace8c161> --lerobot-python <that environment>/bin/python
-uv run python tools/pusht_v2/study.py --root runs/<timestamp>-study \
-    --source <lerobot/pusht_keypoints at ace8c161> --lerobot-python <that environment>/bin/python
-uv run --with matplotlib==3.10.9 python tools/pusht_v2/lesson_figures.py draw --check
-```
-
-Each runner refuses an installed plugin that differs from the checkout's, and it resumes a stopped root without
-recomputing verified work. `--smoke` exercises every stage in minutes. The first protocol's runner and references are
-in [`tools/pusht_pilot`](../../tools/pusht_pilot/run.py).
+- [`env_plugin`](../../tools/pusht_v2/env_plugin) and [`ibc_plugin`](../../tools/pusht_v2/ibc_plugin): the LeRobot
+  history-state environment and the IBC policy (`uv pip install` both into a LeRobot 0.6.1 environment);
+- [`derive.py`](../../tools/pusht_v2/derive.py): the two-frame history dataset from `lerobot/pusht_keypoints`;
+- [`pose.py`](../../tools/pusht_v2/pose.py): conversion between the T's keypoints and its rigid pose;
+- [`check.py`](../../tools/pusht_v2/check.py): the check that simulator evaluation computes the derived features;
+- [`lesson_figures.py`](../../tools/pusht_v2/lesson_figures.py): the figures, regenerated from `lesson/` with
+  `uv run --with matplotlib==3.10.9 python tools/pusht_v2/lesson_figures.py draw --check`.
