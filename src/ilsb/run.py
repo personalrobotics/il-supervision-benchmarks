@@ -41,8 +41,19 @@ class Refused(SystemExit):
 
 
 # --- protocol ---------------------------------------------------------------------------------------------------------
+def study_of(spec: dict):
+    """The study module of a specification whose task declares a kind (None: the Pendulum study in this file)."""
+    if spec.get("task", {}).get("kind") == "pusht":
+        from .studies import pusht_surface
+        return pusht_surface
+    return None
+
+
 def load_spec(path: Path) -> dict:
-    spec = yaml.safe_load(Path(path).read_text())
+    text = Path(path).read_text()  # a .json specification is JSON (YAML 1.1 would read 1e-06 as a string)
+    spec = json.loads(text) if Path(path).suffix == ".json" else yaml.safe_load(text)
+    if study_of(spec) is not None:
+        return study_of(spec).load_spec(spec)
     need = {"study", "task", "data", "split", "real_fractions", "synthetic_doses", "arms", "seeds", "generation",
             "learner", "analysis", "compute"}
     if set(spec) - need - {"dynamics", "surface_seeds"} or need - set(spec):
@@ -125,10 +136,12 @@ def environment(device: str) -> dict:
 
 
 class Context:
-    def __init__(self, spec_path: Path, root: Path, store: Path | None, allow_dirty: bool):
+    def __init__(self, spec_path: Path, root: Path, store: Path | None, allow_dirty: bool, options: dict | None = None):
         self.spec_path, self.root = Path(spec_path).resolve(), Path(root).resolve()
         self.spec = load_spec(self.spec_path)
-        self.task = Task(**self.spec["task"])
+        self.study, self.options = study_of(self.spec), options or {}
+        self.task = Task(**self.spec["task"]) if self.study is None else None
+        self.runners = RUNNERS if self.study is None else self.study.RUNNERS
         self.device = self.spec["compute"]["device"]
         state = code_state()
         if state["dirty"] and not allow_dirty:
@@ -138,6 +151,8 @@ class Context:
         # Every store identity carries the implementation (harness source, ccil commit, lock) and the environment.
         self.scope = {"ilsb_source_sha256": source_sha256(), "ccil": state["ccil"],
                       "uv_lock_sha256": state["uv_lock_sha256"], "environment": environment(self.device)}
+        if self.study is not None:
+            self.scope |= self.study.scope(self)
         self.store = Store(Path(store).resolve() if store else self.root / "store", self.scope)
         self.protocol = {"spec": self.spec, "spec_sha256": sha256_file(self.spec_path), "code": state,
                          "scope": self.scope, "allow_dirty": allow_dirty}
@@ -576,7 +591,7 @@ RUNNERS = {"preflight": preflight, "train": train, "audit": audit, "evaluate": e
 def run_stage(ctx, stage: str) -> dict:
     require(ctx, stage)
     try:
-        rep = RUNNERS[stage](ctx)
+        rep = ctx.runners[stage](ctx)
     except StoreError as e:  # a refused reuse or a corrupted entry: the stage fails closed, with its report
         rep = {"all_pass": False, "error": str(e)}
     return record(ctx, stage, rep)
@@ -609,6 +624,15 @@ def main(argv=None) -> int:
         p.add_argument("--root", type=Path, required=True)
         p.add_argument("--store", type=Path)
         p.add_argument("--allow-dirty", action="store_true", help="smoke and fixture runs only; recorded")
+        p.add_argument("--gpus", default="", help="PushT train stage: comma-separated GPU slots, an id once per "
+                                                  "concurrent unit (0,0,1,1); empty collects units trained elsewhere")
+    un = sub_.add_parser("unit", help="PushT: train one unit of the design (a Slurm array task)")
+    un.add_argument("spec", type=Path)
+    un.add_argument("--root", type=Path, required=True)
+    un.add_argument("--store", type=Path)
+    un.add_argument("--key", required=True)
+    un.add_argument("--gpu")
+    un.add_argument("--allow-dirty", action="store_true")
     pol = sub_.add_parser("policy").add_subparsers(dest="policy_cmd", required=True)
     pol.add_parser("train", help="one vector policy on CCIL supervision (moved from ccil policy train)",
                    description=policy_cmd.__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
@@ -616,7 +640,12 @@ def main(argv=None) -> int:
     a = ap.parse_args(argv)
     if a.cmd == "policy":
         return policy_cmd.main(a.config)
-    ctx = Context(a.spec, a.root, a.store, a.allow_dirty)
+    if a.cmd == "unit":
+        ctx = Context(a.spec, a.root, a.store, a.allow_dirty)
+        if ctx.study is None:
+            raise Refused("refused: ilsb unit is for the PushT study")
+        return ctx.study.train_unit(ctx, a.key, a.gpu)
+    ctx = Context(a.spec, a.root, a.store, a.allow_dirty, {"gpus": [g for g in a.gpus.split(",") if g]})
     if a.cmd == "run":
         done = run_all(ctx)
         print(json.dumps(done))

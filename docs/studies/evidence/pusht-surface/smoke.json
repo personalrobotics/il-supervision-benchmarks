@@ -1,0 +1,243 @@
+{
+ "all_pass": true,
+ "chain": {
+  "all_pass": true,
+  "audit": {
+   "all_pass": true,
+   "problems": {}
+  },
+  "evaluation_audit": {
+   "all_pass": true,
+   "problems": {},
+   "repeat_within_tolerance": true
+  },
+  "pool": {
+   "ccil_counts": {
+    "accepted": 9151,
+    "admitted": 1,
+    "by_classification": null,
+    "candidates": 9224,
+    "rejected_by_reason": {
+     "action_out_of_bounds": 4,
+     "generation_failed": 69,
+     "non_finite": 0,
+     "out_of_support": 0
+    }
+   },
+   "decode_drift_px": 4.715183604275808e-05,
+   "held_out_current_frames": 0,
+   "nearest_real_distance": {
+    "10": 33.14343238763001,
+    "100": 749.2006749908408,
+    "50": 86.07368515724782,
+    "90": 349.3314998633524
+   },
+   "outside_frozen_range_fraction": {
+    "action": 0.004371106982843405,
+    "observation.environment_state": 0.1682876188394711,
+    "observation.state": 0.01595454048737843
+   },
+   "previous_slot_displacement_px": {
+    "10": 16.6968994140625,
+    "100": 343.42059326171875,
+    "50": 41.86729431152344,
+    "90": 180.64332580566406
+   },
+   "problems": [],
+   "proposals": 9224,
+   "residual": {
+    "10": 1.7026532940352292e-06,
+    "100": 9.932763788509656e-05,
+    "50": 3.5591463929714334e-06,
+    "90": 6.7755278450760905e-06
+   },
+   "selected": 9151,
+   "transitions": 2306,
+   "usable_fraction": 0.9920858629661752,
+   "violations": {
+    "invariant": 0,
+    "residual": 0,
+    "rigidity": 0
+   }
+  },
+  "preflight": {
+   "held_out_frames": 5109,
+   "planned_units": 3,
+   "real_rows": {
+    "r0.1": 2323
+   },
+   "subsets": {
+    "r0.1": [
+     30,
+     33,
+     34,
+     36,
+     54,
+     55,
+     83,
+     89,
+     102,
+     117,
+     133,
+     136,
+     141,
+     165,
+     177,
+     188,
+     200
+    ]
+   }
+  },
+  "stages": {
+   "audit": "pass",
+   "evaluate": "pass",
+   "evaluation_audit": "pass",
+   "preflight": "pass",
+   "report": "pass",
+   "train": "pass"
+  },
+  "units": {
+   "bc/r0.1/a0/s1": {
+    "exposure": {
+     "real_rows": 512000,
+     "steps": 2000,
+     "synthetic_rows": 0
+    },
+    "index_sha256": {
+     "1000": "05f23075a510c59cfad5df49d88668a92e77f7ca2e722c46c7a199f2a15120bc",
+     "1250": "2f854030945e5c5c7dd40c8f50a06b3c4f126c7eef8f65741115733a90a962ee",
+     "1500": "513e85d27f59e8a90e2fe4dbd8ed3d0245665c9ca81726b040e363fd6552d6ef",
+     "1750": "5f76ba90451b59441452326e3cbe4d705f17dfaf81745b6f17db1a869e4a486a",
+     "2000": "64890d73c2f87d9d6b72bd7edd26794ef085a1b07660776c090531bf3f356e7d",
+     "250": "6673ee617fbfc7c3f5f697c81c6f17c2dcdff394e7a93949c104278d8fac4734",
+     "500": "e8d3ec455e77bde0a284afb522a008cc1fcf3ac89c50e8e02090f3e7d96f1b49",
+     "750": "39f6b73816f2751680bfd7a34cd23c77b71a0cbb45159c447ad392744757a46c"
+    },
+    "infonce": {
+     "1000": 3.0133926350616806,
+     "1250": 3.004881642882804,
+     "1500": 2.98342096007395,
+     "1750": 2.9980965830339383,
+     "2000": 3.002101613025085,
+     "250": 3.6739273731618463,
+     "500": 3.2602964714679916,
+     "750": 3.076061735951602
+    },
+    "model_sha256": "1cc1ee59de6b28c62890e915331807c8ddddcb60ca9db39a34cd5a20b2304599",
+    "outcome": "complete",
+    "per_batch": {
+     "real": 256,
+     "synthetic": 0
+    },
+    "reached": 2000,
+    "rows": {
+     "real": 2323,
+     "synthetic": 0
+    },
+    "selected_step": 1500
+   },
+   "ccil/r0.1/a0.8/s1": {
+    "exposure": {
+     "real_rows": 102000,
+     "steps": 2000,
+     "synthetic_rows": 410000
+    },
+    "index_sha256": {
+     "1000": "cbcb57f6e23c93832d3615708d3fb9d3f2c18d11ea302f4839d28758674196b0",
+     "1250": "5d360e00f59e167a33495a2eaf15f97ebc8bb4d73a7bb2fd02acb2a7ab59fe25",
+     "1500": "1971612790a5d4a2efd81e80aae1ce66c01e3465c4ed91af5006bfc07e0272ac",
+     "1750": "263fea285f5c720e6a50fa6bfc49a48457ce3a9bcfe04e6d64d5af5d98eb8d24",
+     "2000": "d429ce518145d0f86942c8405687b4791116258ff5e12e7f0cc3c7514194a7d1",
+     "250": "5f8fcfd8ab063f82d53e044233ffd740aef96ca4272a38c5fe03c77264293a3e",
+     "500": "e4da2ad1632476c99dec494dee4c3838283ea8159c4354dcbd2f892ce2662672",
+     "750": "0666dc2c272e03d502aefdb7d1d789589f4c92696183e5ac33cc339df5af2e9c"
+    },
+    "infonce": {
+     "1000": 3.276809371688474,
+     "1250": 3.3341554069042463,
+     "1500": 3.3450383997652997,
+     "1750": 3.346868889073461,
+     "2000": 3.3498942807337198,
+     "250": 3.751020599097556,
+     "500": 3.3565263605894793,
+     "750": 3.285626084000356
+    },
+    "model_sha256": "6ae16203cae1d7191483d92e55758b7c4450bde3924ea2d8cefe831b4df3fd4b",
+    "outcome": "complete",
+    "per_batch": {
+     "real": 51,
+     "synthetic": 205
+    },
+    "reached": 2000,
+    "rows": {
+     "real": 2323,
+     "synthetic": 9151
+    },
+    "selected_step": 1000
+   },
+   "duplication/r0.1/a0.8/s1": {
+    "exposure": {
+     "real_rows": 102000,
+     "steps": 2000,
+     "synthetic_rows": 410000
+    },
+    "index_sha256": {
+     "1000": "cbcb57f6e23c93832d3615708d3fb9d3f2c18d11ea302f4839d28758674196b0",
+     "1250": "5d360e00f59e167a33495a2eaf15f97ebc8bb4d73a7bb2fd02acb2a7ab59fe25",
+     "1500": "1971612790a5d4a2efd81e80aae1ce66c01e3465c4ed91af5006bfc07e0272ac",
+     "1750": "263fea285f5c720e6a50fa6bfc49a48457ce3a9bcfe04e6d64d5af5d98eb8d24",
+     "2000": "d429ce518145d0f86942c8405687b4791116258ff5e12e7f0cc3c7514194a7d1",
+     "250": "5f8fcfd8ab063f82d53e044233ffd740aef96ca4272a38c5fe03c77264293a3e",
+     "500": "e4da2ad1632476c99dec494dee4c3838283ea8159c4354dcbd2f892ce2662672",
+     "750": "0666dc2c272e03d502aefdb7d1d789589f4c92696183e5ac33cc339df5af2e9c"
+    },
+    "infonce": {
+     "1000": 3.0166782571681328,
+     "1250": 3.0379086178223416,
+     "1500": 3.0139253464251987,
+     "1750": 3.0089119954997545,
+     "2000": 3.010777363335806,
+     "250": 3.6891038343149942,
+     "500": 3.200626959222524,
+     "750": 3.057660004208993
+    },
+    "model_sha256": "710fd4c177e02c38b29a95187271437d0879f6dc2a02c88a9ac0965dc27ff6a3",
+    "outcome": "complete",
+    "per_batch": {
+     "real": 51,
+     "synthetic": 205
+    },
+    "reached": 2000,
+    "rows": {
+     "real": 2323,
+     "synthetic": 9151
+    },
+    "selected_step": 1750
+   }
+  }
+ },
+ "equivalence": {
+  "identical": true,
+  "learner_model_sha256": "4074333056b3102e7d3945f96ddcfa67a6332520cc97e330d88b34090d20b4d4",
+  "lerobot_train_model_sha256": "4074333056b3102e7d3945f96ddcfa67a6332520cc97e330d88b34090d20b4d4",
+  "real_rows": 2323,
+  "seed": 99,
+  "steps": 200
+ },
+ "failure": {
+  "failed_unit_named": true,
+  "failed_units": [
+   "duplication/r0.1/a0.8/s1"
+  ],
+  "killed": "duplication/r0.1/a0.8/s1",
+  "killed_unit_has_no_result": true,
+  "resume_all_pass": true,
+  "resumed_from_checkpoint": true,
+  "resumed_units_equal_root_A": true,
+  "stopped_within_60_s": true,
+  "store_entries_after_failure": 0,
+  "train_stage_passed": false
+ },
+ "gpu": "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition",
+ "spec_sha256": "583d2b81249053fc2ccf961eb12bb91848fdeebb1161a1e22db1621c92005253"
+}
