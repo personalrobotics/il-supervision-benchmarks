@@ -1,7 +1,17 @@
 {
  "study": "pusht-oracle",
  "issue": 43,
- "cell": {"r": 0.25, "alpha": 0.25, "subset_seed": 0, "seeds": [1, 2], "evaluation_start_seed": 1000, "episodes": 100},
+ "cell": {
+  "r": 0.25,
+  "alpha": 0.25,
+  "subset_seed": 0,
+  "seeds": [
+   1,
+   2
+  ],
+  "evaluation_start_seed": 1000,
+  "episodes": 100
+ },
  "base_spec": "tools/pusht_v2/surface.json",
  "proposals": {
   "pool_entry": "c30c0f98b1741162feda2165c83f47bd000ba81aabe22e003eef2702e5e65691",
@@ -11,25 +21,87 @@
   "proposals": 19996,
   "learned_labels": 19982
  },
- "probe_sha256": "6224abab054f9b80c5e4d2cae43930addc0054b1b3356a014bbdd58b9e08e56c",
- "simulator": {"gym_pusht": "0.1.8", "pymunk": "6.11.1", "env": "gym_pusht/PushT-v0", "dt": 0.01, "substeps": 10,
-               "k_p": 100, "k_v": 20, "damping": 0.0,
-               "fresh_state": "new space; agent position and velocity; T angle, then position; T velocity and angular velocity; no settling step"},
- "replay": {"tolerance_px": 0.001, "reset": "reset_to_state iterated 5 times so the body pose equals the recorded pose",
-            "require": ["t", "t+1"]},
- "solve": {"unknowns": "agent vx, vy; T vx, vy, omega at the source positions",
-           "init": "the replayed demonstration velocity v_t", "method": "newton", "max_iterations": 20,
-           "jacobian": "central finite differences", "fd_step": 0.001, "line_search_halvings": 8,
-           "tolerance_px": 0.05},
- "decode": {"previous_slot": "q_{t-1} + (v_t - v') * 0.1", "current_slot": "the source frame's own",
-            "keypoints": "pose.keypoints"},
- "validity": {"arena": [7, 504], "agent_radius": 15,
-              "reasons": ["source_not_verified", "solve_failed", "non_finite", "outside_arena", "interpenetration", "invariant"]},
+ "probe_sha256": "049272ac2eb5c100fb56ee91f2d25a9e36e92fe4694cdead3d3cb1fd85dbd2a3",
+ "simulator": {
+  "gym_pusht": "0.1.8",
+  "pymunk": "6.11.1",
+  "env": "gym_pusht/PushT-v0",
+  "dt": 0.01,
+  "substeps": 10,
+  "k_p": 100,
+  "k_v": 20,
+  "damping": 0.0,
+  "fresh_state": "new space; agent position and velocity; T angle, then position; T velocity and angular velocity; no settling step"
+ },
+ "replay": {
+  "tolerance_px": 0.001,
+  "reset": "reset_to_state iterated 5 times so the body pose equals the recorded pose",
+  "require": [
+   "t",
+   "t+1"
+  ]
+ },
+ "solve": {
+  "unknowns": "u = (agent vx, vy, T vx, vy, l*omega), px/s, at the source positions",
+  "residual": "r = (agent dx, dy, T dx, dy, l*wrap(dtheta)), px; wrap to (-pi, pi]",
+  "l_px": 120.93386622447825,
+  "init": "the demonstration's replayed u",
+  "method": "newton",
+  "max_iterations": 20,
+  "jacobian": "central finite differences of r in u",
+  "fd_step": 0.001,
+  "line_search": "halve up to 8 times while ||r||_2 does not decrease",
+  "converged": "distance to the successor <= tolerance_px",
+  "singular": "cond_2(J) > 1e10 at any iteration",
+  "tolerance_px": 0.05
+ },
+ "decode": {
+  "previous_slot": "q_{t-1} + (v_t - v') * 0.1",
+  "current_slot": "the source frame's own",
+  "keypoints": "pose.keypoints"
+ },
+ "validity": {
+  "arena": [
+   7,
+   504
+  ],
+  "agent_radius": 15,
+  "reasons": [
+   "source_not_verified",
+   "singular_jacobian",
+   "solve_failed",
+   "fails_actual_history",
+   "non_finite",
+   "outside_arena",
+   "interpenetration",
+   "invariant"
+  ]
+ },
  "distance": "max of the agent displacement and the T's largest keypoint displacement, px",
- "stage_a": {"scale_px": 2.773829975752033, "scale": "10th percentile of demonstration frame spacing (probe)",
-             "min_common_rows": 64, "novelty": "median previous-slot displacement from the source > scale",
-             "indistinguishable": "median oracle-learned previous-slot disagreement <= scale: stop without training"},
- "stage_b": {"arms": ["bc", "duplication", "learned_ccil", "oracle_ccil"], "primary": "oracle_ccil - duplication, per seed",
-             "established": "positive on both seeds", "max_new_synthetic_units": 6},
- "not_read": ["D_test (seeds 5000-5099)"]
+ "stage_a": {
+  "scale_px": 2.773829975752033,
+  "scale": "10th percentile of demonstration frame spacing (probe)",
+  "min_common_rows": 64,
+  "novelty": "median previous-slot displacement from the source > scale",
+  "indistinguishable": "median oracle-learned previous-slot disagreement <= scale: stop without training"
+ },
+ "stage_b": {
+  "arms": [
+   "bc",
+   "duplication",
+   "learned_ccil",
+   "oracle_ccil"
+  ],
+  "primary": "oracle_ccil - duplication, per seed",
+  "established": "positive on both seeds",
+  "max_new_synthetic_units": 6
+ },
+ "not_read": [
+  "D_test (seeds 5000-5099)"
+ ],
+ "oracle": "latent-state-assisted oracle with a fixed history decoder; history realizability not verified",
+ "operators": {
+  "fresh": "one step under the action from a freshly built state (no contact history): the solve",
+  "actual_history": "the demonstration replayed continuously from its first frame (same reset) to frame t, velocities substituted, one step under the action: acceptance"
+ }
 }

@@ -1,5 +1,10 @@
 # PushT oracle-dynamics ceiling for one-step CCIL (protocol)
 
+**The oracle.** The oracle arm is a **latent-state-assisted oracle with a fixed history decoder**:
+- its labels are exact for the simulator, verified in the demonstration's own contact history;
+- each label's previous history slot is a fixed first-order encoding of the solved velocity, not a demonstrated or
+  verified realizable history.
+
 This is the protocol of [#43](https://github.com/personalrobotics/il-supervision-benchmarks/issues/43). It is frozen
 before any oracle label is generated and before any new learner outcome is read. The machine-readable form is
 [`tools/pusht_v2/oracle.json`](../../tools/pusht_v2/oracle.json).
@@ -55,6 +60,9 @@ The pre-protocol evidence is [`evidence/pusht-oracle/probe.json`](evidence/pusht
   set directly and no contact history:
   - steps without contact: 99th percentile 0.0005 px, maximum 0.014 px;
   - steps with contact: 99th percentile 0.024 px, maximum 0.33 px. pymunk's contact cache is the difference.
+- **Velocity substitution.** Reassigning velocities in a live replay keeps its contact cache intact. A second replay
+  run in lockstep, with its velocities reassigned before every step, equals the plain replay bitwise on all 4,999
+  steps.
 - **Spacing.** The demonstrations' frame-to-frame displacement has a 10th percentile of 2.77 px and a median of
   7.85 px.
 
@@ -66,19 +74,34 @@ Distances are the larger of the agent's displacement and the T's largest keypoin
 recorded positions q_t and the demonstration's true velocities v_t. A proposal is usable only if frames t and t + 1
 are both replay-verified within 10⁻³ px. Otherwise it is rejected as `source_not_verified`.
 
-**Exact dynamics.** One step from a fresh state (as above) under ã. A label's residual is its distance from the
-recorded successor q_{t+1}. The label is exact when that residual is at most **τ = 0.05 px**: about twice the
-99th percentile of the demonstrations' own fresh-step residual with contact.
+**Two operators.** A label is solved in one operator and accepted in the other.
+- **The fresh operator** steps once under ã from a freshly built state, with no contact history.
+- **The actual-history operator** replays the demonstration in one continuous simulation, from its first frame (the
+  same reset) to frame t. It then substitutes the label's velocities for the replay's own and steps once under ã. Its
+  contact cache is the demonstration's own at t.
 
-**The solve.**
-- **Unknowns:** the velocities v′ at the source positions q_t, in five dimensions: agent (vx, vy), T (vx, vy) and ω.
-- **Equations:** five, the successor positions q_{t+1}.
+A label's residual in either operator is its distance from the recorded successor q_{t+1}. The tolerance is
+**τ = 0.05 px**, about twice the 99th percentile of the demonstrations' own fresh-step residual with contact. The
+demonstrations' own actual-history step is their replay, within 10⁻³ px.
+
+**The solve,** in the fresh operator.
+- **Unknowns:** u = (agent vx, vy, T vx, vy, ℓ·ω) in px/s, at the source positions q_t.
+- **Residual:** r = (agent Δx, Δy, T Δx, Δy, ℓ·wrap(Δθ)) in px. Each Δ is the step's result minus q_{t+1}, wrap maps
+  an angle to (−π, π], and ℓ = 120.93 px is the largest keypoint radius max_i |LOCAL_i|. So ℓ·Δθ bounds the
+  keypoint motion that rotation causes.
 - **Method:**
-  - Newton's method, starting from the demonstration's v_t, with at most 20 iterations;
-  - a central finite-difference Jacobian, with a step of 10⁻³ px/s or rad/s in each component;
-  - a backtracking line search that halves the step up to 8 times whenever the residual does not decrease.
-- **Failure:** the label is rejected as `solve_failed` if the residual exceeds τ after the cap, if any value is
-  non-finite, or if the Jacobian is singular.
+  - Newton's method on r, starting from the demonstration's own u, with at most 20 iterations;
+  - J = ∂r/∂u by central finite differences, with a step of 10⁻³ px/s in each component of u;
+  - a backtracking line search that halves the step up to 8 times while ‖r‖₂ does not decrease.
+  - The solve converges when the distance from q_{t+1} is at most τ.
+- **Singular Jacobian:** at any iteration, the 2-norm condition number of J exceeds 10¹⁰. The label is rejected as
+  `singular_jacobian`.
+- **Failure:** if the solve has not converged after the cap, or produces a non-finite value, the label is rejected as
+  `solve_failed`.
+
+**Acceptance,** in the actual-history operator. A converged label is stepped through the actual-history operator, and
+it is **exact** only if that step also reaches q_{t+1} within τ. A label that converges in the fresh operator but
+misses here is rejected as `fails_actual_history` and counted separately.
 
 Without contact, the T's velocity is then (q_{t+1} − q_t)/0.1 and the agent's is fixed by its linear PD dynamics. The
 oracle label differs from the source only where the dynamics allow it to.
@@ -161,9 +184,12 @@ oracle ceiling is established only if it is positive on both seeds.
 With two seeds the report gives the paired values and their mean, with no interval and no population claim.
 
 **Decision.**
-- **Oracle does not beat duplication on both seeds:** stop. Dynamics-model accuracy is not the main explanation in this
-  cell; the limit lies in the generator, the placement, the exposure or the learner interaction.
-- **Oracle beats duplication but learned does not:** model fidelity is a demonstrated bottleneck. Any learned-model
+- **Oracle does not beat duplication on both seeds:** stop. **This oracle completion did not help in this cell.** The
+  result does not rule out dynamics-model error in general, because the oracle's history slot is a fixed decoding
+  whose realizability is not verified. It does leave the generator, the placement, the exposure and the learner
+  interaction as the more likely limits.
+- **Oracle beats duplication but learned does not:** model fidelity is a demonstrated bottleneck in this
+  construction. Any learned-model
   follow-up gets its own protocol.
 - **Both beat duplication:** the construction has a positive development signal. Confirmation on untouched seeds
   belongs in a separate issue.
