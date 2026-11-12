@@ -1,0 +1,118 @@
+{
+ "accepted": 100871,
+ "conditioning": {
+  "condition": {
+   "10": 106.0018625393307,
+   "100": 2396.0748496564565,
+   "50": 274.66405045645007,
+   "90": 803.7914929887598
+  },
+  "sample": 2000,
+  "sigma_max": {
+   "10": 1.2874258360110022,
+   "100": 5.498710895270672,
+   "50": 2.2323047856652956,
+   "90": 3.4173594991432625
+  },
+  "sigma_min": {
+   "10": 0.003845898367734428,
+   "100": 0.044634817787511695,
+   "50": 0.0078103487402986175,
+   "90": 0.014569549918633273
+  }
+ },
+ "dataset": {
+  "episodes": 206,
+  "frames": 25444,
+  "round_trip_max_px": 4.715183604275808e-05
+ },
+ "displacement_from_source_accepted": {
+  "10": 7.506274786962819,
+  "100": 115.85206014088064,
+  "50": 17.029330520512843,
+  "90": 30.472446810131057
+ },
+ "invariant_error_accepted": {
+  "10": 0.0,
+  "100": 0.0,
+  "50": 0.0,
+  "90": 0.0
+ },
+ "pass": true,
+ "previous_slot_change_accepted": {
+  "10": 6.01959228515625,
+  "100": 74.72956657409668,
+  "50": 14.5838623046875,
+  "90": 27.058563232421875
+ },
+ "proposals": 100952,
+ "rejected_by_reason": {
+  "action_out_of_bounds": 81
+ },
+ "residual_accepted": {
+  "10": 2.6550360158474665e-06,
+  "100": 9.995923136883056e-05,
+  "50": 5.159531097978605e-06,
+  "90": 8.782463161711967e-06
+ },
+ "rigidity_error_accepted_px": {
+  "10": 5.303532617517703e-07,
+  "100": 5.303533470168986e-07,
+  "50": 5.303532901734798e-07,
+  "90": 5.303533043843345e-07
+ },
+ "spec": {
+  "ccil": {
+   "commit": "a995ff9b38ec0044917842c950d1718bfba7f0b7",
+   "config": "tools/pusht_v2/pusht.yaml with representation.modality state+state.pose"
+  },
+  "conditioning_sample": 2000,
+  "min_usable_fraction": 0.5,
+  "probe": "pusht-v2-pose-smoke-gate",
+  "rigidity": {
+   "reference_pair_distances_px": [
+    120.00000006371896,
+    123.69316867684651,
+    30.000000153672104,
+    54.083269062633626,
+    80.77747208088692,
+    141.5097171156759,
+    128.1600559166668,
+    30.00000020368995,
+    123.69316872604671,
+    80.77747186123922,
+    54.08326903735766,
+    128.16005614652295,
+    141.509716812079,
+    119.99999946964672,
+    74.99999990392631,
+    45.00000017700303,
+    100.62305883359664,
+    117.15374507976202,
+    44.999999576237876,
+    74.99999972813957,
+    117.1537446274483,
+    100.62305851095192,
+    29.999999825499252,
+    94.8683298747725,
+    89.99999978965724,
+    90.0000004659976,
+    94.86832987947162,
+    30.000000209582502
+   ],
+   "rule": "10 x the demonstrations' largest T-shape deviation (evidence/pusht-v2/development/preimage-probe/rigidity.json)",
+   "tolerance_px": 0.0004142825662256655
+  },
+  "root_tolerance": 0.0001,
+  "round_trip_tolerance_px": 0.0004142825662256655,
+  "rule": "pass iff stored poses decode to every frame's keypoints within round_trip_tolerance_px, at least min_usable_fraction of all proposals are usable (accepted, residual <= root_tolerance, history invariant within eps_struct, decoded T rigid in both slots), and no accepted label breaks the residual, the invariant or the rigidity. Pass: build the pose adapter into v2, smoke, freeze v2 otherwise unchanged. Fail: if the 5 x 5 previous-slot Jacobian is ill-conditioned (median condition above 1e3), a damped solve in pose space is measured and reported; otherwise the PushT CCIL arm stops. No tolerance is relaxed and no policy trains",
+  "sample_seed": 0
+ },
+ "usable": 100871,
+ "usable_fraction": 0.9991976384816547,
+ "violations": {
+  "invariant": 0,
+  "residual": 0,
+  "rigidity": 0
+ }
+}
