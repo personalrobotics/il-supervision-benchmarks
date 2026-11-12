@@ -48,8 +48,8 @@ So work done by other code, another lock or another environment is never reused.
 
 | Stage | What it checks or produces |
 |---|---|
-| preflight | The dataset matches its declared hash; the plan of units. |
-| train | Every policy unit, each group of seeds trained together through the learner adapter, in three steps (below): BC and the learned arm at every feasible σ of the grid, or at each coordinate's fixed σ; the σ selection; the exact arm at the selected σ. Each dose takes its own seeds: every seed at K = 0 and K_max, and the `surface_seeds` prefix at the doses between, when it is declared. Every unit must stop by the validation rule (patience at the plateau schedule's floor); a unit that reaches the step ceiling is an incomplete fit, and the stage fails. So does a coordinate with no feasible σ. |
+| preflight | The dataset matches its declared hash; the design, computed from the specification alone and consumed by every later stage: each unit with its seed role and the K_max candidate set it views, and each (r, seed)'s subset and split. |
+| train | Every policy unit, each group of seeds trained together through the learner adapter, in three steps (below): BC and the learned arm at every feasible σ of the grid, or at each coordinate's fixed σ; the σ selection; the exact arm at the selected σ. Each dose takes its own seeds: every seed at K = 0 and K_max, and the `surface_seeds` prefix at the doses between, when it is declared. Every unit must stop by the validation rule (patience at the plateau schedule's floor); a unit that reaches the step ceiling is an incomplete fit, and the stage fails. So does a coordinate with no feasible σ, or a design unit left without a policy. |
 | audit | Every trained unit is a verified entry. Its training identity, which hashes the supervision manifest with the dataset, split and candidate hashes, recomputes from the unit's own inputs. Its weights hash to the record, and its reported row (stopping, exposure, validation error) recomputes. Feasibility, the σ selection and the analysis units recompute to the reported ones. |
 | evaluate | One rollout per analysis unit from the task's fixed final-test starts, with its scores. Unselected σ candidates are never evaluated. |
 | evaluation_audit | Every rollout reopened. It checks hashes, shapes, starts and the action bound, replays every transition through the task map, and recomputes every score exactly. |
@@ -134,7 +134,7 @@ run:
   - refusals of a wrong dataset hash, a corrupted rollout, a report after a failed audit, a mismatched store entry, and an out-of-order stage;
   - the BC cell, reused under the same code and retrained under a copy of the installed harness whose source differs by one comment;
   - the BC cell under a step ceiling below any patience stop, which fails the train stage, after which the audit refuses;
-  - a σ grid with no generation failure tolerated, which trains exactly the feasible settings: one seed has a feasible and an infeasible σ, and the other, with none feasible, leaves its coordinate unselectable and fails the train stage.
+  - a σ grid with one feasible and one infeasible σ, whose failure fractions lie far on either side of `max_failure` (the support radius sits between their label distances), which trains only the feasible one; and the infeasible σ alone, which leaves every coordinate unselectable and fails the train stage.
 
   The fixture's docstring maps each protected failure to its check. The evidence counts every policy trained, and holds no paths, times or commits, so a rerun on the same host reproduces it byte for byte.
 

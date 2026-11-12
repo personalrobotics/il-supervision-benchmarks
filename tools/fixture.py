@@ -11,7 +11,8 @@ normalized height. Every other check reuses them or copies of them, and trains o
 numerical work. Each protected failure, and its check:
 
 - a numerical path breaks (dynamics fit, generation, training, evaluation, audits, analysis, report): the study.
-  Every stage passes, every arm trains and stops by patience, and every contrast has its BCa and t intervals.
+  Every stage passes, every arm trains and stops by patience, the train stage's analysis units are the ones
+  preflight reported, and every contrast has its BCa and t intervals.
 - the design plans the wrong units, seed roles or nesting: the planner. Preflight alone on 2 fractions x 3 doses x
   3 seeds plans 34 units, trains nothing, and matches the expected cells, seed roles, one K_max candidate set per
   (arm, r, seed) and nested subsets.
@@ -25,9 +26,9 @@ numerical work. Each protected failure, and its check:
   harness whose source differs by one comment.
 - a fit that hits its ceiling counts as a result: the BC cell under a ceiling below any patience stop fails the train
   stage, and the audit refuses.
-- an infeasible generation trains, or a coordinate without a feasible sigma passes: a sigma grid with no failure
-  tolerated trains exactly the feasible settings; one seed has a feasible and an infeasible sigma, and the other,
-  with none feasible, leaves its coordinate unselectable and fails the train stage.
+- an infeasible generation trains, or a coordinate without a feasible sigma passes: a sigma grid with one feasible
+  and one infeasible sigma (failure fractions far on either side of max_failure) trains only the feasible one, and
+  the infeasible sigma alone leaves every coordinate unselectable and fails the train stage.
 
 The written evidence holds no paths, times or commits, so a rerun on the same host reproduces it byte for byte. It
 counts every policy the fixture trained (each check's train stage reports its own).
@@ -49,7 +50,7 @@ from ilsb.store import sha256_file
 from ilsb.tasks.pendulum import Task, demonstrations
 
 TASK = {"variant": "continuous", "action_bound": 3.0, "horizon": 120, "eval_episodes": 8, "eval_seed": 9001}
-SIGMA, GATE_GRID = 0.005, [0.005, 1.0]
+SIGMA, SIGMA_INFEASIBLE = 0.005, 1.0
 LEARNER = {"hidden_layers": [32, 32], "learning_rate": 1e-3, "batch_size": 32, "epochs": 1,
            "observation_scaler": "standard", "action_scaler": "min_max", "balance_labels": None,
            "step_budget": 4000, "checkpoint_selection": "validation", "validation_interval_steps": 20,
@@ -64,9 +65,9 @@ SPEC = {
     "arms": ["bc", "ccil_learned", "ccil_exact"],
     "seeds": [1, 2],
     "dynamics": {"hidden_layers": [32, 32], "activation": "relu", "lipschitz_type": "none", "learning_rate": 1e-3,
-                 "weight_decay": 0.0, "epochs": 3, "batch_size": 64},
-    "generation": {"generator": "noisy_action_preimage", "max_failure": 0.05, "sigma": {"r1.0/k2": SIGMA},
-                   "support_radius": 0.5, "max_iterations": 30, "tolerance": 1e-8},
+                 "weight_decay": 0.0, "epochs": 100, "batch_size": 64},
+    "generation": {"generator": "noisy_action_preimage", "max_failure": 0.2, "sigma": {"r1.0/k2": SIGMA},
+                   "support_radius": 0.03, "max_iterations": 30, "tolerance": 1e-8},
     "learner": LEARNER,
     "analysis": {"metric": "normalized_height", "confidence": 0.95, "min_pairs": 2,
                  "contrasts": [["ccil_learned", "bc"], ["ccil_exact", "ccil_learned"]],
@@ -136,6 +137,7 @@ def main() -> int:
         set(ev["study"]["stages"].values()) == {"pass"} and all(ev["study"]["audits"].values())
         and ev["study"]["stopping_outcomes"] == ["patience"]
         and {u["arm"] for u in tr["units"].values()} == set(SPEC["arms"])
+        and set(stage(root, "preflight")["units"]) == set(tr["analysis"])
         and all(v["bca"] is not None for part in ("contrasts", "derived") for v in rep[part].values()))
 
     # 2. The planner: preflight alone on a multi-coordinate matrix; its unit plan against the design, nothing trained.
@@ -183,8 +185,8 @@ def main() -> int:
 
     # 4. Resume: the same command reruns no stage.
     p = run(main_spec, root, store)
-    ev["resume"] = {"exit": p.returncode, "stages": json.loads(p.stdout.strip().splitlines()[-1])}
-    ev["resume"]["pass"] = p.returncode == 0 and set(ev["resume"]["stages"].values()) == {"resumed"}
+    ev["resume"] = {"exit": p.returncode, "stages": json.loads(p.stdout.strip().splitlines()[-1]) if p.stdout else None}
+    ev["resume"]["pass"] = p.returncode == 0 and set((ev["resume"]["stages"] or {}).values()) == {"resumed"}
 
     # 5. Reuse across studies: a new root on the same store trains nothing and reports identically.
     root2 = work / "root-reuse"
@@ -274,31 +276,35 @@ def main() -> int:
                                         and tr6["incomplete_fit"] == sorted(tr6["units"]) and tr6["units"]
                                         and ev["incomplete_fit"]["audit_refused"])
 
-    # 9. Feasibility, with a sigma grid selected per (r, K, seed) and no genuine generation failure tolerated: every
-    # setting with any failure is generated but never trained, every feasible one trains, and a coordinate left with no
-    # feasible sigma is unselectable and fails the train stage. The check needs both cases to occur: a seed with a
-    # feasible and an infeasible sigma, and a seed with none feasible.
-    g_spec = write_spec(work / "spec-gate.yaml", {
-        **spec, "arms": ["bc", "ccil_learned"], "generation": {
-            **{k: v for k, v in spec["generation"].items() if k != "sigma"}, "sigma_grid": GATE_GRID,
-            "max_failure": 0.0},
-        "analysis": {**spec["analysis"], "contrasts": [["ccil_learned", "bc"]], "derived": []}})
-    p = run(g_spec, work / "r-gate", store)
-    t = stage(work / "r-gate", "train")
-    fits["feasibility"] = t["trained"]
-    setting = {k_: (int(k_.split("/")[2][1:]), float(k_.split("/")[3][5:])) for k_ in t["feasibility"]}
-    feasible = {setting[k_] for k_, v in t["feasibility"].items() if v["feasible"]}
-    infeasible = {setting[k_] for k_, v in t["feasibility"].items() if not v["feasible"]}
-    trained = {(u["seed"], u["sigma"]) for u in t["units"].values() if u["arm"] == "ccil_learned"}
-    without = sorted(f"r1.0/k2/s{s_}" for s_ in SPEC["seeds"] if not any(f[0] == s_ for f in feasible))
-    mixed = sorted({s_ for s_, _ in feasible} & {s_ for s_, _ in infeasible})
-    ev["feasibility"] = {"exit": p.returncode, "train_all_pass": t["all_pass"], "feasibility": t["feasibility"],
-                         "trained_settings": sorted(trained), "seeds_with_feasible_and_infeasible": mixed,
-                         "unselectable": t["unselectable"]}
-    ev["feasibility"]["pass"] = bool(
-        trained == feasible and not trained & infeasible and mixed and without and t["unselectable"] == without
-        and all(t["feasibility"][k_]["failure"] > 0 for k_ in setting if setting[k_] in infeasible)
-        and p.returncode != 0 and t["all_pass"] is False)
+    # 9. Feasibility, with a sigma grid selected per (r, K, seed). The support radius sits between the two sigmas' label
+    # distances, so the small sigma fails only by rare solve failures and the large one mostly falls outside the
+    # support, far on either side of max_failure. The grid trains only the feasible sigma (the study's units, reused);
+    # the infeasible sigma alone leaves every coordinate unselectable and fails the train stage.
+    gate = {}
+    for name_, sigmas in (("mixed", [SIGMA, SIGMA_INFEASIBLE]), ("infeasible_only", [SIGMA_INFEASIBLE])):
+        g_spec = write_spec(work / f"spec-gate-{name_}.yaml", {
+            **spec, "arms": ["bc", "ccil_learned"],
+            "generation": {**{k: v for k, v in spec["generation"].items() if k != "sigma"}, "sigma_grid": sigmas},
+            "analysis": {**spec["analysis"], "contrasts": [["ccil_learned", "bc"]], "derived": []}})
+        g_root = work / f"r-gate-{name_}"
+        p = run(g_spec, g_root, store)
+        t = stage(g_root, "train")
+        fits[f"feasibility_{name_}"] = t["trained"]
+        gate[name_] = {"exit": p.returncode, "train_all_pass": t["all_pass"], "feasibility": t["feasibility"],
+                       "trained_sigmas": sorted({u["sigma"] for u in t["units"].values()
+                                                 if u["arm"] == "ccil_learned"}),
+                       "trained": t["trained"], "unselectable": t["unselectable"]}
+    limit = spec["generation"]["max_failure"]
+    expected = {f"ccil_learned/r1.0/s{s_}/sigma{x}": x == SIGMA for s_ in SPEC["seeds"]
+                for x in (SIGMA, SIGMA_INFEASIBLE)}
+    mixed, alone = gate["mixed"], gate["infeasible_only"]
+    gate["pass"] = bool(
+        {k_: v["feasible"] for k_, v in mixed["feasibility"].items()} == expected
+        and all((v["failure"] <= limit) == v["feasible"] for g in (mixed, alone) for v in g["feasibility"].values())
+        and mixed["exit"] == 0 and mixed["trained_sigmas"] == [SIGMA] and mixed["trained"] == 0
+        and alone["exit"] != 0 and alone["train_all_pass"] is False and alone["trained_sigmas"] == []
+        and alone["trained"] == 0 and alone["unselectable"] == [f"r1.0/k2/s{s_}" for s_ in SPEC["seeds"]])
+    ev["feasibility"] = gate
 
     ev["policy_fits"] = {**fits, "total": sum(fits.values())}
     ev["all_pass"] = bool(all(ev[k]["pass"] for k in ("study", "planner", "exposure", "resume", "reuse",
