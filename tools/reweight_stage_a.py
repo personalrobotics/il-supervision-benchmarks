@@ -203,7 +203,7 @@ def prepare_v22(run: Path, inv: dict, src: dict, root: Path):
                   syn_transition=syn["ccil.source_index"].astype(np.int64), syn_candidate_row=cand,
                   syn_mask=sel["mask"][cand], syn_weight=sel["weight"][cand], syn_error=sel["error"][cand],
                   cmp_state=stack(dup, FEATURES[0]), cmp_env=stack(dup, FEATURES[1]), cmp_act=stack(dup, FEATURES[2]),
-                  cmp_weight=np.ones(len(dup)))
+                  cmp_weight=np.ones(len(dup["action"])))
 
 
 def prepare(run: Path, inputs: dict):
