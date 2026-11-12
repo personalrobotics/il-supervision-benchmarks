@@ -94,9 +94,10 @@ def main():
         spacing += distance(cur[1:], cur[:-1]).tolist()
         x0 = cur[0].copy()
         for _ in range(5):
-            env.reset(options={"reset_to_state": x0})
+            used = x0.copy()
+            env.reset(options={"reset_to_state": used})
             x0[2:5] += cur[0][2:5] - positions(env)[2:5]
-        twin.reset(options={"reset_to_state": x0})
+        twin.reset(options={"reset_to_state": used})  # the very reset the replay started from
         err = [float(distance(positions(env), cur[0])[0])]
         for t in range(len(r) - 1):
             s = full_state(env)
