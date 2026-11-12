@@ -182,6 +182,7 @@ def main() -> int:
     ap.add_argument("--work", type=Path, required=True)
     ap.add_argument("--out", type=Path)
     a = ap.parse_args()
+    a.work = a.work.resolve()  # unit.json paths are resolved against each unit's own directory
     if a.work.exists():
         raise SystemExit(f"{a.work} exists; use a new directory")
     if not PY:
