@@ -1,0 +1,348 @@
+{
+ "fresh_step": {
+  "contact_px": {
+   "10": 1.2629872726414005e-05,
+   "100": 0.3339166294236414,
+   "50": 0.000701180131400621,
+   "90": 0.00911212841073086,
+   "99": 0.023963666042299134
+  },
+  "exact_no_contact_fraction": 0.0,
+  "no_contact_px": {
+   "10": 7.6197068453671e-06,
+   "100": 0.014017548080248604,
+   "50": 1.8419173451948697e-05,
+   "90": 6.907114439664639e-05,
+   "99": 0.0005353941211725393
+  },
+  "steps": {
+   "contact": 2187,
+   "no_contact": 1802
+  }
+ },
+ "replay": {
+  "episodes": {
+   "102": {
+    "first_verified": 0,
+    "frames": 113,
+    "max_error_px": 3.2068856744602625,
+    "verified": 101
+   },
+   "105": {
+    "first_verified": 0,
+    "frames": 74,
+    "max_error_px": 2.9310296903803748,
+    "verified": 62
+   },
+   "110": {
+    "first_verified": 0,
+    "frames": 130,
+    "max_error_px": 3.153645878566482,
+    "verified": 118
+   },
+   "113": {
+    "first_verified": 0,
+    "frames": 148,
+    "max_error_px": 3.2650191232481927,
+    "verified": 136
+   },
+   "117": {
+    "first_verified": 0,
+    "frames": 115,
+    "max_error_px": 3.1136222162243032,
+    "verified": 103
+   },
+   "121": {
+    "first_verified": 0,
+    "frames": 136,
+    "max_error_px": 3.2649954412351514,
+    "verified": 124
+   },
+   "13": {
+    "first_verified": 0,
+    "frames": 124,
+    "max_error_px": 3.0751147871754556,
+    "verified": 112
+   },
+   "133": {
+    "first_verified": 0,
+    "frames": 130,
+    "max_error_px": 2.945971784123984,
+    "verified": 118
+   },
+   "136": {
+    "first_verified": 0,
+    "frames": 124,
+    "max_error_px": 3.2553870569539143,
+    "verified": 112
+   },
+   "141": {
+    "first_verified": 0,
+    "frames": 185,
+    "max_error_px": 3.3409578485237357,
+    "verified": 173
+   },
+   "143": {
+    "first_verified": 0,
+    "frames": 145,
+    "max_error_px": 2.9395791040742085,
+    "verified": 1
+   },
+   "161": {
+    "first_verified": 0,
+    "frames": 136,
+    "max_error_px": 3.2553949235721955,
+    "verified": 33
+   },
+   "163": {
+    "first_verified": 0,
+    "frames": 75,
+    "max_error_px": 3.307013299361784,
+    "verified": 63
+   },
+   "165": {
+    "first_verified": 0,
+    "frames": 192,
+    "max_error_px": 3.27079823622701,
+    "verified": 180
+   },
+   "172": {
+    "first_verified": 0,
+    "frames": 77,
+    "max_error_px": 3.1055484538206706,
+    "verified": 65
+   },
+   "177": {
+    "first_verified": 0,
+    "frames": 126,
+    "max_error_px": 3.123675494746306,
+    "verified": 114
+   },
+   "18": {
+    "first_verified": 0,
+    "frames": 85,
+    "max_error_px": 3.2937055482687754,
+    "verified": 1
+   },
+   "181": {
+    "first_verified": 0,
+    "frames": 106,
+    "max_error_px": 3.5525460960755386,
+    "verified": 1
+   },
+   "182": {
+    "first_verified": 0,
+    "frames": 55,
+    "max_error_px": 3.6377999202352354,
+    "verified": 1
+   },
+   "185": {
+    "first_verified": 0,
+    "frames": 63,
+    "max_error_px": 3.29370346851171,
+    "verified": 51
+   },
+   "188": {
+    "first_verified": 0,
+    "frames": 104,
+    "max_error_px": 3.3296770342071107,
+    "verified": 92
+   },
+   "193": {
+    "first_verified": 0,
+    "frames": 124,
+    "max_error_px": 3.161594157223002,
+    "verified": 112
+   },
+   "2": {
+    "first_verified": 0,
+    "frames": 140,
+    "max_error_px": 3.255396506842525,
+    "verified": 128
+   },
+   "200": {
+    "first_verified": 0,
+    "frames": 166,
+    "max_error_px": 3.255399958427469,
+    "verified": 154
+   },
+   "30": {
+    "first_verified": 0,
+    "frames": 83,
+    "max_error_px": 3.2553772607034337,
+    "verified": 71
+   },
+   "32": {
+    "first_verified": 0,
+    "frames": 147,
+    "max_error_px": 3.2784411943902323,
+    "verified": 135
+   },
+   "33": {
+    "first_verified": 0,
+    "frames": 119,
+    "max_error_px": 3.265019844945551,
+    "verified": 107
+   },
+   "34": {
+    "first_verified": 0,
+    "frames": 141,
+    "max_error_px": 3.2650373435394435,
+    "verified": 129
+   },
+   "35": {
+    "first_verified": 0,
+    "frames": 142,
+    "max_error_px": 3.3088983125651907,
+    "verified": 130
+   },
+   "36": {
+    "first_verified": 0,
+    "frames": 141,
+    "max_error_px": 3.355938215946782,
+    "verified": 129
+   },
+   "39": {
+    "first_verified": 0,
+    "frames": 98,
+    "max_error_px": 3.2955798984726665,
+    "verified": 86
+   },
+   "52": {
+    "first_verified": 0,
+    "frames": 135,
+    "max_error_px": 3.247699409105731,
+    "verified": 123
+   },
+   "54": {
+    "first_verified": 0,
+    "frames": 204,
+    "max_error_px": 3.2956133165708854,
+    "verified": 192
+   },
+   "55": {
+    "first_verified": 0,
+    "frames": 105,
+    "max_error_px": 3.30888810059058,
+    "verified": 93
+   },
+   "59": {
+    "first_verified": 0,
+    "frames": 121,
+    "max_error_px": 3.230252100120274,
+    "verified": 109
+   },
+   "78": {
+    "first_verified": 0,
+    "frames": 175,
+    "max_error_px": 3.3240299441018926,
+    "verified": 116
+   },
+   "82": {
+    "first_verified": 0,
+    "frames": 93,
+    "max_error_px": 3.1615795779559095,
+    "verified": 81
+   },
+   "83": {
+    "first_verified": 0,
+    "frames": 138,
+    "max_error_px": 3.2611763927115422,
+    "verified": 126
+   },
+   "88": {
+    "first_verified": 0,
+    "frames": 80,
+    "max_error_px": 3.2322060333458507,
+    "verified": 68
+   },
+   "89": {
+    "first_verified": 0,
+    "frames": 137,
+    "max_error_px": 3.1615837383013656,
+    "verified": 125
+   },
+   "90": {
+    "first_verified": 0,
+    "frames": 108,
+    "max_error_px": 3.2650246591171745,
+    "verified": 96
+   }
+  },
+  "error_px": {
+   "10": 9.032762311572296e-06,
+   "100": 3.6377999202352354,
+   "50": 2.272966475968255e-05,
+   "90": 0.14311615234132535,
+   "99": 3.15848543519403
+  },
+  "frames": 5040,
+  "tolerance_px": 0.001,
+  "verified_frames": 4071
+ },
+ "schema": "ilsb.pusht_oracle.probe 1",
+ "simulator": {
+  "damping": 0.0,
+  "dt": 0.01,
+  "gym_pusht": "0.1.8",
+  "k_p": 100,
+  "k_v": 20,
+  "pymunk": "6.11.1",
+  "substeps": 10
+ },
+ "source_content_sha256": "333a9b17ebfc6657591eb2b14a7f314200dd2ae1c743691802a319c1746e561d",
+ "spacing_px": {
+  "10": 2.773829975752033,
+  "100": 58.04388145882132,
+  "50": 7.852470415737275,
+  "90": 18.15350107551643,
+  "99": 28.70171028871576
+ },
+ "subset": {
+  "episodes": [
+   2,
+   13,
+   18,
+   30,
+   32,
+   33,
+   34,
+   35,
+   36,
+   39,
+   52,
+   54,
+   55,
+   59,
+   78,
+   82,
+   83,
+   88,
+   89,
+   90,
+   102,
+   105,
+   110,
+   113,
+   117,
+   121,
+   133,
+   136,
+   141,
+   143,
+   161,
+   163,
+   165,
+   172,
+   177,
+   181,
+   182,
+   185,
+   188,
+   193,
+   200
+  ],
+  "r": 0.25,
+  "seed": 0
+ }
+}
