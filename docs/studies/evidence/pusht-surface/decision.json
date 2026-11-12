@@ -1,0 +1,58 @@
+{
+ "cells": {
+  "r0.25/a0.25": {
+   "eligible": false,
+   "mean_ccil_minus_duplication": 0.0030139288702666356,
+   "per_seed": {
+    "1": {
+     "bc": 0.4076506800087316,
+     "ccil": 0.44505680288657773,
+     "ccil_minus_bc": 0.037406122877846115,
+     "ccil_minus_duplication": 0.03432733728595788,
+     "complete": true,
+     "duplication": 0.41072946560061985
+    },
+    "2": {
+     "bc": 0.4847795953967783,
+     "ccil": 0.45367606318125925,
+     "ccil_minus_bc": -0.031103532215519036,
+     "ccil_minus_duplication": -0.02829947954542461,
+     "complete": true,
+     "duplication": 0.48197554272668386
+    }
+   }
+  },
+  "r0.25/a0.8": {
+   "eligible": false,
+   "mean_ccil_minus_duplication": -0.010536376621961274,
+   "per_seed": {
+    "1": {
+     "bc": 0.4076506800087316,
+     "ccil": 0.4612821147497037,
+     "ccil_minus_bc": 0.053631434740972095,
+     "ccil_minus_duplication": 0.02633665951231401,
+     "complete": true,
+     "duplication": 0.4349454552373897
+    },
+    "2": {
+     "bc": 0.4847795953967783,
+     "ccil": 0.3979138365320272,
+     "ccil_minus_bc": -0.08686575886475106,
+     "ccil_minus_duplication": -0.04740941275623656,
+     "complete": true,
+     "duplication": 0.4453232492882638
+    }
+   }
+  }
+ },
+ "decision": {
+  "next": "stop",
+  "why": "no Stage 2 cell has CCIL above both duplication and BC on both development seeds; Stage 3 does not run"
+ },
+ "eligible": [],
+ "records_sha256": {
+  "docs/studies/evidence/pusht-surface/stage1.json": "b122c254739f72c0ff983c3b6916af588c61bab5023ed15e51b54eea74197ca5",
+  "docs/studies/evidence/pusht-surface/stage2.json": "2cd429c57b8ec2c3ed607a246a85da071d280bae73e6cca3ae387ef7f0ea465d"
+ },
+ "study": "pusht-surface-stage2-decision"
+}

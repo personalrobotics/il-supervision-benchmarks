@@ -1,7 +1,6 @@
-"""The PushT surface study's Stage 1 record and the Stage 2 specification derived from it (ilsb#5).
+"""The PushT surface study's stage records, the Stage 2 specification and the Stage 2 decision (ilsb#5).
 
-    python tools/pusht_v2/surface_stage2.py record --root RUN_ROOT --sacct SACCT.txt \
-        [--out docs/studies/evidence/pusht-surface/stage1.json]
+    python tools/pusht_v2/surface_stage2.py record --root RUN_ROOT --sacct SACCT.txt --out RECORD
     python tools/pusht_v2/surface_stage2.py derive [--record docs/studies/evidence/pusht-surface/stage1.json] \
         [--spec tools/pusht_v2/surface.json] [--out tools/pusht_v2/surface-stage2.json] [--check]
 
@@ -13,6 +12,12 @@ derive  re-applies the frozen Stage 1 rule (docs/studies/pusht-surface.md) to th
         independently of the harness's report stage, and refuses unless both agree. It then writes the Stage 2
         specification: the Stage 1 specification with the two selected cells, learner seed 2, and the counts they
         imply. --check compares with the committed file instead of writing it.
+
+    uv run --with matplotlib==3.10.9 python tools/pusht_v2/surface_stage2.py decide [--check]
+
+decide  applies the frozen Stage 2 rule to the Stage 1 and Stage 2 records (seeds 1 and 2), checking seed 2 against
+        the Stage 2 report, and writes decision.json (with both records' SHA-256) and the result figure,
+        pusht-surface-result.svg. --check regenerates both and compares them byte for byte.
 """
 import argparse
 import hashlib
@@ -21,6 +26,7 @@ import sys
 from pathlib import Path
 
 RATE_USD_PER_GPU_HOUR = 0.90
+EV = Path("docs/studies/evidence/pusht-surface")
 STAGES = ("preflight", "train", "audit", "evaluate", "evaluation_audit", "report")
 
 
@@ -66,7 +72,7 @@ def record(root: Path, sacct: Path) -> dict:
                  "avg_max_reward": ev["units"][k]["avg_max_reward"], "pc_success": ev["units"][k]["pc_success"],
                  "evaluation_entry": ev["units"][k]["entry"]}
              for k, v in tr["units"].items()}
-    return {"study": "pusht-surface-stage1",
+    return {"study": load(root / "root.json")["spec"]["study"],
             "protocol_sha256": manifest["protocol_sha256"],
             "spec_sha256": load(root / "root.json")["spec_sha256"],
             "code": pre["code"],
@@ -129,19 +135,142 @@ def derive(rec: dict, spec: dict) -> dict:
     return out
 
 
+def decide(rec1: dict, rec2: dict, spec2: dict) -> dict:
+    """The frozen Stage 2 rule: a cell stays eligible only if CCIL is above duplication and BC, with all three fits
+    complete, on both development seeds; none eligible stops the study, otherwise the largest mean CCIL - duplication
+    is selected with the tie rule. Seed 2's values are checked against the Stage 2 report."""
+    out, eligible = {}, {}
+    for r, al in spec2["cells"]:
+        per = {}
+        for s, rec in (("1", rec1), ("2", rec2)):
+            u = rec["units"]
+            c, d, b = (u[f"{arm}/r{r}/a{x}/s{s}"] for arm, x in (("ccil", al), ("duplication", al), ("bc", 0)))
+            per[s] = {"ccil": c["avg_max_reward"], "duplication": d["avg_max_reward"], "bc": b["avg_max_reward"],
+                      "ccil_minus_duplication": c["avg_max_reward"] - d["avg_max_reward"],
+                      "ccil_minus_bc": c["avg_max_reward"] - b["avg_max_reward"],
+                      "complete": all(x["outcome"] == "complete" for x in (c, d, b))}
+        key = f"r{r}/a{al}"
+        reported = rec2["report"]["cells"][key]["per_seed"]["2"]
+        if any(reported[f] != per["2"][f] for f in ("ccil", "duplication", "bc")):
+            sys.exit(f"{key}: seed 2's scores differ from the Stage 2 report")
+        ok = all(v["ccil_minus_duplication"] > 0 and v["ccil_minus_bc"] > 0 and v["complete"] for v in per.values())
+        mean = (per["1"]["ccil_minus_duplication"] + per["2"]["ccil_minus_duplication"]) / 2
+        out[key] = {"per_seed": per, "eligible": ok, "mean_ccil_minus_duplication": mean}
+        if ok:
+            eligible[key] = (mean, al, r)
+    if not eligible:
+        decision = {"next": "stop", "why": "no Stage 2 cell has CCIL above both duplication and BC on both "
+                                           "development seeds; Stage 3 does not run"}
+    else:
+        best = max(m for m, _, _ in eligible.values())
+        top = sorted((k for k, v in eligible.items() if best - v[0] <= spec2["analysis"]["tie_tolerance"]),
+                     key=lambda k: eligible[k][1:])
+        decision = {"next": "stage 3", "cell": top[0]}
+    return {"study": "pusht-surface-stage2-decision", "records_sha256": {}, "cells": out,
+            "eligible": sorted(eligible), "decision": decision}
+
+
+INK, MUTED, GRID, SURFACE = "#0b0b0b", "#52514e", "#e4e3df", "#ffffff"
+ABOVE, BELOW, NEUTRAL = "#2a78d6", "#e34948", "#f0efec"   # diverging pair, gray midpoint (dataviz palette)
+CELL_COLORS = ("#1baf7a", "#6250d6")                     # categorical slots 3 and 7 (validate_palette: pass)
+
+
+def draw(rec1: dict, spec1: dict, dec: dict) -> str:
+    """Left: the Stage 1 surface of CCIL - duplication. Right: the two candidate cells on seeds 1 and 2."""
+    import io
+    import matplotlib
+    matplotlib.use("svg")
+    import matplotlib.pyplot as plt
+    from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
+    from matplotlib.patches import Rectangle
+    plt.rcParams.update({"svg.hashsalt": "pusht-surface-result", "svg.fonttype": "none",
+                         "font.family": "DejaVu Sans", "font.size": 8, "axes.edgecolor": GRID,
+                         "axes.labelcolor": MUTED, "xtick.color": MUTED, "ytick.color": MUTED, "axes.titlesize": 8.5,
+                         "axes.titlecolor": INK, "figure.facecolor": SURFACE, "axes.facecolor": SURFACE})
+    rs, als = spec1["real_fractions"], spec1["synthetic_fractions"]
+    sc = {k: v["avg_max_reward"] for k, v in rec1["units"].items()}
+    grid = [[sc[f"ccil/r{r}/a{a}/s1"] - sc[f"duplication/r{r}/a{a}/s1"] for a in als] for r in rs]
+    fig, (ax, bx) = plt.subplots(1, 2, figsize=(7.2, 3.0), gridspec_kw={"width_ratios": [1.0, 1.0], "wspace": 0.45})
+    cmap = LinearSegmentedColormap.from_list("div", [BELOW, NEUTRAL, ABOVE])
+    lim = 0.3
+    ax.imshow(grid, cmap=cmap, norm=TwoSlopeNorm(0.0, -lim, lim), origin="lower", aspect="auto")
+    for i, row in enumerate(grid):
+        for j, v in enumerate(row):
+            ax.text(j, i, f"{v:+.3f}", ha="center", va="center", color=INK, fontsize=7.5)
+    keys = list(dec["cells"])
+    for n, key in enumerate(keys):
+        r, a = (float(x[1:]) for x in key.split("/"))
+        ax.add_patch(Rectangle((als.index(a) - 0.47, rs.index(r) - 0.47), 0.94, 0.94, fill=False,
+                               edgecolor=CELL_COLORS[n], linewidth=2.0))
+    ax.set_xticks(range(len(als)), [f"{a:g}" for a in als])
+    ax.set_yticks(range(len(rs)), [f"{r:g}" for r in rs])
+    ax.set_xlabel("synthetic fraction α")
+    ax.set_ylabel("real fraction r")
+    ax.set_title("Stage 1 (seed 1): CCIL − duplication", loc="left")
+    for side in ax.spines.values():
+        side.set_visible(False)
+    ax.tick_params(length=0)
+    bx.axhline(0, color=MUTED, linewidth=0.8)
+    for n, key in enumerate(keys):
+        y = [dec["cells"][key]["per_seed"][s]["ccil_minus_duplication"] for s in ("1", "2")]
+        bx.plot([1, 2], y, color=CELL_COLORS[n], linewidth=2.0, marker="o", markersize=7,
+                markeredgecolor=SURFACE, markeredgewidth=1.5)
+        r, a = key.split("/")
+        bx.text(2.08, y[1], f"r = {r[1:]}, α = {a[1:]}", va="center", color=INK, fontsize=7.5)
+    bx.set_xlim(0.8, 2.75)
+    bx.set_xticks([1, 2], ["seed 1\n(Stage 1)", "seed 2\n(Stage 2)"])
+    bx.set_ylabel("CCIL − duplication (avg max coverage)")
+    bx.set_title("Replication of the two candidates", loc="left")
+    bx.grid(axis="y", color=GRID, linewidth=0.6)
+    bx.set_axisbelow(True)
+    for side in ("top", "right"):
+        bx.spines[side].set_visible(False)
+    bx.tick_params(length=0)
+    buf = io.StringIO()
+    fig.savefig(buf, format="svg", metadata={"Date": None, "Creator": None}, bbox_inches="tight", dpi=150)
+    plt.close(fig)
+    return buf.getvalue()
+
+
+def write_or_check(path: Path, text: str, check: bool) -> None:
+    if check:
+        if path.read_text() != text:
+            sys.exit(f"{path} differs from the regenerated file")
+    else:
+        path.write_text(text)
+
+
 def main():
     p = argparse.ArgumentParser()
     sub = p.add_subparsers(dest="cmd", required=True)
     a = sub.add_parser("record")
     a.add_argument("--root", type=Path, required=True)
     a.add_argument("--sacct", type=Path, required=True)
-    a.add_argument("--out", type=Path, default=Path("docs/studies/evidence/pusht-surface/stage1.json"))
+    a.add_argument("--out", type=Path, required=True)
     b = sub.add_parser("derive")
     b.add_argument("--record", type=Path, default=Path("docs/studies/evidence/pusht-surface/stage1.json"))
     b.add_argument("--spec", type=Path, default=Path("tools/pusht_v2/surface.json"))
     b.add_argument("--out", type=Path, default=Path("tools/pusht_v2/surface-stage2.json"))
     b.add_argument("--check", action="store_true")
+    c = sub.add_parser("decide")
+    c.add_argument("--stage1", type=Path, default=EV / "stage1.json")
+    c.add_argument("--stage2", type=Path, default=EV / "stage2.json")
+    c.add_argument("--spec", type=Path, default=Path("tools/pusht_v2/surface-stage2.json"))
+    c.add_argument("--out", type=Path, default=EV / "decision.json")
+    c.add_argument("--figure", type=Path, default=EV / "pusht-surface-result.svg")
+    c.add_argument("--stage1-spec", type=Path, default=Path("tools/pusht_v2/surface.json"))
+    c.add_argument("--check", action="store_true")
     args = p.parse_args()
+    if args.cmd == "decide":
+        rec1, rec2, spec2 = load(args.stage1), load(args.stage2), load(args.spec)
+        if hashlib.sha256(args.spec.read_bytes()).hexdigest() != rec2["spec_sha256"]:
+            sys.exit(f"{args.spec} is not the specification Stage 2 ran")
+        dec = decide(rec1, rec2, spec2)
+        dec["records_sha256"] = {str(f): hashlib.sha256(f.read_bytes()).hexdigest() for f in (args.stage1, args.stage2)}
+        write_or_check(args.out, dump(dec) + "\n", args.check)
+        write_or_check(args.figure, draw(rec1, load(args.stage1_spec), dec), args.check)
+        print(json.dumps({"decision": dec["decision"], "eligible": dec["eligible"], "check": args.check}))
+        return
     if args.cmd == "record":
         args.out.write_text(dump(record(args.root, args.sacct)) + "\n")
         print(json.dumps({"out": str(args.out)}))

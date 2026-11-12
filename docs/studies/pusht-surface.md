@@ -1,7 +1,7 @@
-# PushT surface: CCIL against duplication over real data and synthetic exposure (protocol)
+# PushT surface: CCIL against duplication over real data and synthetic exposure
 
-This is the protocol of [#5](https://github.com/personalrobotics/il-supervision-benchmarks/issues/5). It is frozen
-before any study policy trains. The PushT v2 result ([pusht.md](pusht.md)) is one measured operating point: all the
+This is the protocol of [#5](https://github.com/personalrobotics/il-supervision-benchmarks/issues/5), frozen before
+any study policy trained, and its result. The PushT v2 result ([pusht.md](pusht.md)) is one measured operating point: all the
 real data, about 80% synthetic exposure. That run is not repeated.
 
 The machine-readable protocol is [`surface.json`](../../tools/pusht_v2/surface.json) (Stage 1),
@@ -9,6 +9,25 @@ The machine-readable protocol is [`surface.json`](../../tools/pusht_v2/surface.j
 [`surface.yaml`](../../tools/pusht_v2/surface.yaml) (CCIL). The harness implementation is
 [`src/ilsb/studies/pusht_surface.py`](../../src/ilsb/studies/pusht_surface.py); the learner is
 [`tools/pusht_v2/surface_learner`](../../tools/pusht_v2/surface_learner).
+
+## Result
+
+Under the frozen one-step CCIL recipe, uniform synthetic exposure and the IBC learner, no development cell showed a
+corrective-information advantage that replicated across two learner seeds. The apparent r = 0.25 pockets from seed 1
+reversed on seed 2, so no confirmatory evaluation was warranted. The study stopped after Stage 2 by its frozen rule.
+Stage 3 did not run, and D_test was never read.
+
+This does not show that CCIL is harmful. It shows that this label recipe, used uniformly downstream, produced no
+replicable benefit over source-matched duplication.
+
+![Stage 1 surface and the two failed replications](evidence/pusht-surface/pusht-surface-result.svg)
+
+*Left: CCIL − duplication on seed 1, for every (r, α); the outlined cells are the two Stage 1 candidates. Right: those
+two cells on seeds 1 and 2.*
+
+All 33 policy units passed every stage, the audits included, and every fit was complete. The whole study used
+3.70 GPU-hours of elapsed H200 time, about $3.33. With the off-study timing unit, the total was 3.84 GPU-hours and
+$3.46 on the account. The records, the stage-by-stage results and the decision are below.
 
 ## Question
 
@@ -255,6 +274,41 @@ eligible only if CCIL is above duplication and BC on both seeds, and the selecti
 over seeds 1 and 2. The Stage 2 run computes no BC competence, because it has no r = 1 unit; that gate belongs to
 Stage 1. D_test is not read.
 
+## Stage 2 result
+
+Stage 2 ran on Tillicum at `36018aa`, the commit that holds its specification: job 459376 for preflight, array
+459377 for the 5 units, and job 459378 for the stages after training. Every stage passed, every fit was complete,
+and every unit selected its 2,500-step checkpoint. The r = 0.25 pool reproduced Stage 1's counts, 19,982 usable of
+19,996 proposals. The compact record is [`evidence/pusht-surface/stage2.json`](evidence/pusht-surface/stage2.json).
+
+Average maximum coverage on D_dev at r = 0.25 (BC 0.408 on seed 1, 0.485 on seed 2):
+
+| α | seed | duplication | CCIL | CCIL − duplication | CCIL − BC |
+|---|---|---|---|---|---|
+| 0.25 | 1 | 0.411 | 0.445 | +0.034 | +0.037 |
+| | 2 | 0.482 | 0.454 | −0.028 | −0.031 |
+| 0.8 | 1 | 0.435 | 0.461 | +0.026 | +0.054 |
+| | 2 | 0.445 | 0.398 | −0.047 | −0.087 |
+
+On seed 2, CCIL is below both duplication and BC in both cells, so neither stays eligible. The mean CCIL −
+duplication over the two seeds is +0.003 at α = 0.25 and −0.011 at α = 0.8. BC alone moved by 0.077 between the
+seeds, more than either seed-1 margin.
+
+**Decision: stop. Stage 3 does not run.** [`surface_stage2.py`](../../tools/pusht_v2/surface_stage2.py) `decide`
+recomputes it mechanically from the two committed records:
+- it applies the frozen Stage 2 rule to both seeds;
+- it checks seed 2's scores against the Stage 2 report, and the specification against the one Stage 2 ran;
+- it writes [`evidence/pusht-surface/decision.json`](evidence/pusht-surface/decision.json), which carries both
+  records' SHA-256, and the figure above.
+
+`decide --check` regenerates both files byte for byte.
+
+The Stage 2 report's `competent: false` is kept as the harness wrote it. It does not re-evaluate competence, because
+the Stage 2 design has no r = 1 unit. The inherited Stage 1 gate passed, at 0.857.
+
+**Compute.** Elapsed GPU time, from `sacct`, was 0.58 GPU-hours, about $0.52, against a hard maximum of $5.40 set by
+the requested time limits.
+
 ## Compute
 
 **Hosts.** Policy training runs on Tillicum (H200), as a Slurm array of `ilsb unit` tasks with one GPU each. Everything
@@ -312,4 +366,9 @@ plugin, the IBC plugin and the learner of this tree installed. The harness check
 content.
 
 On Tillicum, [`slurm/setup.sh`](../../tools/pusht_v2/slurm/setup.sh) builds both environments at the protocol commit on
-the login node. [`slurm/timing.sbatch`](../../tools/pusht_v2/slurm/timing.sbatch) is the timing unit. Stage 1 runs [`slurm/stages.sbatch`](../../tools/pusht_v2/slurm/stages.sbatch) with `STAGES=preflight`, then the array [`slurm/units.sbatch`](../../tools/pusht_v2/slurm/units.sbatch) (`--array=0-27%8`), then `stages.sbatch` with the remaining stages. Submit each from the clone, with `--output` in the run directory. Stage 2 runs the same jobs with `SPEC=tools/pusht_v2/surface-stage2.json` and `--array=0-4`, in a new run directory.
+the login node. [`slurm/timing.sbatch`](../../tools/pusht_v2/slurm/timing.sbatch) is the timing unit. Stage 1 runs [`slurm/stages.sbatch`](../../tools/pusht_v2/slurm/stages.sbatch) with `STAGES=preflight`, then the array [`slurm/units.sbatch`](../../tools/pusht_v2/slurm/units.sbatch) (`--array=0-27%8`), then `stages.sbatch` with the remaining stages. Submit each from the clone, with `--output` in the run directory. Stage 2 ran the same jobs with `SPEC=tools/pusht_v2/surface-stage2.json` and `--array=0-4`, in a new run directory.
+
+To regenerate the records, the decision and the figure:
+
+    python tools/pusht_v2/surface_stage2.py record --root <run dir> --sacct <sacct output> --out <record>
+    uv run --with matplotlib==3.10.9 python tools/pusht_v2/surface_stage2.py decide [--check]
