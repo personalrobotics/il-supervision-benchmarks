@@ -1,0 +1,101 @@
+{
+ "arm": "duplication",
+ "checkpoints": [
+  {
+   "path": "units/duplication-s3/train/checkpoints/005000/pretrained_model",
+   "sha256": "8bfb40f6e6c556ea3101de57b4f7aeaafcdb31ed0f849498a244a2176bf189a5",
+   "step": 5000,
+   "weights": "units/duplication-s3/train/checkpoints/005000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/duplication-s3/train/checkpoints/010000/pretrained_model",
+   "sha256": "cc126a018e6ec0cd1761194fcc3c2474fb992f6d9fce07b4161117b086c08b6a",
+   "step": 10000,
+   "weights": "units/duplication-s3/train/checkpoints/010000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/duplication-s3/train/checkpoints/015000/pretrained_model",
+   "sha256": "1c521bb0b573a5f2205e0ec0b427caae185ed616d60f4250b6b5600b6648d0ea",
+   "step": 15000,
+   "weights": "units/duplication-s3/train/checkpoints/015000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/duplication-s3/train/checkpoints/020000/pretrained_model",
+   "sha256": "4795f4d090002f082a3432a0313e821158f434b59c990f4f4990b1d50d39af70",
+   "step": 20000,
+   "weights": "units/duplication-s3/train/checkpoints/020000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/duplication-s3/train/checkpoints/025000/pretrained_model",
+   "sha256": "05fafad5ca4fc493554d1222dc7cdb6d8d2fc3586bb475b64ace13d3ce90e50e",
+   "step": 25000,
+   "weights": "units/duplication-s3/train/checkpoints/025000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/duplication-s3/train/checkpoints/030000/pretrained_model",
+   "sha256": "73ad801081bd17dde14b0399f8b7e3983c15100a70183cd606ec3f16c3ef102e",
+   "step": 30000,
+   "weights": "units/duplication-s3/train/checkpoints/030000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/duplication-s3/train/checkpoints/035000/pretrained_model",
+   "sha256": "a2572a21ba3329a9e7b44676e8ea20b3b76f894f97266b733d8df3aaa7755ef3",
+   "step": 35000,
+   "weights": "units/duplication-s3/train/checkpoints/035000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/duplication-s3/train/checkpoints/040000/pretrained_model",
+   "sha256": "0bcbb721f75219cdb179aa9b120d62e63f3b7d5c8c70fd3d4675cc655fe304d9",
+   "step": 40000,
+   "weights": "units/duplication-s3/train/checkpoints/040000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/duplication-s3/train/checkpoints/045000/pretrained_model",
+   "sha256": "e7a4dead00a9c307307c8d7dc4f438c48c70d66a8367f4c4b560519b86e4c152",
+   "step": 45000,
+   "weights": "units/duplication-s3/train/checkpoints/045000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/duplication-s3/train/checkpoints/050000/pretrained_model",
+   "sha256": "fd609e868e96d7308d55218a3506e8def209ad23ddd5323d13e9429eb3e5f43d",
+   "step": 50000,
+   "weights": "units/duplication-s3/train/checkpoints/050000/pretrained_model/model.safetensors"
+  }
+ ],
+ "command": [
+  "/home/siddh/code/CCIL-pusht/.lerobot-ibc/bin/lerobot-train",
+  "--dataset.repo_id=local/pusht-duplication",
+  "--dataset.root=/home/siddh/code/ilsb-pusht-v22-1ddeb11/runs/20261112T002452-pusht-v22/arms/duplication",
+  "--policy.type=ibc",
+  "--policy.hidden_dim=1024",
+  "--policy.n_layers=4",
+  "--policy.dropout=0.1",
+  "--policy.train_n_neg=1024",
+  "--policy.pred_n_samples=1024",
+  "--policy.pred_n_iter=5",
+  "--policy.resample_std=0.03",
+  "--policy.optimizer_lr=0.0001",
+  "--policy.optimizer_weight_decay=1e-06",
+  "--policy.scheduler_warmup_steps=500",
+  "--policy.compile=true",
+  "--policy.dtype=bfloat16",
+  "--policy.scheduler_decay_steps=50000",
+  "--policy.push_to_hub=false",
+  "--policy.device=cuda",
+  "--steps=50000",
+  "--batch_size=256",
+  "--save_freq=5000",
+  "--log_freq=1000",
+  "--num_workers=4",
+  "--seed=3",
+  "--output_dir=/home/siddh/code/ilsb-pusht-v22-1ddeb11/runs/20261112T002452-pusht-v22/units/duplication-s3/train",
+  "--wandb.enable=false"
+ ],
+ "completed": "2026-11-12T02:35:56+00:00",
+ "last_log": [
+  "Training: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2589| 49999/50000 [1:01:51<00:00, 13.31step/s]INFO 2026-11-11 18:35:51 ot_train.py:641 step:50K smpl:13M ep:10M epch:126.81 loss:0.455 grdn:17.980 lr:3.3e-08 updt_s:0.066 data_s:0.007 smp/s:3526 mem_gb:4.62 infonce:0.455"
+ ],
+ "samples": 12800000,
+ "seconds": 3720.5254366397858,
+ "seed": 3
+}

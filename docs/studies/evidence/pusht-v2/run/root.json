@@ -1,0 +1,53 @@
+{
+ "ccil": "0.1.0.dev0",
+ "ccil_commit": "a995ff9b38ec0044917842c950d1718bfba7f0b7",
+ "command": [
+  "tools/pusht_v2/study.py",
+  "--root",
+  "runs/20261112T002452-pusht-v22",
+  "--source",
+  "/home/siddh/code/CCIL-pusht/data/pusht_keypoints-ace8c161",
+  "--lerobot-python",
+  "/home/siddh/code/CCIL-pusht/.lerobot-ibc/bin/python"
+ ],
+ "config_sha256": "73ada75d1631ce2fdeda45dfb08dccc178c5d7f936a4154bfed4a13f849c9509",
+ "created": "2026-11-12T00:24:59+00:00",
+ "gpus": "0, NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition, 97887 MiB\n1, NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition, 97887 MiB",
+ "host": "siddh",
+ "ilsb_commit": "1ddeb1185357eeb915f2a75da76b0cd289aebb97",
+ "ilsb_dirty": false,
+ "lerobot": "0.6.1",
+ "lerobot_freeze_sha256": "7a5b72635b1424d06e32355adc64279190c772a35d1d054d645a9771246a792f",
+ "numpy": "2.5.4",
+ "plugins": {
+  "lerobot_env_pusht_history": "f2c908c5ce633361a7110c53010ee813930a3326c578cf2f60a33e1d777780d3",
+  "lerobot_policy_ibc": "158d556564fa4bd9c01f52b194933d595563370ee8d82d891574a2e2a29a60fd"
+ },
+ "plugins_installed": {
+  "lerobot_env_pusht_history": "f2c908c5ce633361a7110c53010ee813930a3326c578cf2f60a33e1d777780d3",
+  "lerobot_policy_ibc": "158d556564fa4bd9c01f52b194933d595563370ee8d82d891574a2e2a29a60fd"
+ },
+ "protocol_sha256": "74eeff1d29ab9ccd7800eafef8d84cc76c8845a4d25458c34fe2b2cf8b3b789b",
+ "python": "3.12.15",
+ "smoke": false,
+ "source_sha256": {
+  ".cache/huggingface/.gitignore": "684888c0ebb17f374298b65ee2807526c066094c701bcc7ebbe1c1095f494fc1",
+  ".cache/huggingface/CACHEDIR.TAG": "f6572428f6d5e1575e73a1502895a8731f10757dfbb634909c6e154b849af91d",
+  ".cache/huggingface/download/data/chunk-000/file-000.parquet.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  ".cache/huggingface/download/data/chunk-000/file-000.parquet.metadata": "934a95a13d92519a69328371180c215c9280c9c71bccd4101af7db5454588bbc",
+  ".cache/huggingface/download/meta/episodes/chunk-000/file-000.parquet.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  ".cache/huggingface/download/meta/episodes/chunk-000/file-000.parquet.metadata": "51161eb34f676a1ff5e79e0f60c48e3bd2c0ab624f8da2d566fa93437a8d59e5",
+  ".cache/huggingface/download/meta/info.json.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  ".cache/huggingface/download/meta/info.json.metadata": "7f590df5a99135557f7b9b5a7a00fa9a621c6ffb1b441302f9d0e25a4064e6e6",
+  ".cache/huggingface/download/meta/stats.json.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  ".cache/huggingface/download/meta/stats.json.metadata": "39053e4f3d8e5224036083d7bb3f54035ad9f2343ccac15047ff6ac59ab99a99",
+  ".cache/huggingface/download/meta/tasks.parquet.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  ".cache/huggingface/download/meta/tasks.parquet.metadata": "bfcedbd82a44d793b7f87e7b6dd51502afd6dbb1d0e0639b1ffc03a18be7b66b",
+  ".cache/huggingface/trees/ace8c161a68bc025c21a5f29f85b86a9a2c5e64b.json": "61551ce70381003fea626da128502184f5c73dc2162dae415cedb2eeffdfc011",
+  "data/chunk-000/file-000.parquet": "8b4d978eeeb99254ddead01e79ee70d95a0416e27438ca9438c89a1682598ae0",
+  "meta/episodes/chunk-000/file-000.parquet": "cdeb650a03b1a0e321469bbdc6749c8d9749bac2657a7bf64466e21ed40792e1",
+  "meta/info.json": "3a6d3d438106d5771b811802a51f9ceeba8b13e83297b01bc467456e2fcdc2e3",
+  "meta/stats.json": "ecc50b78e9e10b7ad1ff1f5a131bf379395144f861902a5d802b7d25667760dd",
+  "meta/tasks.parquet": "5bca7125a8c9e40408f3177487abfc1120dbf535ed61268613627c0311c2404c"
+ }
+}

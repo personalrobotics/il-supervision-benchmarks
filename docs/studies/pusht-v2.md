@@ -1,8 +1,8 @@
 # PushT keypoints v2: does one-step CCIL help an IBC policy on a history state?
 
-**Status: protocol frozen as v2.2, not yet run.** The commit that adds this
-text, with [`tools/pusht_v2`](../../tools/pusht_v2/study.py), freezes the study
-before any of its v2.2 policies trains. Two earlier runs produced no result:
+**Status: run; no signal. CCIL lowered coverage ([Result](#result)).** v2.2
+was frozen at `1ddeb11`, with [`tools/pusht_v2`](../../tools/pusht_v2/study.py),
+before any of its policies trained. Two earlier runs produced no result:
 - **v2** (frozen at `c91a87a`) was stopped before any outcome
   ([below](#v2s-stopped-run)).
 - **v2.1** (`c9c7666`, v2 under faster training settings) ran to completion,
@@ -153,7 +153,48 @@ settings' training path was exercised end to end by the
 
 ## Result
 
-Not yet run.
+**No signal; CCIL hurt.** The run is root `20261112T002452-pusht-v22` on
+`siddh`, from a clean checkout of `1ddeb11` with both plugins installed from it.
+Every stage passed, including containment and the audit's repeat evaluation
+(rewards within 4.4e-16). Records: [`evidence/pusht-v2/run`](evidence/pusht-v2/run).
+
+| seed | bc | duplication | ccil | ccil − duplication | ccil − bc |
+|---|---|---|---|---|---|
+| 1 | 0.8672 | 0.8789 | 0.7062 | −0.1727 | −0.1609 |
+| 2 | 0.8494 | 0.7692 | 0.7708 | +0.0016 | −0.0786 |
+| 3 | 0.7149 | 0.7722 | 0.7215 | −0.0507 | +0.0066 |
+| 4 | 0.8792 | 0.7372 | 0.6457 | −0.0915 | −0.2335 |
+| 5 | 0.7966 | 0.8262 | 0.6802 | −0.1460 | −0.1164 |
+| **mean** | **0.8215** | **0.7967** | **0.7049** | **−0.0919** | **−0.1166** |
+
+Average maximum coverage over 100 starts at each unit's selected checkpoint.
+
+- **Primary, CCIL − duplication:** −0.092, interval [−0.179, −0.004]. It is
+  positive on 1 of 5 seeds, so the signal rule is not met.
+- **CCIL − BC:** −0.117, interval [−0.228, −0.005].
+- **Success rate:** bc 24.0%, duplication 20.0%, ccil 11.4%. CCIL − duplication
+  is −8.6 points [−15.5, −1.7], and CCIL − BC −12.6 points [−17.8, −7.4].
+- **bc reproduces exactly:** every seed's coverage equals v2.1's, and seeds 1–3
+  equal the gate rerun's.
+
+**Selection.**
+- **bc and duplication:** held-out InfoNCE selected 10k on every seed but
+  duplication-s1 (15k), as in the gate.
+- **ccil:** it selected the first checkpoint, 5k, on every seed. Its held-out
+  InfoNCE was 2.27–2.35 there and rose monotonically to about 3.5 at 50k, against
+  about 1.15–1.20 for the other arms.
+
+So the CCIL arm was evaluated at an earlier checkpoint than the others. Whether
+a later one would control better is not something this study measured; its
+selection rule, fixed before any policy trained, never consults simulator
+returns.
+
+**Reading.** On this state, learner and label set, one-step CCIL labels did not
+help IBC beyond duplicated demonstrations, and lowered coverage relative to
+both. The labels pass every validity check: they are rigid, satisfy the model
+residual, and keep the history invariant. Each is an alternative arrival
+velocity at a demonstrated state, paired with a perturbed action, and they make
+up 80% of the CCIL arm's rows. A null or unfavorable result completes the study.
 
 ### v2.1: void, held-out data in the arms
 

@@ -1,0 +1,101 @@
+{
+ "arm": "ccil",
+ "checkpoints": [
+  {
+   "path": "units/ccil-s2/train/checkpoints/005000/pretrained_model",
+   "sha256": "ebc874be4d1b59146a61f2001da2d5fe5c6bfa2b6284532d3ea74e4a060ac88a",
+   "step": 5000,
+   "weights": "units/ccil-s2/train/checkpoints/005000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/ccil-s2/train/checkpoints/010000/pretrained_model",
+   "sha256": "5f667ee4952452c90a13fab8dc8fc0073c7e4fd5210146ea9e5aa59242ed4b80",
+   "step": 10000,
+   "weights": "units/ccil-s2/train/checkpoints/010000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/ccil-s2/train/checkpoints/015000/pretrained_model",
+   "sha256": "cd19f5cf6a3c4eb6c65c6cdf51337b7006a600a7cbf41b4d181f86ecb39ec335",
+   "step": 15000,
+   "weights": "units/ccil-s2/train/checkpoints/015000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/ccil-s2/train/checkpoints/020000/pretrained_model",
+   "sha256": "8f61d9099adf1fb50776bd2b02f96e422cb3332fe7c38374f261553f43f3074e",
+   "step": 20000,
+   "weights": "units/ccil-s2/train/checkpoints/020000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/ccil-s2/train/checkpoints/025000/pretrained_model",
+   "sha256": "fa5331917023a192b0b89ceb53eb3b95fd0a8909c2249f7d2d5b086bedd2c2e7",
+   "step": 25000,
+   "weights": "units/ccil-s2/train/checkpoints/025000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/ccil-s2/train/checkpoints/030000/pretrained_model",
+   "sha256": "f271cf4d93f7fb875f167c1798847ea94c81f3a1c96bebdd89356053d3376d8b",
+   "step": 30000,
+   "weights": "units/ccil-s2/train/checkpoints/030000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/ccil-s2/train/checkpoints/035000/pretrained_model",
+   "sha256": "cdc3978963680f47df1d14509159fc89f2ebc7fd38fbd06fdb614e7a7232ace6",
+   "step": 35000,
+   "weights": "units/ccil-s2/train/checkpoints/035000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/ccil-s2/train/checkpoints/040000/pretrained_model",
+   "sha256": "9724121dcbfa275539bc879c6cd5d1f58eb23082b96604e83c21acefc606c685",
+   "step": 40000,
+   "weights": "units/ccil-s2/train/checkpoints/040000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/ccil-s2/train/checkpoints/045000/pretrained_model",
+   "sha256": "bcab32b9804385cf607e7a03d6d81f72f9cda9f0327f2658bcc5ac33e8f4119b",
+   "step": 45000,
+   "weights": "units/ccil-s2/train/checkpoints/045000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/ccil-s2/train/checkpoints/050000/pretrained_model",
+   "sha256": "1948e2f06d7e8c3d699c374b47953fd26320012215fecb6f19f0189f554fb52a",
+   "step": 50000,
+   "weights": "units/ccil-s2/train/checkpoints/050000/pretrained_model/model.safetensors"
+  }
+ ],
+ "command": [
+  "/home/siddh/code/CCIL-pusht/.lerobot-ibc/bin/lerobot-train",
+  "--dataset.repo_id=local/pusht-ccil",
+  "--dataset.root=/home/siddh/code/ilsb-pusht-v22-1ddeb11/runs/20261112T002452-pusht-v22/arms/ccil",
+  "--policy.type=ibc",
+  "--policy.hidden_dim=1024",
+  "--policy.n_layers=4",
+  "--policy.dropout=0.1",
+  "--policy.train_n_neg=1024",
+  "--policy.pred_n_samples=1024",
+  "--policy.pred_n_iter=5",
+  "--policy.resample_std=0.03",
+  "--policy.optimizer_lr=0.0001",
+  "--policy.optimizer_weight_decay=1e-06",
+  "--policy.scheduler_warmup_steps=500",
+  "--policy.compile=true",
+  "--policy.dtype=bfloat16",
+  "--policy.scheduler_decay_steps=50000",
+  "--policy.push_to_hub=false",
+  "--policy.device=cuda",
+  "--steps=50000",
+  "--batch_size=256",
+  "--save_freq=5000",
+  "--log_freq=1000",
+  "--num_workers=4",
+  "--seed=2",
+  "--output_dir=/home/siddh/code/ilsb-pusht-v22-1ddeb11/runs/20261112T002452-pusht-v22/units/ccil-s2/train",
+  "--wandb.enable=false"
+ ],
+ "completed": "2026-11-12T02:30:56+00:00",
+ "last_log": [
+  "Training: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 50000/50000 [59:26<00:00, 13.63step/s]INFO 2026-11-11 18:30:26 ot_train.py:641 step:50K smpl:13M ep:10M epch:126.81 loss:0.837 grdn:7.921 lr:3.3e-08 updt_s:0.065 data_s:0.006 smp/s:3598 mem_gb:4.62 infonce:0.837"
+ ],
+ "samples": 12800000,
+ "seconds": 3600.492773294449,
+ "seed": 2
+}

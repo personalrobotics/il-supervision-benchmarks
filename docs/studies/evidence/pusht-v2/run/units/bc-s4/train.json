@@ -1,0 +1,101 @@
+{
+ "arm": "bc",
+ "checkpoints": [
+  {
+   "path": "units/bc-s4/train/checkpoints/005000/pretrained_model",
+   "sha256": "513b0b1c64645e36ac010b85ee313971973ddd8027527d0f75d5b183276da9ae",
+   "step": 5000,
+   "weights": "units/bc-s4/train/checkpoints/005000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/bc-s4/train/checkpoints/010000/pretrained_model",
+   "sha256": "77074eaf5e63608298ae581200961cdfc4c1e9c70ad926468abcac8c53607793",
+   "step": 10000,
+   "weights": "units/bc-s4/train/checkpoints/010000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/bc-s4/train/checkpoints/015000/pretrained_model",
+   "sha256": "249cbb7a4266e930d868ae920407722c3e3f13d04695d8b20282509ae14a386c",
+   "step": 15000,
+   "weights": "units/bc-s4/train/checkpoints/015000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/bc-s4/train/checkpoints/020000/pretrained_model",
+   "sha256": "aba9f67f66da1ae8b716de1e25a2337a0f027ea91e6d804373f5c5ecc0bdc336",
+   "step": 20000,
+   "weights": "units/bc-s4/train/checkpoints/020000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/bc-s4/train/checkpoints/025000/pretrained_model",
+   "sha256": "0c13d6be6c4272e9cd1f5513247c5563b1fe04a8d5c178242a88f5299b426dc0",
+   "step": 25000,
+   "weights": "units/bc-s4/train/checkpoints/025000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/bc-s4/train/checkpoints/030000/pretrained_model",
+   "sha256": "546e805f04a9507dc472b1b77ed1b426957be9324bc8cf62f113637d8eca4286",
+   "step": 30000,
+   "weights": "units/bc-s4/train/checkpoints/030000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/bc-s4/train/checkpoints/035000/pretrained_model",
+   "sha256": "6c2ddb75b75cc2bd3aeaefbc6b0fbb46687a20dfa4381e2c832fbd92798e5eaf",
+   "step": 35000,
+   "weights": "units/bc-s4/train/checkpoints/035000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/bc-s4/train/checkpoints/040000/pretrained_model",
+   "sha256": "3c568b71b6121ac3db2c85f8dfb78114bfcfbc6a88d7aca33f5671abb26931ab",
+   "step": 40000,
+   "weights": "units/bc-s4/train/checkpoints/040000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/bc-s4/train/checkpoints/045000/pretrained_model",
+   "sha256": "888c2e283a9c6821b1cec0d1397f701759b79cbf069098707c80b0be81472848",
+   "step": 45000,
+   "weights": "units/bc-s4/train/checkpoints/045000/pretrained_model/model.safetensors"
+  },
+  {
+   "path": "units/bc-s4/train/checkpoints/050000/pretrained_model",
+   "sha256": "3bcf13aabc4454b4e12c365f23008b7c2c80b34382fad601a1a8fe170539c90c",
+   "step": 50000,
+   "weights": "units/bc-s4/train/checkpoints/050000/pretrained_model/model.safetensors"
+  }
+ ],
+ "command": [
+  "/home/siddh/code/CCIL-pusht/.lerobot-ibc/bin/lerobot-train",
+  "--dataset.repo_id=local/pusht-bc",
+  "--dataset.root=/home/siddh/code/ilsb-pusht-v22-1ddeb11/runs/20261112T002452-pusht-v22/arms/bc",
+  "--policy.type=ibc",
+  "--policy.hidden_dim=1024",
+  "--policy.n_layers=4",
+  "--policy.dropout=0.1",
+  "--policy.train_n_neg=1024",
+  "--policy.pred_n_samples=1024",
+  "--policy.pred_n_iter=5",
+  "--policy.resample_std=0.03",
+  "--policy.optimizer_lr=0.0001",
+  "--policy.optimizer_weight_decay=1e-06",
+  "--policy.scheduler_warmup_steps=500",
+  "--policy.compile=true",
+  "--policy.dtype=bfloat16",
+  "--policy.scheduler_decay_steps=50000",
+  "--policy.push_to_hub=false",
+  "--policy.device=cuda",
+  "--steps=50000",
+  "--batch_size=256",
+  "--save_freq=5000",
+  "--log_freq=1000",
+  "--num_workers=4",
+  "--seed=4",
+  "--output_dir=/home/siddh/code/ilsb-pusht-v22-1ddeb11/runs/20261112T002452-pusht-v22/units/bc-s4/train",
+  "--wandb.enable=false"
+ ],
+ "completed": "2026-11-12T03:36:57+00:00",
+ "last_log": [
+  "Training: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2589| 49998/50000 [1:03:27<00:00, 13.49step/s]INFO 2026-11-11 19:36:27 ot_train.py:641 step:50K smpl:13M ep:104K epch:629.46 loss:0.454 grdn:19.766 lr:3.3e-08 updt_s:0.067 data_s:0.008 smp/s:3408 mem_gb:4.59 infonce:0.454"
+ ],
+ "samples": 12800000,
+ "seconds": 3840.6217634677887,
+ "seed": 4
+}

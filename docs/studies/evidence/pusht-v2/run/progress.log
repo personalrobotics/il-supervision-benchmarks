@@ -1,0 +1,139 @@
+2026-11-12T00:24:59+00:00 root created: ilsb 1ddeb1185357, lerobot 0.6.1, smoke False, gpus 0, NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition, 97887 MiB
+1, NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition, 97887 MiB
+2026-11-12T00:24:59+00:00 stage derive: start
+2026-11-12T00:25:00+00:00 derive: /home/siddh/code/ilsb-pusht-v22-1ddeb11/runs/20261112T002452-pusht-v22/derived/full: 206 episodes, 25444 frames
+2026-11-12T00:25:00+00:00 derive: /home/siddh/code/ilsb-pusht-v22-1ddeb11/runs/20261112T002452-pusht-v22/derived/train: 165 episodes, 20335 frames
+2026-11-12T00:25:08+00:00 derive: adapter check passed
+2026-11-12T00:25:08+00:00 stage derive: done
+2026-11-12T00:25:08+00:00 stage labels: start
+2026-11-12T00:25:09+00:00 labels: pose history of 206 episodes, 25444 frames (round trip 4.72e-05 px); generating
+2026-11-12T00:25:25+00:00 labels: {'accepted': 100871, 'admitted': 1, 'by_classification': None, 'candidates': 100952, 'rejected_by_reason': {'action_out_of_bounds': 81, 'generation_failed': 0, 'non_finite': 0, 'out_of_support': 0}}
+2026-11-12T00:25:25+00:00 stage labels: done
+2026-11-12T00:25:25+00:00 stage arms: start
+2026-11-12T00:25:26+00:00 arms: 80604 of 80680 proposals selected (0.9991); violations {'residual': 0, 'invariant': 0, 'rigidity': 0}
+2026-11-12T00:30:25+00:00 arms: bc 20335 frames (0 added), ccil 100939 frames (80604 added), duplication 100939 frames (80604 added)
+2026-11-12T00:30:25+00:00 stage arms: done
+2026-11-12T00:30:25+00:00 stage train: start
+2026-11-12T00:30:25+00:00 train: 15 units to run, 0 verified; 4 slots on GPUs [0, 1]
+2026-11-12T00:30:25+00:00 train: started bc-s1 on GPU 0, pid 264040, log units/bc-s1/train-1794443425.log
+2026-11-12T00:30:25+00:00 train: started duplication-s1 on GPU 1, pid 264041, log units/duplication-s1/train-1794443425.log
+2026-11-12T00:30:25+00:00 train: started ccil-s1 on GPU 0, pid 264042, log units/ccil-s1/train-1794443425.log
+2026-11-12T00:30:25+00:00 train: started bc-s2 on GPU 1, pid 264043, log units/bc-s2/train-1794443425.log
+2026-11-12T00:30:55+00:00 train: running ['bc-s1', 'bc-s2', 'ccil-s1', 'duplication-s1'], queued 11, completed 0/15; GPU memory 0, 11848 MiB; 1, 11409 MiB
+2026-11-12T00:35:55+00:00 train: running ['bc-s1', 'bc-s2', 'ccil-s1', 'duplication-s1'], queued 11, completed 0/15; GPU memory 0, 11850 MiB; 1, 11411 MiB
+2026-11-12T00:40:55+00:00 train: running ['bc-s1', 'bc-s2', 'ccil-s1', 'duplication-s1'], queued 11, completed 0/15; GPU memory 0, 11850 MiB; 1, 11411 MiB
+2026-11-12T00:45:55+00:00 train: running ['bc-s1', 'bc-s2', 'ccil-s1', 'duplication-s1'], queued 11, completed 0/15; GPU memory 0, 11850 MiB; 1, 11411 MiB
+2026-11-12T00:50:55+00:00 train: running ['bc-s1', 'bc-s2', 'ccil-s1', 'duplication-s1'], queued 11, completed 0/15; GPU memory 0, 11850 MiB; 1, 11411 MiB
+2026-11-12T00:55:55+00:00 train: running ['bc-s1', 'bc-s2', 'ccil-s1', 'duplication-s1'], queued 11, completed 0/15; GPU memory 0, 11850 MiB; 1, 11411 MiB
+2026-11-12T01:00:55+00:00 train: running ['bc-s1', 'bc-s2', 'ccil-s1', 'duplication-s1'], queued 11, completed 0/15; GPU memory 0, 11850 MiB; 1, 11411 MiB
+2026-11-12T01:05:55+00:00 train: running ['bc-s1', 'bc-s2', 'ccil-s1', 'duplication-s1'], queued 11, completed 0/15; GPU memory 0, 11850 MiB; 1, 11411 MiB
+2026-11-12T01:10:55+00:00 train: running ['bc-s1', 'bc-s2', 'ccil-s1', 'duplication-s1'], queued 11, completed 0/15; GPU memory 0, 11850 MiB; 1, 11411 MiB
+2026-11-12T01:15:55+00:00 train: running ['bc-s1', 'bc-s2', 'ccil-s1', 'duplication-s1'], queued 11, completed 0/15; GPU memory 0, 11850 MiB; 1, 11411 MiB
+2026-11-12T01:20:55+00:00 train: running ['bc-s1', 'bc-s2', 'ccil-s1', 'duplication-s1'], queued 11, completed 0/15; GPU memory 0, 11850 MiB; 1, 11411 MiB
+2026-11-12T01:25:55+00:00 train: running ['bc-s1', 'bc-s2', 'ccil-s1', 'duplication-s1'], queued 11, completed 0/15; GPU memory 0, 11850 MiB; 1, 11411 MiB
+2026-11-12T01:30:55+00:00 train: completed duplication-s1 in 3630 s (1/15)
+2026-11-12T01:30:55+00:00 train: completed ccil-s1 in 3631 s (2/15)
+2026-11-12T01:30:55+00:00 train: running ['bc-s1', 'bc-s2'], queued 11, completed 2/15; GPU memory 0, 6155 MiB; 1, 5716 MiB
+2026-11-12T01:30:55+00:00 train: started duplication-s2 on GPU 0, pid 290257, log units/duplication-s2/train-1794447055.log
+2026-11-12T01:30:55+00:00 train: started ccil-s2 on GPU 1, pid 290258, log units/ccil-s2/train-1794447055.log
+2026-11-12T01:33:25+00:00 train: completed bc-s2 in 3781 s (3/15)
+2026-11-12T01:33:25+00:00 train: started bc-s3 on GPU 1, pid 292909, log units/bc-s3/train-1794447205.log
+2026-11-12T01:33:55+00:00 train: completed bc-s1 in 3811 s (4/15)
+2026-11-12T01:33:55+00:00 train: started duplication-s3 on GPU 0, pid 293829, log units/duplication-s3/train-1794447235.log
+2026-11-12T01:35:55+00:00 train: running ['bc-s3', 'ccil-s2', 'duplication-s2', 'duplication-s3'], queued 7, completed 4/15; GPU memory 0, 11848 MiB; 1, 11411 MiB
+2026-11-12T01:40:56+00:00 train: running ['bc-s3', 'ccil-s2', 'duplication-s2', 'duplication-s3'], queued 7, completed 4/15; GPU memory 0, 11848 MiB; 1, 11411 MiB
+2026-11-12T01:45:56+00:00 train: running ['bc-s3', 'ccil-s2', 'duplication-s2', 'duplication-s3'], queued 7, completed 4/15; GPU memory 0, 11848 MiB; 1, 11411 MiB
+2026-11-12T01:50:56+00:00 train: running ['bc-s3', 'ccil-s2', 'duplication-s2', 'duplication-s3'], queued 7, completed 4/15; GPU memory 0, 11848 MiB; 1, 11411 MiB
+2026-11-12T01:55:56+00:00 train: running ['bc-s3', 'ccil-s2', 'duplication-s2', 'duplication-s3'], queued 7, completed 4/15; GPU memory 0, 11848 MiB; 1, 11411 MiB
+2026-11-12T02:00:56+00:00 train: running ['bc-s3', 'ccil-s2', 'duplication-s2', 'duplication-s3'], queued 7, completed 4/15; GPU memory 0, 11848 MiB; 1, 11411 MiB
+2026-11-12T02:05:56+00:00 train: running ['bc-s3', 'ccil-s2', 'duplication-s2', 'duplication-s3'], queued 7, completed 4/15; GPU memory 0, 11848 MiB; 1, 11411 MiB
+2026-11-12T02:10:56+00:00 train: running ['bc-s3', 'ccil-s2', 'duplication-s2', 'duplication-s3'], queued 7, completed 4/15; GPU memory 0, 11848 MiB; 1, 11411 MiB
+2026-11-12T02:15:56+00:00 train: running ['bc-s3', 'ccil-s2', 'duplication-s2', 'duplication-s3'], queued 7, completed 4/15; GPU memory 0, 11848 MiB; 1, 11411 MiB
+2026-11-12T02:20:56+00:00 train: running ['bc-s3', 'ccil-s2', 'duplication-s2', 'duplication-s3'], queued 7, completed 4/15; GPU memory 0, 11848 MiB; 1, 11411 MiB
+2026-11-12T02:25:56+00:00 train: running ['bc-s3', 'ccil-s2', 'duplication-s2', 'duplication-s3'], queued 7, completed 4/15; GPU memory 0, 11848 MiB; 1, 11411 MiB
+2026-11-12T02:30:56+00:00 train: completed ccil-s2 in 3601 s (5/15)
+2026-11-12T02:30:56+00:00 train: running ['bc-s3', 'duplication-s2', 'duplication-s3'], queued 7, completed 5/15; GPU memory 0, 11848 MiB; 1, 5716 MiB
+2026-11-12T02:30:56+00:00 train: started ccil-s3 on GPU 1, pid 316827, log units/ccil-s3/train-1794450656.log
+2026-11-12T02:32:56+00:00 train: completed duplication-s2 in 3721 s (6/15)
+2026-11-12T02:32:56+00:00 train: started bc-s4 on GPU 0, pid 318387, log units/bc-s4/train-1794450776.log
+2026-11-12T02:35:56+00:00 train: completed duplication-s3 in 3721 s (7/15)
+2026-11-12T02:35:56+00:00 train: running ['bc-s3', 'bc-s4', 'ccil-s3'], queued 5, completed 7/15; GPU memory 0, 6155 MiB; 1, 11411 MiB
+2026-11-12T02:35:56+00:00 train: started duplication-s4 on GPU 0, pid 320352, log units/duplication-s4/train-1794450956.log
+2026-11-12T02:36:26+00:00 train: completed bc-s3 in 3781 s (8/15)
+2026-11-12T02:36:26+00:00 train: started ccil-s4 on GPU 1, pid 321275, log units/ccil-s4/train-1794450986.log
+2026-11-12T02:40:56+00:00 train: running ['bc-s4', 'ccil-s3', 'ccil-s4', 'duplication-s4'], queued 3, completed 8/15; GPU memory 0, 11850 MiB; 1, 11409 MiB
+2026-11-12T02:45:56+00:00 train: running ['bc-s4', 'ccil-s3', 'ccil-s4', 'duplication-s4'], queued 3, completed 8/15; GPU memory 0, 11850 MiB; 1, 11409 MiB
+2026-11-12T02:50:56+00:00 train: running ['bc-s4', 'ccil-s3', 'ccil-s4', 'duplication-s4'], queued 3, completed 8/15; GPU memory 0, 11850 MiB; 1, 11409 MiB
+2026-11-12T02:55:56+00:00 train: running ['bc-s4', 'ccil-s3', 'ccil-s4', 'duplication-s4'], queued 3, completed 8/15; GPU memory 0, 11850 MiB; 1, 11409 MiB
+2026-11-12T03:00:56+00:00 train: running ['bc-s4', 'ccil-s3', 'ccil-s4', 'duplication-s4'], queued 3, completed 8/15; GPU memory 0, 11850 MiB; 1, 11409 MiB
+2026-11-12T03:05:56+00:00 train: running ['bc-s4', 'ccil-s3', 'ccil-s4', 'duplication-s4'], queued 3, completed 8/15; GPU memory 0, 11850 MiB; 1, 11409 MiB
+2026-11-12T03:10:56+00:00 train: running ['bc-s4', 'ccil-s3', 'ccil-s4', 'duplication-s4'], queued 3, completed 8/15; GPU memory 0, 11850 MiB; 1, 11409 MiB
+2026-11-12T03:15:56+00:00 train: running ['bc-s4', 'ccil-s3', 'ccil-s4', 'duplication-s4'], queued 3, completed 8/15; GPU memory 0, 11850 MiB; 1, 11409 MiB
+2026-11-12T03:20:56+00:00 train: running ['bc-s4', 'ccil-s3', 'ccil-s4', 'duplication-s4'], queued 3, completed 8/15; GPU memory 0, 11850 MiB; 1, 11409 MiB
+2026-11-12T03:25:56+00:00 train: running ['bc-s4', 'ccil-s3', 'ccil-s4', 'duplication-s4'], queued 3, completed 8/15; GPU memory 0, 11850 MiB; 1, 11409 MiB
+2026-11-12T03:30:56+00:00 train: running ['bc-s4', 'ccil-s3', 'ccil-s4', 'duplication-s4'], queued 3, completed 8/15; GPU memory 0, 11850 MiB; 1, 11409 MiB
+2026-11-12T03:32:27+00:00 train: completed ccil-s3 in 3691 s (9/15)
+2026-11-12T03:32:27+00:00 train: started bc-s5 on GPU 1, pid 343247, log units/bc-s5/train-1794454347.log
+2026-11-12T03:35:57+00:00 train: running ['bc-s4', 'bc-s5', 'ccil-s4', 'duplication-s4'], queued 2, completed 9/15; GPU memory 0, 11850 MiB; 1, 11411 MiB
+2026-11-12T03:36:57+00:00 train: completed bc-s4 in 3841 s (10/15)
+2026-11-12T03:36:57+00:00 train: completed duplication-s4 in 3661 s (11/15)
+2026-11-12T03:36:57+00:00 train: started duplication-s5 on GPU 0, pid 345877, log units/duplication-s5/train-1794454617.log
+2026-11-12T03:36:57+00:00 train: started ccil-s5 on GPU 0, pid 345878, log units/ccil-s5/train-1794454617.log
+2026-11-12T03:37:57+00:00 train: completed ccil-s4 in 3691 s (12/15)
+2026-11-12T03:40:57+00:00 train: running ['bc-s5', 'ccil-s5', 'duplication-s5'], queued 0, completed 12/15; GPU memory 0, 11848 MiB; 1, 5716 MiB
+2026-11-12T03:45:57+00:00 train: running ['bc-s5', 'ccil-s5', 'duplication-s5'], queued 0, completed 12/15; GPU memory 0, 11848 MiB; 1, 5716 MiB
+2026-11-12T03:50:57+00:00 train: running ['bc-s5', 'ccil-s5', 'duplication-s5'], queued 0, completed 12/15; GPU memory 0, 11848 MiB; 1, 5716 MiB
+2026-11-12T03:55:57+00:00 train: running ['bc-s5', 'ccil-s5', 'duplication-s5'], queued 0, completed 12/15; GPU memory 0, 11848 MiB; 1, 5716 MiB
+2026-11-12T04:00:57+00:00 train: running ['bc-s5', 'ccil-s5', 'duplication-s5'], queued 0, completed 12/15; GPU memory 0, 11848 MiB; 1, 5716 MiB
+2026-11-12T04:05:57+00:00 train: running ['bc-s5', 'ccil-s5', 'duplication-s5'], queued 0, completed 12/15; GPU memory 0, 11848 MiB; 1, 5716 MiB
+2026-11-12T04:09:57+00:00 train: completed bc-s5 in 2250 s (13/15)
+2026-11-12T04:10:57+00:00 train: running ['ccil-s5', 'duplication-s5'], queued 0, completed 13/15; GPU memory 0, 11848 MiB; 1, 16 MiB
+2026-11-12T04:15:57+00:00 train: running ['ccil-s5', 'duplication-s5'], queued 0, completed 13/15; GPU memory 0, 11848 MiB; 1, 16 MiB
+2026-11-12T04:20:57+00:00 train: running ['ccil-s5', 'duplication-s5'], queued 0, completed 13/15; GPU memory 0, 11848 MiB; 1, 16 MiB
+2026-11-12T04:25:57+00:00 train: running ['ccil-s5', 'duplication-s5'], queued 0, completed 13/15; GPU memory 0, 11848 MiB; 1, 16 MiB
+2026-11-12T04:30:57+00:00 train: running ['ccil-s5', 'duplication-s5'], queued 0, completed 13/15; GPU memory 0, 11848 MiB; 1, 16 MiB
+2026-11-12T04:35:57+00:00 train: running ['ccil-s5', 'duplication-s5'], queued 0, completed 13/15; GPU memory 0, 11848 MiB; 1, 16 MiB
+2026-11-12T04:39:27+00:00 train: completed duplication-s5 in 3751 s (14/15)
+2026-11-12T04:39:57+00:00 train: completed ccil-s5 in 3781 s (15/15)
+2026-11-12T04:39:57+00:00 stage train: done
+2026-11-12T04:39:57+00:00 stage select: start
+2026-11-12T04:40:59+00:00 select: bc-s1 step 10000 (held-out infonce 1.1550)
+2026-11-12T04:42:02+00:00 select: duplication-s1 step 15000 (held-out infonce 1.1966)
+2026-11-12T04:43:04+00:00 select: ccil-s1 step 5000 (held-out infonce 2.2654)
+2026-11-12T04:44:07+00:00 select: bc-s2 step 10000 (held-out infonce 1.1753)
+2026-11-12T04:45:09+00:00 select: duplication-s2 step 10000 (held-out infonce 1.1935)
+2026-11-12T04:46:11+00:00 select: ccil-s2 step 5000 (held-out infonce 2.3113)
+2026-11-12T04:47:14+00:00 select: bc-s3 step 10000 (held-out infonce 1.1681)
+2026-11-12T04:48:16+00:00 select: duplication-s3 step 10000 (held-out infonce 1.1701)
+2026-11-12T04:49:18+00:00 select: ccil-s3 step 5000 (held-out infonce 2.3167)
+2026-11-12T04:50:21+00:00 select: bc-s4 step 10000 (held-out infonce 1.1637)
+2026-11-12T04:51:23+00:00 select: duplication-s4 step 10000 (held-out infonce 1.1403)
+2026-11-12T04:52:25+00:00 select: ccil-s4 step 5000 (held-out infonce 2.3150)
+2026-11-12T04:53:28+00:00 select: bc-s5 step 10000 (held-out infonce 1.1952)
+2026-11-12T04:54:30+00:00 select: duplication-s5 step 10000 (held-out infonce 1.2174)
+2026-11-12T04:55:32+00:00 select: ccil-s5 step 5000 (held-out infonce 2.3457)
+2026-11-12T04:55:32+00:00 stage select: done
+2026-11-12T04:55:32+00:00 stage evaluate: start
+2026-11-12T04:56:01+00:00 evaluate: bc-s1 avg_max_reward 0.8672, pc_success 28.0
+2026-11-12T04:56:30+00:00 evaluate: duplication-s1 avg_max_reward 0.8789, pc_success 31.0
+2026-11-12T04:56:59+00:00 evaluate: ccil-s1 avg_max_reward 0.7062, pc_success 13.0
+2026-11-12T04:57:27+00:00 evaluate: bc-s2 avg_max_reward 0.8494, pc_success 22.0
+2026-11-12T04:57:56+00:00 evaluate: duplication-s2 avg_max_reward 0.7692, pc_success 17.0
+2026-11-12T04:58:25+00:00 evaluate: ccil-s2 avg_max_reward 0.7708, pc_success 14.0
+2026-11-12T04:58:54+00:00 evaluate: bc-s3 avg_max_reward 0.7149, pc_success 20.0
+2026-11-12T04:59:23+00:00 evaluate: duplication-s3 avg_max_reward 0.7722, pc_success 18.0
+2026-11-12T04:59:51+00:00 evaluate: ccil-s3 avg_max_reward 0.7215, pc_success 11.0
+2026-11-12T05:00:20+00:00 evaluate: bc-s4 avg_max_reward 0.8792, pc_success 23.0
+2026-11-12T05:00:49+00:00 evaluate: duplication-s4 avg_max_reward 0.7372, pc_success 18.0
+2026-11-12T05:01:17+00:00 evaluate: ccil-s4 avg_max_reward 0.6457, pc_success 10.0
+2026-11-12T05:01:46+00:00 evaluate: bc-s5 avg_max_reward 0.7966, pc_success 27.0
+2026-11-12T05:02:15+00:00 evaluate: duplication-s5 avg_max_reward 0.8262, pc_success 16.0
+2026-11-12T05:02:44+00:00 evaluate: ccil-s5 avg_max_reward 0.6802, pc_success 9.0
+2026-11-12T05:02:44+00:00 stage evaluate: done
+2026-11-12T05:02:44+00:00 stage audit: start
+2026-11-12T05:02:44+00:00 audit: containment verified on every arm
+2026-11-12T05:03:14+00:00 audit: passed
+2026-11-12T05:03:14+00:00 stage audit: done
+2026-11-12T05:03:14+00:00 stage report: start
+2026-11-12T05:03:15+00:00 report: primary ccil - duplication on avg_max_reward: mean -0.09185781566714664, interval [-0.17941032219759895, -0.004305309136694316], positive on 1 seeds; signal not met
+2026-11-12T05:03:15+00:00 stage report: done

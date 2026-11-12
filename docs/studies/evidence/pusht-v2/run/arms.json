@@ -1,0 +1,117 @@
+{
+ "arms": {
+  "bc": {
+   "added_rows": 0,
+   "added_source_index_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "demonstration_frames": 20335,
+   "demonstration_index_sha256": "0c508e546152ec312b7ab32e57b7a2fff1ce20f434d47fce7c08c962771f6c62",
+   "files": {
+    "data/chunk-000/file-000.parquet": "27a3a7ef8a634f4a54b8fe970ba8475b43bf3b29520356783e050aafea1002ca",
+    "meta/episodes/chunk-000/file-000.parquet": "5a4750d00996c19be93f986dadf1f814ce287c1f8c0e19c673d66e06d4181a3f",
+    "meta/info.json": "3b393f76efdbed1b83b1a0b479cdde1ade7211635008434ff8c7e87d1cd63702",
+    "meta/stats.json": "49f1440cabf8af4e595bb0f46620c57b66e03bf7d1644ba1203cd590c9eb08ab",
+    "meta/tasks.parquet": "a44d7f052b0a70e9e46b3fd1a7731e7a390d4da72626e5d088629ac715f17f20"
+   },
+   "frames": 20335,
+   "path": "arms/bc"
+  },
+  "ccil": {
+   "added_rows": 80604,
+   "added_source_index_sha256": "dc10f74e00a304480c8986394a8eb83728ea1ee3309327f4b7f97b9545c1410f",
+   "demonstration_frames": 20335,
+   "demonstration_index_sha256": "0c508e546152ec312b7ab32e57b7a2fff1ce20f434d47fce7c08c962771f6c62",
+   "files": {
+    "data/chunk-000/file-000.parquet": "3e6ae86c01e36295cac3e076b39e474044244961f77b9d2861d1934c5041915c",
+    "meta/episodes/chunk-000/file-000.parquet": "61861fc2f4304a446c5c48e88366af20d9502ace2ca26d01714aad156096e38c",
+    "meta/info.json": "47319beb9f28b547acfc8bf92a05f47717d0bdd869be53586c44b09857c2d8e0",
+    "meta/stats.json": "edc4ace25d856b9ccd30b255715aacade9081845dace39fb3f611dda6c529e86",
+    "meta/tasks.parquet": "a44d7f052b0a70e9e46b3fd1a7731e7a390d4da72626e5d088629ac715f17f20"
+   },
+   "frames": 100939,
+   "path": "arms/ccil"
+  },
+  "duplication": {
+   "added_rows": 80604,
+   "added_source_index_sha256": "dc10f74e00a304480c8986394a8eb83728ea1ee3309327f4b7f97b9545c1410f",
+   "demonstration_frames": 20335,
+   "demonstration_index_sha256": "0c508e546152ec312b7ab32e57b7a2fff1ce20f434d47fce7c08c962771f6c62",
+   "files": {
+    "data/chunk-000/file-000.parquet": "5345d60c25ae8683fbbdb15fcb7ab397879ca4a4f6e2d4b9f9c9a0df0f0e3230",
+    "meta/episodes/chunk-000/file-000.parquet": "f50e465197bc3a7cd3eb73b146fc0d677fd53c85a11184a1b7010acaf0ae76c7",
+    "meta/info.json": "47319beb9f28b547acfc8bf92a05f47717d0bdd869be53586c44b09857c2d8e0",
+    "meta/stats.json": "4b3bd00c9132253501adf2fc87d21b6392eb493f3feed794af503377598ea2c7",
+    "meta/tasks.parquet": "a44d7f052b0a70e9e46b3fd1a7731e7a390d4da72626e5d088629ac715f17f20"
+   },
+   "frames": 100939,
+   "path": "arms/duplication"
+  }
+ },
+ "completed": "2026-11-12T00:30:25+00:00",
+ "containment": {
+  "bc": {
+   "added_from_held_out": 0,
+   "demonstration_episodes": 165,
+   "rows_with_a_held_out_current_frame": 0
+  },
+  "ccil": {
+   "added_from_held_out": 0,
+   "demonstration_episodes": 165,
+   "rows_with_a_held_out_current_frame": 0
+  },
+  "duplication": {
+   "added_from_held_out": 0,
+   "demonstration_episodes": 165,
+   "rows_with_a_held_out_current_frame": 0
+  }
+ },
+ "labels": {
+  "invariant_error": {
+   "100": 0.0,
+   "50": 0.0,
+   "90": 0.0
+  },
+  "previous_slot_change": {
+   "100": 74.72956657409668,
+   "50": 14.52016830444336,
+   "90": 26.94114303588866
+  },
+  "proposals": 80680,
+  "proposals_all_episodes": 100952,
+  "residual": {
+   "100": 9.995923136883056e-05,
+   "50": 5.162276525220347e-06,
+   "90": 8.773723406525669e-06
+  },
+  "rigidity_error_px": {
+   "100": 5.303533470168986e-07,
+   "50": 5.303532901734798e-07,
+   "90": 5.303533043843345e-07
+  },
+  "selected": 80604,
+  "usable_fraction": 0.9990580069410014,
+  "violations": {
+   "invariant": 0,
+   "residual": 0,
+   "rigidity": 0
+  },
+  "yield": {
+   "accepted": 100871,
+   "admitted": 1,
+   "by_classification": null,
+   "candidates": 100952,
+   "rejected_by_reason": {
+    "action_out_of_bounds": 81,
+    "generation_failed": 0,
+    "non_finite": 0,
+    "out_of_support": 0
+   }
+  },
+  "yield_floor": 0.5
+ },
+ "study": {
+  "fit_episodes": "train",
+  "method": "noisy_action_fe",
+  "modality": "state+state.pose",
+  "structure": "history_shift"
+ }
+}

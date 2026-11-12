@@ -1,0 +1,720 @@
+{
+ "avg_max_reward": 0.77224753937311,
+ "command": [
+  "/home/siddh/code/CCIL-pusht/.lerobot-ibc/bin/lerobot-eval",
+  "--policy.path=/home/siddh/code/ilsb-pusht-v22-1ddeb11/runs/20261112T002452-pusht-v22/units/duplication-s3/train/checkpoints/010000/pretrained_model",
+  "--env.type=pusht_history",
+  "--env.obs_type=environment_state_agent_pos",
+  "--eval.n_episodes=100",
+  "--eval.batch_size=50",
+  "--eval.use_async_envs=false",
+  "--seed=1000",
+  "--policy.device=cuda",
+  "--output_dir=/home/siddh/code/ilsb-pusht-v22-1ddeb11/runs/20261112T002452-pusht-v22/units/duplication-s3/eval"
+ ],
+ "completed": "2026-11-12T04:59:23+00:00",
+ "episodes": [
+  {
+   "index": 0,
+   "max_reward": 1.0,
+   "seed": 1000,
+   "success": true,
+   "sum_reward": 195.28568901152323
+  },
+  {
+   "index": 1,
+   "max_reward": 0.3290965089735294,
+   "seed": 1001,
+   "success": false,
+   "sum_reward": 14.825405532145107
+  },
+  {
+   "index": 2,
+   "max_reward": 0.8670123111010796,
+   "seed": 1002,
+   "success": false,
+   "sum_reward": 79.76583526461673
+  },
+  {
+   "index": 3,
+   "max_reward": 0.899731387329017,
+   "seed": 1003,
+   "success": false,
+   "sum_reward": 181.95917927524437
+  },
+  {
+   "index": 4,
+   "max_reward": 0.0,
+   "seed": 1004,
+   "success": false,
+   "sum_reward": 0.0
+  },
+  {
+   "index": 5,
+   "max_reward": 0.98209182380301,
+   "seed": 1005,
+   "success": false,
+   "sum_reward": 159.59392085983023
+  },
+  {
+   "index": 6,
+   "max_reward": 0.8974837703513525,
+   "seed": 1006,
+   "success": false,
+   "sum_reward": 159.63487712809203
+  },
+  {
+   "index": 7,
+   "max_reward": 0.9944392690940866,
+   "seed": 1007,
+   "success": false,
+   "sum_reward": 158.35915875147475
+  },
+  {
+   "index": 8,
+   "max_reward": 0.8065218071901507,
+   "seed": 1008,
+   "success": false,
+   "sum_reward": 98.42860273506162
+  },
+  {
+   "index": 9,
+   "max_reward": 0.4015688891821853,
+   "seed": 1009,
+   "success": false,
+   "sum_reward": 107.40149112898138
+  },
+  {
+   "index": 10,
+   "max_reward": 0.9553170346387947,
+   "seed": 1010,
+   "success": false,
+   "sum_reward": 199.48047103936813
+  },
+  {
+   "index": 11,
+   "max_reward": 0.9748372286114241,
+   "seed": 1011,
+   "success": false,
+   "sum_reward": 147.29092700129578
+  },
+  {
+   "index": 12,
+   "max_reward": 0.3463703800321982,
+   "seed": 1012,
+   "success": false,
+   "sum_reward": 11.60694892860147
+  },
+  {
+   "index": 13,
+   "max_reward": 0.7489263887222941,
+   "seed": 1013,
+   "success": false,
+   "sum_reward": 35.87165779810427
+  },
+  {
+   "index": 14,
+   "max_reward": 0.935874331262809,
+   "seed": 1014,
+   "success": false,
+   "sum_reward": 140.6229140461913
+  },
+  {
+   "index": 15,
+   "max_reward": 1.0,
+   "seed": 1015,
+   "success": true,
+   "sum_reward": 150.0298177127809
+  },
+  {
+   "index": 16,
+   "max_reward": 1.0,
+   "seed": 1016,
+   "success": true,
+   "sum_reward": 186.92377248314426
+  },
+  {
+   "index": 17,
+   "max_reward": 0.8257270365047839,
+   "seed": 1017,
+   "success": false,
+   "sum_reward": 86.56449976992388
+  },
+  {
+   "index": 18,
+   "max_reward": 0.9695983300510196,
+   "seed": 1018,
+   "success": false,
+   "sum_reward": 156.0937456730457
+  },
+  {
+   "index": 19,
+   "max_reward": 0.9455149029299434,
+   "seed": 1019,
+   "success": false,
+   "sum_reward": 131.48825957031394
+  },
+  {
+   "index": 20,
+   "max_reward": 0.9879690081033156,
+   "seed": 1020,
+   "success": false,
+   "sum_reward": 199.9991189845937
+  },
+  {
+   "index": 21,
+   "max_reward": 0.03139099393146528,
+   "seed": 1021,
+   "success": false,
+   "sum_reward": 5.590479773048305
+  },
+  {
+   "index": 22,
+   "max_reward": 0.3008190745153745,
+   "seed": 1022,
+   "success": false,
+   "sum_reward": 20.074093267393266
+  },
+  {
+   "index": 23,
+   "max_reward": 0.8149566112763973,
+   "seed": 1023,
+   "success": false,
+   "sum_reward": 114.3648410233339
+  },
+  {
+   "index": 24,
+   "max_reward": 1.0,
+   "seed": 1024,
+   "success": true,
+   "sum_reward": 47.7945152515952
+  },
+  {
+   "index": 25,
+   "max_reward": 0.9794409240099882,
+   "seed": 1025,
+   "success": false,
+   "sum_reward": 133.40250668693727
+  },
+  {
+   "index": 26,
+   "max_reward": 0.29993828643678583,
+   "seed": 1026,
+   "success": false,
+   "sum_reward": 59.38879591695642
+  },
+  {
+   "index": 27,
+   "max_reward": 0.9939143072852753,
+   "seed": 1027,
+   "success": false,
+   "sum_reward": 150.8675540060884
+  },
+  {
+   "index": 28,
+   "max_reward": 0.0,
+   "seed": 1028,
+   "success": false,
+   "sum_reward": 0.0
+  },
+  {
+   "index": 29,
+   "max_reward": 0.5269374481207176,
+   "seed": 1029,
+   "success": false,
+   "sum_reward": 69.81835584953564
+  },
+  {
+   "index": 30,
+   "max_reward": 0.0,
+   "seed": 1030,
+   "success": false,
+   "sum_reward": 0.0
+  },
+  {
+   "index": 31,
+   "max_reward": 0.9968921032391329,
+   "seed": 1031,
+   "success": false,
+   "sum_reward": 170.14721577767926
+  },
+  {
+   "index": 32,
+   "max_reward": 1.0,
+   "seed": 1032,
+   "success": true,
+   "sum_reward": 182.87914963443419
+  },
+  {
+   "index": 33,
+   "max_reward": 0.961439968577129,
+   "seed": 1033,
+   "success": false,
+   "sum_reward": 49.5609883691017
+  },
+  {
+   "index": 34,
+   "max_reward": 1.0,
+   "seed": 1034,
+   "success": true,
+   "sum_reward": 111.41651761869605
+  },
+  {
+   "index": 35,
+   "max_reward": 0.0,
+   "seed": 1035,
+   "success": false,
+   "sum_reward": 0.0
+  },
+  {
+   "index": 36,
+   "max_reward": 0.9162273647511998,
+   "seed": 1036,
+   "success": false,
+   "sum_reward": 84.4109965585105
+  },
+  {
+   "index": 37,
+   "max_reward": 0.0,
+   "seed": 1037,
+   "success": false,
+   "sum_reward": 0.0
+  },
+  {
+   "index": 38,
+   "max_reward": 0.1883344020865852,
+   "seed": 1038,
+   "success": false,
+   "sum_reward": 0.5728529261762351
+  },
+  {
+   "index": 39,
+   "max_reward": 0.9979514886097982,
+   "seed": 1039,
+   "success": false,
+   "sum_reward": 158.3154990809771
+  },
+  {
+   "index": 40,
+   "max_reward": 1.0,
+   "seed": 1040,
+   "success": true,
+   "sum_reward": 178.89640048189534
+  },
+  {
+   "index": 41,
+   "max_reward": 0.9677083498203674,
+   "seed": 1041,
+   "success": false,
+   "sum_reward": 213.56939049207946
+  },
+  {
+   "index": 42,
+   "max_reward": 0.9395908523129592,
+   "seed": 1042,
+   "success": false,
+   "sum_reward": 180.13279510556666
+  },
+  {
+   "index": 43,
+   "max_reward": 0.949568646499274,
+   "seed": 1043,
+   "success": false,
+   "sum_reward": 201.1674427919637
+  },
+  {
+   "index": 44,
+   "max_reward": 0.632795824710873,
+   "seed": 1044,
+   "success": false,
+   "sum_reward": 78.36648605047604
+  },
+  {
+   "index": 45,
+   "max_reward": 1.0,
+   "seed": 1045,
+   "success": true,
+   "sum_reward": 100.13665082831997
+  },
+  {
+   "index": 46,
+   "max_reward": 0.9704163670760443,
+   "seed": 1046,
+   "success": false,
+   "sum_reward": 168.1961383684694
+  },
+  {
+   "index": 47,
+   "max_reward": 0.9759189652177465,
+   "seed": 1047,
+   "success": false,
+   "sum_reward": 199.10152600806686
+  },
+  {
+   "index": 48,
+   "max_reward": 0.8905316616042657,
+   "seed": 1048,
+   "success": false,
+   "sum_reward": 131.9295285355913
+  },
+  {
+   "index": 49,
+   "max_reward": 0.6774032137313859,
+   "seed": 1049,
+   "success": false,
+   "sum_reward": 134.5786481777375
+  },
+  {
+   "index": 50,
+   "max_reward": 1.0,
+   "seed": 1050,
+   "success": true,
+   "sum_reward": 69.54648317936656
+  },
+  {
+   "index": 51,
+   "max_reward": 0.9579507967832375,
+   "seed": 1051,
+   "success": false,
+   "sum_reward": 213.91743211451626
+  },
+  {
+   "index": 52,
+   "max_reward": 0.8982644110592307,
+   "seed": 1052,
+   "success": false,
+   "sum_reward": 114.61459559201626
+  },
+  {
+   "index": 53,
+   "max_reward": 0.9785189973809806,
+   "seed": 1053,
+   "success": false,
+   "sum_reward": 149.13408614102832
+  },
+  {
+   "index": 54,
+   "max_reward": 1.0,
+   "seed": 1054,
+   "success": true,
+   "sum_reward": 100.15572507076703
+  },
+  {
+   "index": 55,
+   "max_reward": 0.9040398840509686,
+   "seed": 1055,
+   "success": false,
+   "sum_reward": 152.245668206969
+  },
+  {
+   "index": 56,
+   "max_reward": 0.9894963348801679,
+   "seed": 1056,
+   "success": false,
+   "sum_reward": 145.84975892005474
+  },
+  {
+   "index": 57,
+   "max_reward": 0.9780712031435997,
+   "seed": 1057,
+   "success": false,
+   "sum_reward": 143.19573879966364
+  },
+  {
+   "index": 58,
+   "max_reward": 0.9300956548921796,
+   "seed": 1058,
+   "success": false,
+   "sum_reward": 198.88692042114116
+  },
+  {
+   "index": 59,
+   "max_reward": 0.9195411589296459,
+   "seed": 1059,
+   "success": false,
+   "sum_reward": 182.2024992199443
+  },
+  {
+   "index": 60,
+   "max_reward": 0.1260640352759472,
+   "seed": 1060,
+   "success": false,
+   "sum_reward": 27.811231602867203
+  },
+  {
+   "index": 61,
+   "max_reward": 0.8742066165122164,
+   "seed": 1061,
+   "success": false,
+   "sum_reward": 116.92164771990684
+  },
+  {
+   "index": 62,
+   "max_reward": 1.0,
+   "seed": 1062,
+   "success": true,
+   "sum_reward": 176.63414422585936
+  },
+  {
+   "index": 63,
+   "max_reward": 0.9922443856047511,
+   "seed": 1063,
+   "success": false,
+   "sum_reward": 204.19273824125563
+  },
+  {
+   "index": 64,
+   "max_reward": 0.8602494116565644,
+   "seed": 1064,
+   "success": false,
+   "sum_reward": 171.45330673873374
+  },
+  {
+   "index": 65,
+   "max_reward": 0.9621144301874257,
+   "seed": 1065,
+   "success": false,
+   "sum_reward": 207.08705049642083
+  },
+  {
+   "index": 66,
+   "max_reward": 0.9836657906738956,
+   "seed": 1066,
+   "success": false,
+   "sum_reward": 130.20370797217933
+  },
+  {
+   "index": 67,
+   "max_reward": 0.9825355297079934,
+   "seed": 1067,
+   "success": false,
+   "sum_reward": 152.13768639363815
+  },
+  {
+   "index": 68,
+   "max_reward": 0.11428098763021086,
+   "seed": 1068,
+   "success": false,
+   "sum_reward": 6.128589641636435
+  },
+  {
+   "index": 69,
+   "max_reward": 1.0,
+   "seed": 1069,
+   "success": true,
+   "sum_reward": 23.890157985422505
+  },
+  {
+   "index": 70,
+   "max_reward": 0.6339899135928591,
+   "seed": 1070,
+   "success": false,
+   "sum_reward": 28.154574142055516
+  },
+  {
+   "index": 71,
+   "max_reward": 0.185695876013076,
+   "seed": 1071,
+   "success": false,
+   "sum_reward": 12.39755309507847
+  },
+  {
+   "index": 72,
+   "max_reward": 1.0,
+   "seed": 1072,
+   "success": true,
+   "sum_reward": 72.03803405437952
+  },
+  {
+   "index": 73,
+   "max_reward": 1.0,
+   "seed": 1073,
+   "success": true,
+   "sum_reward": 164.6228966732054
+  },
+  {
+   "index": 74,
+   "max_reward": 0.9777229743671774,
+   "seed": 1074,
+   "success": false,
+   "sum_reward": 166.36813823662374
+  },
+  {
+   "index": 75,
+   "max_reward": 0.9660877164136943,
+   "seed": 1075,
+   "success": false,
+   "sum_reward": 178.68542454633263
+  },
+  {
+   "index": 76,
+   "max_reward": 0.3912166933691861,
+   "seed": 1076,
+   "success": false,
+   "sum_reward": 16.94917815502814
+  },
+  {
+   "index": 77,
+   "max_reward": 0.8041164142671666,
+   "seed": 1077,
+   "success": false,
+   "sum_reward": 144.89217576589036
+  },
+  {
+   "index": 78,
+   "max_reward": 0.8612891715836908,
+   "seed": 1078,
+   "success": false,
+   "sum_reward": 183.72959758943804
+  },
+  {
+   "index": 79,
+   "max_reward": 0.979717174911527,
+   "seed": 1079,
+   "success": false,
+   "sum_reward": 158.37498833680564
+  },
+  {
+   "index": 80,
+   "max_reward": 0.9432956275887413,
+   "seed": 1080,
+   "success": false,
+   "sum_reward": 62.31714460324123
+  },
+  {
+   "index": 81,
+   "max_reward": 0.8599531590421189,
+   "seed": 1081,
+   "success": false,
+   "sum_reward": 100.0354158539033
+  },
+  {
+   "index": 82,
+   "max_reward": 0.9918523489257124,
+   "seed": 1082,
+   "success": false,
+   "sum_reward": 69.08131062834805
+  },
+  {
+   "index": 83,
+   "max_reward": 0.13158698654792772,
+   "seed": 1083,
+   "success": false,
+   "sum_reward": 39.476095964378324
+  },
+  {
+   "index": 84,
+   "max_reward": 0.0,
+   "seed": 1084,
+   "success": false,
+   "sum_reward": 0.0
+  },
+  {
+   "index": 85,
+   "max_reward": 1.0,
+   "seed": 1085,
+   "success": true,
+   "sum_reward": 80.34458019659262
+  },
+  {
+   "index": 86,
+   "max_reward": 1.0,
+   "seed": 1086,
+   "success": true,
+   "sum_reward": 191.41328945553136
+  },
+  {
+   "index": 87,
+   "max_reward": 0.9986472497241815,
+   "seed": 1087,
+   "success": false,
+   "sum_reward": 173.4287301120052
+  },
+  {
+   "index": 88,
+   "max_reward": 0.0,
+   "seed": 1088,
+   "success": false,
+   "sum_reward": 0.0
+  },
+  {
+   "index": 89,
+   "max_reward": 0.9394295109466256,
+   "seed": 1089,
+   "success": false,
+   "sum_reward": 145.88081049310847
+  },
+  {
+   "index": 90,
+   "max_reward": 0.9229473983552166,
+   "seed": 1090,
+   "success": false,
+   "sum_reward": 141.77923233225155
+  },
+  {
+   "index": 91,
+   "max_reward": 0.9907841854366044,
+   "seed": 1091,
+   "success": false,
+   "sum_reward": 179.63977753226118
+  },
+  {
+   "index": 92,
+   "max_reward": 1.0,
+   "seed": 1092,
+   "success": true,
+   "sum_reward": 113.81299495394993
+  },
+  {
+   "index": 93,
+   "max_reward": 0.9245761250888312,
+   "seed": 1093,
+   "success": false,
+   "sum_reward": 154.61433068507017
+  },
+  {
+   "index": 94,
+   "max_reward": 0.0,
+   "seed": 1094,
+   "success": false,
+   "sum_reward": 0.0
+  },
+  {
+   "index": 95,
+   "max_reward": 0.49110153724564354,
+   "seed": 1095,
+   "success": false,
+   "sum_reward": 13.913760088262672
+  },
+  {
+   "index": 96,
+   "max_reward": 0.9575913172152446,
+   "seed": 1096,
+   "success": false,
+   "sum_reward": 87.36271963048691
+  },
+  {
+   "index": 97,
+   "max_reward": 0.985564265275514,
+   "seed": 1097,
+   "success": false,
+   "sum_reward": 168.22461763543998
+  },
+  {
+   "index": 98,
+   "max_reward": 1.0,
+   "seed": 1098,
+   "success": true,
+   "sum_reward": 72.89393324289588
+  },
+  {
+   "index": 99,
+   "max_reward": 0.955991401337485,
+   "seed": 1099,
+   "success": false,
+   "sum_reward": 186.0702500433478
+  }
+ ],
+ "eval_info_sha256": "16a84346e75cc41a70ff2de12a8c89bfe6053a786005ea2e72683b6c8c3e2eb3",
+ "pc_success": 18.0
+}
