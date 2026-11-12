@@ -14,6 +14,7 @@ reason, the diagnostics, the common pool and Stage A's rules. No policy is train
 import argparse
 import hashlib
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -266,7 +267,17 @@ def main():
     np.savez(args.run / "proposals.npz", **arrays)
     counts = {k: int((status[done] == STATUS.index(k)).sum()) for k in STATUS}
     import importlib.metadata as md
+    git = lambda *a: subprocess.run(["git", "-C", str(HERE), *a], capture_output=True, text=True,  # noqa: E731
+                                    check=True).stdout.strip()
+    code = {"commit": git("rev-parse", "HEAD"), "dirty": bool(git("status", "--porcelain")),
+            "files_sha256": {f: sha(HERE / f) for f in ("oracle_stage_a.py", "oracle_probe.py", "pose.py",
+                                                        "source.py", "oracle.json", "surface.json")}}
+    pen_o = penetration(prev_oracle[cr][:, 0:2], pose.keypoints(prev_oracle[cr][:, 2:5]), AGENT_R)
+    pen_l = penetration(learned_prev[:, 0:2], pose.keypoints(learned_prev[:, 2:5]), AGENT_R)
+    ext_o, ext_l = beyond_extent(prev_oracle[cr][:, 0:2], pose.keypoints(prev_oracle[cr][:, 2:5])), \
+        beyond_extent(learned_prev[:, 0:2], pose.keypoints(learned_prev[:, 2:5]))
     report = {
+        "code": code,
         "schema": "ilsb.pusht_oracle.stage_a 1", "smoke": bool(args.limit_episodes),
         "identities": {"oracle_json_sha256": sha(HERE / "oracle.json"), "probe_sha256": SPEC["probe_sha256"],
                        "source_content_sha256": BASE["data"]["content_sha256"], **ids,
@@ -285,10 +296,13 @@ def main():
                             "penetration": int(beyond_penetration(prev[sub_rows][:, 0:2], demo_kp).sum()),
                             "extent": int(beyond_extent(prev[sub_rows][:, 0:2], demo_kp).sum()),
                             "rows": int(len(sub_rows))},
-                        "penetration_px": {"oracle": q(penetration(prev_oracle[cr][:, 0:2],
-                                                                   pose.keypoints(prev_oracle[cr][:, 2:5]), AGENT_R)),
-                                           "learned": q(penetration(learned_prev[:, 0:2],
-                                                                    pose.keypoints(learned_prev[:, 2:5]), AGENT_R))}},
+                        "penetration_px": {"oracle": q(pen_o), "learned": q(pen_l)},
+                        "common_beyond_envelope": {
+                            "oracle": {"penetration": int((pen_o > ENV["max_penetration_px"]).sum()),
+                                       "extent": int(ext_o.sum())},
+                            "learned": {"penetration": int((pen_l > ENV["max_penetration_px"]).sum()),
+                                        "extent": int(ext_l.sum())},
+                            "rows": int(len(cr))}},
         "mass": {"alpha": SPEC["cell"]["alpha"], "synthetic_rows_per_batch": 64,
                  "passes_over_common_in_20k_steps": (20000 * 64 / n_common) if n_common else None},
         "rules": {"scale_px": s, "min_common_rows": SPEC["stage_a"]["min_common_rows"],
