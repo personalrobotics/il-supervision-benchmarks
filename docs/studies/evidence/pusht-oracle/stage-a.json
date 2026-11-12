@@ -1,4 +1,16 @@
 {
+ "code": {
+  "commit": "3ad4320e4f17bdc433556d9663460e2221ecd223",
+  "dirty": false,
+  "files_sha256": {
+   "oracle.json": "074017e0c13fb1e5011e3123b3f347507619759fda0bc8d137ea610e0129d559",
+   "oracle_probe.py": "3ae3e960533c5c974039fbe4d66ef231e7871739e2471f4bfd1d1fc921b7a58f",
+   "oracle_stage_a.py": "efda5989b705754da43387659884e0f11bb0bbf752b46b85fb1a1de0285f7572",
+   "pose.py": "0d7b14f0d09fdb0dbe9911fccd6db13e71c5b00f89c5e9bfd05a68ae462976f0",
+   "source.py": "70f3fed087209e767f1ba2140bc50d2bce0a03a2e7704d4f92efbbac62c7af1e",
+   "surface.json": "b90f67084e91481a9b50899df5ad7c64e1d4c6ad642e90617aa7dad85c2fb0b5"
+  }
+ },
  "decision": "pass: Stage B may run after separate approval of its paid jobs",
  "diagnostics": {
   "action_disagreement": 0.0,
@@ -8,6 +20,17 @@
    "50": 5.435357196271734e-05,
    "90": 0.02884802860939448,
    "99": 0.047597318713889315
+  },
+  "common_beyond_envelope": {
+   "learned": {
+    "extent": 44,
+    "penetration": 359
+   },
+   "oracle": {
+    "extent": 0,
+    "penetration": 0
+   },
+   "rows": 12739
   },
   "converged_fresh_but_failed_actual": 308,
   "demonstrations_beyond_envelope": {

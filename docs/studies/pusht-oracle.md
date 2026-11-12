@@ -174,8 +174,9 @@ it is seen.
 enough. Stage B may run after separate approval of its paid jobs.
 
 The record is [`evidence/pusht-oracle/stage-a.json`](evidence/pusht-oracle/stage-a.json), from
-[`oracle_stage_a.py`](../../tools/pusht_v2/oracle_stage_a.py) at `9ace9bb` on siddh. Two independent runs wrote it byte for byte.
-Its per-proposal arrays stay on siddh, under `runs/20261112T232556Z-oracle-stage-a-a/proposals.npz`, identified by
+[`oracle_stage_a.py`](../../tools/pusht_v2/oracle_stage_a.py) at `3ad4320` on siddh, from a clean tree; the record
+holds that commit and its source files' SHA-256. Two independent runs wrote it byte for byte.
+Its per-proposal arrays stay on siddh, under `runs/20261112T233659Z-oracle-stage-a-a/proposals.npz`, identified by
 the content SHA-256 in the record.
 
 **Yield.** 12,743 of the 19,996 proposals have exact, valid oracle labels. Every rejection, by reason:
@@ -209,6 +210,7 @@ the envelope.
 | distance to the nearest demonstration (policy observation) | 12.6 px | 38.9 px |
 | agent penetration into the T, 90th percentile | 8.9 px | 13.5 px |
 | beyond the demonstrated penetration envelope | 0 | 359 of 12,739 |
+| beyond the demonstrated extent envelope | 0 | 44 of 12,739 |
 
 For the same proposals, the learned dynamics place their labels about twice as far from the source and three times as
 far from the data as the simulator does. Some of those labels are physically less plausible than any demonstrated
