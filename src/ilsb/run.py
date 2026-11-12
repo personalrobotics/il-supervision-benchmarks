@@ -274,42 +274,57 @@ def unit(ctx, arm, r, k, seed, sigma=None, full=None) -> dict:
             "split": split_p, "candidates": None if full is None else sup.view(ctx.store, full, k) / "candidates.npz"}
 
 
+def design(ctx) -> list[dict]:
+    """The study's design, computed from the specification alone: every analysis unit (arm, r, K, seed) with its seed
+    role (every seed at K = 0 and K_max, the surface seeds between) and, for a CCIL unit, the K_max candidate set it
+    views (one generation per (arm, r, seed), nested in K). Preflight reports it; the plan, the selection, the
+    analysis units and the report consume it."""
+    k_max = max(ctx.spec["synthetic_doses"])
+    return [{"key": f"{a}/r{r}/k{k}/s{s}", "arm": a, "r": r, "k": k, "seed": s,
+             "seeds": "all" if k in (0, k_max) else "surface",
+             "views": None if a == "bc" else f"{a}/r{r}/s{s}/k{k_max}"}
+            for a, r, k in ctx.cells() for s in ctx.seeds(k)]
+
+
 def plan(ctx, selection: dict | None = None) -> tuple[dict, dict]:
-    """The policy groups, each trained together, and every candidate set's genuine-failure fraction with whether it is
-    feasible (an infeasible sigma is never trained). Without a selection: BC, and the learned arm at every feasible
-    sigma of the grid, or at each coordinate's fixed sigma. With one: the exact arm at each coordinate's selected sigma.
-    Each dose takes its own seeds (ctx.seeds)."""
-    sp, g = ctx.spec, ctx.spec["generation"]
+    """The policy groups of the design's units, each trained together, and every candidate set's genuine-failure
+    fraction with whether it is feasible (an infeasible sigma is never trained). Without a selection: BC, and the
+    learned arm at every feasible sigma of the grid, or at each coordinate's fixed sigma. With one: the exact arm at
+    each coordinate's selected sigma."""
+    g = ctx.spec["generation"]
     groups, feasibility = {}, {}
     fixed = g.get("sigma")
-    for r in sp["real_fractions"]:
-        for seed in sp["seeds"]:
-            doses = [k for k in sorted(sp["synthetic_doses"]) if seed in ctx.seeds(k)]
-            if selection is None:
-                groups.setdefault(("bc", r, 0, None), []).append(unit(ctx, "bc", r, 0, seed))
-                sigmas = g["sigma_grid"] if fixed is None else sorted({fixed[f"r{r}/k{k}"] for k in doses})
-                for sigma in sigmas if "ccil_learned" in sp["arms"] else ():
-                    full = full_candidates(ctx, "ccil_learned", r, seed, sigma)
-                    fail = failure(full)
-                    feasibility[f"ccil_learned/r{r}/s{seed}/sigma{sigma}"] = {
-                        "failure": fail, "feasible": fail <= g["max_failure"]}
-                    if fail > g["max_failure"]:
-                        continue
-                    for k in doses:
-                        if fixed is None or fixed[f"r{r}/k{k}"] == sigma:
-                            groups.setdefault(("ccil_learned", r, k, sigma), []).append(
-                                unit(ctx, "ccil_learned", r, k, seed, sigma, full))
-            elif "ccil_exact" in sp["arms"]:
-                for k in doses:
-                    sigma = selection[f"r{r}/k{k}/s{seed}"]["selected_sigma"]
-                    full = full_candidates(ctx, "ccil_exact", r, seed, sigma)
-                    fail = failure(full)
-                    feasibility[f"ccil_exact/r{r}/k{k}/s{seed}/sigma{sigma}"] = {
-                        "failure": fail, "feasible": fail <= g["max_failure"]}
-                    if fail > g["max_failure"]:
-                        continue
-                    groups.setdefault(("ccil_exact", r, k, None), []).append(
-                        unit(ctx, "ccil_exact", r, k, seed, sigma, full))
+    units = design(ctx)
+    for r, seed in dict.fromkeys((d["r"], d["seed"]) for d in units):  # each (r, seed)'s generations once
+        mine = [d for d in units if (d["r"], d["seed"]) == (r, seed)]
+        if selection is None:
+            for d in mine:
+                if d["arm"] == "bc":
+                    groups.setdefault(("bc", r, 0, None), []).append(unit(ctx, "bc", r, 0, seed))
+            learned = [d["k"] for d in mine if d["arm"] == "ccil_learned"]
+            sigmas = g["sigma_grid"] if fixed is None else sorted({fixed[f"r{r}/k{k}"] for k in learned})
+            for sigma in sigmas if learned else ():
+                full = full_candidates(ctx, "ccil_learned", r, seed, sigma)
+                fail = failure(full)
+                feasibility[f"ccil_learned/r{r}/s{seed}/sigma{sigma}"] = {
+                    "failure": fail, "feasible": fail <= g["max_failure"]}
+                if fail > g["max_failure"]:
+                    continue
+                for k in learned:
+                    if fixed is None or fixed[f"r{r}/k{k}"] == sigma:
+                        groups.setdefault(("ccil_learned", r, k, sigma), []).append(
+                            unit(ctx, "ccil_learned", r, k, seed, sigma, full))
+        else:
+            for k in [d["k"] for d in mine if d["arm"] == "ccil_exact"]:
+                sigma = selection[f"r{r}/k{k}/s{seed}"]["selected_sigma"]
+                full = full_candidates(ctx, "ccil_exact", r, seed, sigma)
+                fail = failure(full)
+                feasibility[f"ccil_exact/r{r}/k{k}/s{seed}/sigma{sigma}"] = {
+                    "failure": fail, "feasible": fail <= g["max_failure"]}
+                if fail > g["max_failure"]:
+                    continue
+                groups.setdefault(("ccil_exact", r, k, None), []).append(
+                    unit(ctx, "ccil_exact", r, k, seed, sigma, full))
     for us in groups.values():  # a policy's identity names its whole training group
         group = sorted([u["seed"], None if u["candidates"] is None else sha256_file(u["candidates"])] for u in us)
         for u in us:
@@ -345,33 +360,43 @@ def select(ctx, rows: dict) -> dict:
     """Per (r, K, seed): the learned arm's sigma with the least validation error; ties go to the smaller sigma. With a
     fixed sigma per (r, K), the only candidate is that sigma (none if it was infeasible)."""
     out = {}
-    for r in ctx.spec["real_fractions"]:
-        for k in sorted(ctx.spec["synthetic_doses"]):
-            for seed in ctx.seeds(k):
-                c = {x["sigma"]: x["validation_mse"] for x in rows.values()
-                     if x["arm"] == "ccil_learned" and (x["r"], x["k"], x["seed"]) == (r, k, seed)}
-                out[f"r{r}/k{k}/s{seed}"] = {"candidates": {str(s_): v for s_, v in sorted(c.items())},
-                                             "selected_sigma": min(c, key=lambda s_: (c[s_], s_)) if c else None}
+    for d in design(ctx):
+        if d["arm"] == "ccil_learned":
+            r, k, seed = d["r"], d["k"], d["seed"]
+            c = {x["sigma"]: x["validation_mse"] for x in rows.values()
+                 if x["arm"] == "ccil_learned" and (x["r"], x["k"], x["seed"]) == (r, k, seed)}
+            out[f"r{r}/k{k}/s{seed}"] = {"candidates": {str(s_): v for s_, v in sorted(c.items())},
+                                         "selected_sigma": min(c, key=lambda s_: (c[s_], s_)) if c else None}
     return out
 
 
 def analysis_units(ctx, selection: dict) -> dict:
     """Each analysis unit's policy row: the learned arm's is the selected sigma's."""
     out = {}
-    for arm, r, k in ctx.cells():
-        for seed in ctx.seeds(k):
-            key_ = f"{arm}/r{r}/k{k}/s{seed}"
-            out[key_] = (f"{key_}/sigma{selection[f'r{r}/k{k}/s{seed}']['selected_sigma']}"
-                         if arm == "ccil_learned" else key_)
+    for d in design(ctx):
+        coord = f"r{d['r']}/k{d['k']}/s{d['seed']}"
+        out[d["key"]] = f"{d['key']}/sigma{selection[coord]['selected_sigma']}" if d["arm"] == "ccil_learned" \
+            else d["key"]
     return out
 
 
 # --- stages -----------------------------------------------------------------------------------------------------------
 def preflight(ctx) -> dict:
+    """The dataset, and the design without training (the units train consumes), with each (r, seed)'s real-data
+    subset and split entries."""
     ctx.dataset()
-    plan = [f"{a}/r{r}/k{k}/s{s}" for a, r, k in ctx.cells() for s in ctx.seeds(k)]
+    units = design(ctx)
+    plan = [d["key"] for d in units]
+    units = {d["key"]: {k_: v for k_, v in d.items() if k_ != "key"} for d in units}
+    from ccil.schema import read_trajectories
+    real = {}
+    for r in ctx.spec["real_fractions"]:
+        for s in ctx.spec["seeds"]:
+            subset_p, split_p = data_units(ctx, r, s)
+            real[f"r{r}/s{s}"] = {"subset_sha256": sha256_file(subset_p), "split_sha256": sha256_file(split_p),
+                                  "episodes": read_trajectories(subset_p).meta["subset"]["episodes"]}
     return {"all_pass": True, "dataset_sha256": ctx.spec["data"]["sha256"], "planned_units": len(plan),
-            "plan_sha256": digest(plan), "code": ctx.protocol["code"]}
+            "plan_sha256": digest(plan), "units": units, "real_data": real, "code": ctx.protocol["code"]}
 
 
 def train_groups(ctx, groups: dict) -> dict:
@@ -403,11 +428,14 @@ def train(ctx) -> dict:
     exact_infeasible = sorted(k_ for k_, v in exact_feasibility.items() if not v["feasible"])
     # The stopping rule must have fired for every unit: reaching the step ceiling is a failed fit, not a result.
     incomplete = sorted(k_ for k_, v in rows.items() if v["stopping"]["outcome"] != "patience")
-    ok = not incomplete and not unselectable and not exact_infeasible
+    # Every unit of the design has its policy row; a plan that left one out fails here rather than in a later stage.
+    analysis = analysis_units(ctx, selection) if not unselectable else {}
+    untrained = sorted(k_ for k_, row in analysis.items() if row not in rows)
+    ok = not incomplete and not unselectable and not exact_infeasible and not untrained
     return {"all_pass": ok, "units": rows, "trained": sum(v["reused"] is False for v in rows.values()),
             "feasibility": feasibility, "selection": selection, "unselectable": unselectable,
             "exact_feasibility": exact_feasibility, "exact_infeasible": exact_infeasible, "incomplete_fit": incomplete,
-            "analysis": analysis_units(ctx, selection) if ok else None}
+            "untrained": untrained, "analysis": analysis if ok else None}
 
 
 def audit(ctx) -> dict:
@@ -513,11 +541,14 @@ def report(ctx) -> dict:
     a = ctx.spec["analysis"]
     scores = prior["evaluate"]["units"]
 
+    units = design(ctx)
+
     def values(arm, r, k):
-        return {s: scores[f"{arm}/r{r}/k{k}/s{s}"]["scores"][a["metric"]] for s in ctx.seeds(k)}
+        return {d["seed"]: scores[d["key"]]["scores"][a["metric"]] for d in units
+                if (d["arm"], d["r"], d["k"]) == (arm, r, k)}
     cells, contrasts, derived = {}, {}, {}
-    for arm, r, k in ctx.cells():  # the response surface, descriptive: each cell over its own dose's seeds
-        v = values(arm, r, k)
+    for arm, r, k in dict.fromkeys((d["arm"], d["r"], d["k"]) for d in units):  # the response surface, descriptive:
+        v = values(arm, r, k)                                                   # each cell over its dose's seeds
         cells[f"{arm}/r{r}/k{k}"] = {"mean": float(np.mean(list(v.values()))), "n": len(v), "per_seed": v}
     k_max = max(ctx.spec["synthetic_doses"])
     # The primary contrasts and the derived ones, at K_max over every seed; derived contrasts are not a test family.
@@ -528,8 +559,12 @@ def report(ctx) -> dict:
                                                                 values(B, r, 0 if B == "bc" else k_max),
                                                                 a["confidence"], a["min_pairs"])
     sel = prior["train"]["selection"]
-    chosen = {f"r{r}/k{k}": sorted(sel[f"r{r}/k{k}/s{s_}"]["selected_sigma"] for s_ in ctx.seeds(k))
-              for r in ctx.spec["real_fractions"] for k in sorted(ctx.spec["synthetic_doses"])} if sel else {}
+    chosen = {}
+    for d in units if sel else ():
+        if d["arm"] == "ccil_learned":
+            cell = f"r{d['r']}/k{d['k']}"
+            chosen.setdefault(cell, []).append(sel[f"{cell}/s{d['seed']}"]["selected_sigma"])
+    chosen = {c: sorted(v) for c, v in chosen.items()}
     return {"all_pass": True, "metric": a["metric"], "cells": cells, "contrasts": contrasts, "derived": derived,
             "selected_sigmas": chosen}
 

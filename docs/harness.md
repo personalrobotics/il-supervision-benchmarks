@@ -48,8 +48,8 @@ So work done by other code, another lock or another environment is never reused.
 
 | Stage | What it checks or produces |
 |---|---|
-| preflight | The dataset matches its declared hash; the plan of units. |
-| train | Every policy unit, each group of seeds trained together through the learner adapter, in three steps (below): BC and the learned arm at every feasible σ of the grid, or at each coordinate's fixed σ; the σ selection; the exact arm at the selected σ. Each dose takes its own seeds: every seed at K = 0 and K_max, and the `surface_seeds` prefix at the doses between, when it is declared. Every unit must stop by the validation rule (patience at the plateau schedule's floor); a unit that reaches the step ceiling is an incomplete fit, and the stage fails. So does a coordinate with no feasible σ. |
+| preflight | The dataset matches its declared hash; the design, computed from the specification alone and consumed by every later stage: each unit with its seed role and the K_max candidate set it views, and each (r, seed)'s subset and split. |
+| train | Every policy unit, each group of seeds trained together through the learner adapter, in three steps (below): BC and the learned arm at every feasible σ of the grid, or at each coordinate's fixed σ; the σ selection; the exact arm at the selected σ. Each dose takes its own seeds: every seed at K = 0 and K_max, and the `surface_seeds` prefix at the doses between, when it is declared. Every unit must stop by the validation rule (patience at the plateau schedule's floor); a unit that reaches the step ceiling is an incomplete fit, and the stage fails. So does a coordinate with no feasible σ, or a design unit left without a policy. |
 | audit | Every trained unit is a verified entry. Its training identity, which hashes the supervision manifest with the dataset, split and candidate hashes, recomputes from the unit's own inputs. Its weights hash to the record, and its reported row (stopping, exposure, validation error) recomputes. Feasibility, the σ selection and the analysis units recompute to the reported ones. |
 | evaluate | One rollout per analysis unit from the task's fixed final-test starts, with its scores. Unselected σ candidates are never evaluated. |
 | evaluation_audit | Every rollout reopened. It checks hashes, shapes, starts and the action bound, replays every transition through the task map, and recomputes every score exactly. |
@@ -127,15 +127,15 @@ run:
   - fifteen malformed configurations each exit 2 with their message, before CCIL runs or anything is written;
   - on the same labels, the study learner's group of three seeds trains to the same parameters and records;
   - a v1 resumable checkpoint CCIL wrote loads with the same state and predictions, and resumes to the same next checkpoint byte for byte; CCIL's v1 and v2 inference checkpoints reproduce their offline metrics; and resuming an inference checkpoint or another run's is refused.
-- `tools/fixture.py --work NEW_DIR` is the compact end-to-end fixture, written to `docs/fixtures/evidence/vertical-slice-fixture.json`:
-  - every arm, two fractions and two doses through every stage on CPU, in a study's design: three seeds at K = 0 and K_max, two surface seeds at the dose between, and a fixed σ per (r, K);
-  - a resume that reruns nothing;
-  - a second study that reuses every unit and reports identically;
+- `tools/fixture.py --work NEW_DIR` is the compact end-to-end fixture, written to `docs/fixtures/evidence/vertical-slice-fixture.json`. One real study builds the valid artifacts once: every arm through every stage on CPU, at one real fraction, one dose, one fixed σ and two seeds, scored on normalized height so the paired analysis computes its BCa and t intervals. The other checks reuse those artifacts or copies of them, and train only where a failure needs new numerical work:
+  - a preflight alone on 2 fractions × 3 doses × 3 seeds, whose 34 planned units, seed roles, K_max candidate sets and nested subsets match the design, with nothing trained;
+  - the exposure of a learned unit, reconciled from its saved record against the BC unit's;
+  - a resume that reruns nothing, and a second study that reuses every unit and reports identically;
   - refusals of a wrong dataset hash, a corrupted rollout, a report after a failed audit, a mismatched store entry, and an out-of-order stage;
-  - a copy of the harness whose source differs by one comment, which retrains every unit instead of reusing the store's;
-  - a step ceiling below any patience stop, which fails the train stage on every unit, after which the audit refuses;
-  - a three-point σ grid with no genuine generation failure tolerated, which skips every σ with any failure untrained and fails the train stage on the coordinates left without a feasible σ.
+  - the BC cell, reused under the same code and retrained under a copy of the installed harness whose source differs by one comment;
+  - the BC cell under a step ceiling below any patience stop, which fails the train stage, after which the audit refuses;
+  - a σ grid with one feasible and one infeasible σ, whose failure fractions lie far on either side of `max_failure` (the support radius sits between their label distances), which trains only the feasible one; and the infeasible σ alone, which leaves every coordinate unselectable and fails the train stage.
 
-  The evidence holds no paths, times or commits, so a rerun on the same host reproduces it byte for byte.
+  The fixture's docstring maps each protected failure to its check. The evidence counts every policy trained, and holds no paths, times or commits, so a rerun on the same host reproduces it byte for byte.
 
-CI (`.github/workflows/fixture.yml`) builds the wheel, installs it in a clean environment with CPU PyTorch, and runs `learner_check.py` (with a reference environment at `REFERENCE_CCIL`) and `fixture.py` from there; the evidence is uploaded as the run's artifact. There is no unit-test collection.
+CI (`.github/workflows/fixture.yml`) builds the wheel, installs it in a clean environment with CPU PyTorch, and runs `learner_check.py` (with a reference environment at `REFERENCE_CCIL`) and `fixture.py` from there; the evidence is uploaded as the run's artifact. A fixture runs only when its inputs changed: `src/`, `pyproject.toml`, `uv.lock`, the workflow, or its own script. Otherwise its check passes without running. A new push to a pull request cancels the obsolete run. There is no unit-test collection.

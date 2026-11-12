@@ -1,4 +1,5 @@
-# The end-to-end fixtures, each run from the built wheel installed in a clean environment (CPU).
+# The end-to-end fixtures, each run from the built wheel installed in a clean environment (CPU), when one of its
+# inputs changed: the package source, its dependency declarations, this workflow, or its own script.
 name: fixture
 
 on:
@@ -9,11 +10,49 @@ on:
 permissions:
   contents: read
 
+# A new push to a pull request cancels its obsolete run; runs on main each finish.
+concurrency:
+  group: fixture-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
-  installed-wheel:
+  changes:
     runs-on: ubuntu-24.04
-    # The study fixture takes about 65-80 minutes on a 4-core runner (6.5 on a 10-core laptop).
-    timeout-minutes: 150
+    outputs:
+      run: ${{ steps.classify.outputs.run }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - id: classify
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          range="$BASE..$HEAD"
+          if [ "$EVENT" = pull_request ]; then range="$BASE...$HEAD"; fi  # the pull request's own changes
+          if ! changed=$(git diff --name-only "$range"); then
+            changed='*'  # no comparable base (a new branch or a rewritten history): run every fixture
+          fi
+          shared='src/|pyproject\.toml$|uv\.lock$|\.github/workflows/fixture\.yml$'
+          run=()
+          for fixture in learner-migration:tools/learner_check.py vertical-slice-fixture:tools/fixture.py; do
+            name=${fixture%%:*} script=${fixture#*:}
+            if [ "$changed" = '*' ] || grep -qE "^($shared|${script//./\\.}\$)" <<<"$changed"; then
+              run+=("\"$name\"")
+            fi
+          done
+          echo "run=[$(IFS=,; echo "${run[*]}")]" >> "$GITHUB_OUTPUT"
+          { echo "Changed ($range):"; echo '```'; echo "$changed"; echo '```'; echo "Fixtures to run: [${run[*]}]"; } \
+            >> "$GITHUB_STEP_SUMMARY"
+
+  installed-wheel:
+    needs: changes
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -22,20 +61,30 @@ jobs:
              args: --reference "$RUNNER_TEMP/reference/bin/python"}
           - {name: vertical-slice-fixture, script: tools/fixture.py, python_flags: "", args: ""}
     name: ${{ matrix.fixture.name }}
+    # Every fixture's check reports; one whose inputs did not change passes without running.
+    env:
+      RUN: ${{ contains(fromJSON(needs.changes.outputs.run), matrix.fixture.name) }}
     steps:
+      - name: Skipped, no input of this fixture changed
+        if: env.RUN != 'true'
+        run: echo "No input of ${{ matrix.fixture.name }} changed; not run." >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        if: env.RUN == 'true'
         with:
           persist-credentials: false
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2  # v10.3.3
+        if: env.RUN == 'true'
       - name: Build the wheel
+        if: env.RUN == 'true'
         run: uv build --wheel --out-dir dist
       - name: Install it in a clean environment
+        if: env.RUN == 'true'
         run: |
           uv venv --python 3.12 "$RUNNER_TEMP/clean"
           uv pip install --python "$RUNNER_TEMP/clean/bin/python" --torch-backend cpu dist/*.whl
       # CCIL's own trainers, which the learner check compares with, last existed at REFERENCE_CCIL (CCIL#168).
       - name: Install the reference CCIL in a second environment
-        if: matrix.fixture.name == 'learner-migration'
+        if: env.RUN == 'true' && matrix.fixture.name == 'learner-migration'
         run: |
           commit=$(sed -n 's/^REFERENCE_CCIL = "\([0-9a-f]*\)"$/\1/p' tools/learner_check.py)
           torch=$("$RUNNER_TEMP/clean/bin/python" -c 'import torch; print(torch.__version__.split("+")[0])')
@@ -43,11 +92,12 @@ jobs:
           uv pip install --python "$RUNNER_TEMP/reference/bin/python" --torch-backend cpu "torch==$torch" \
             "ccil[torch] @ git+https://github.com/personalrobotics/CCIL@$commit"
       - name: Run the fixture
+        if: env.RUN == 'true'
         run: |
           "$RUNNER_TEMP/clean/bin/python" ${{ matrix.fixture.python_flags }} ${{ matrix.fixture.script }} \
             --work "$RUNNER_TEMP/work" --out "evidence/${{ matrix.fixture.name }}.json" ${{ matrix.fixture.args }}
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
-        if: always()
+        if: always() && env.RUN == 'true'
         with:
           name: ${{ matrix.fixture.name }}
           path: evidence/
