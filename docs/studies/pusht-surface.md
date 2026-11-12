@@ -4,7 +4,8 @@ This is the protocol of [#5](https://github.com/personalrobotics/il-supervision-
 before any study policy trains. The PushT v2 result ([pusht.md](pusht.md)) is one measured operating point: all the
 real data, about 80% synthetic exposure. That run is not repeated.
 
-The machine-readable protocol is [`surface.json`](../../tools/pusht_v2/surface.json) (Stage 1) and
+The machine-readable protocol is [`surface.json`](../../tools/pusht_v2/surface.json) (Stage 1),
+[`surface-stage2.json`](../../tools/pusht_v2/surface-stage2.json) (Stage 2, derived from Stage 1's record) and
 [`surface.yaml`](../../tools/pusht_v2/surface.yaml) (CCIL). The harness implementation is
 [`src/ilsb/studies/pusht_surface.py`](../../src/ilsb/studies/pusht_surface.py); the learner is
 [`tools/pusht_v2/surface_learner`](../../tools/pusht_v2/surface_learner).
@@ -191,6 +192,69 @@ No second confirmatory cell is tried.
 Stage 1 is descriptive and may choose what runs next. Only Stage 3 is confirmatory. A positive result is scoped to this
 PushT regime, this IBC learner and this one-step recipe. A null or negative result is equally complete.
 
+## Stage 1 result
+
+Stage 1 gives two weak development candidates. It is not evidence that CCIL helps. Stage 2 exists to test whether
+either ordering repeats on a new seed.
+
+Stage 1 ran on Tillicum at the protocol commit `ffbb3bf`: job 458612 for preflight, array 458613 for the 28 units, and
+job 458614 for the stages after training. Every stage passed:
+- the audit regenerated all 28 index streams and re-scored every selection;
+- the evaluation audit recomputed every score and repeated one evaluation within tolerance;
+- every fit was complete, and no unit extended past 20k.
+
+The compact record is [`evidence/pusht-surface/stage1.json`](evidence/pusht-surface/stage1.json). It holds each
+stage report's SHA-256 from the run's manifest, the pool diagnostics, every unit's selection and score, the audits'
+outcomes, the report and the measured compute.
+
+BC at r = 1 reached 0.857 of the hold-to-demonstrator gap, so the learner is competent.
+
+Average maximum coverage on D_dev, learner seed 1:
+
+| r | BC | α | duplication | CCIL | CCIL − duplication | CCIL − BC |
+|---|---|---|---|---|---|---|
+| 0.1 | 0.366 | 0.25 | 0.356 | 0.334 | −0.022 | −0.032 |
+| | | 0.5 | 0.338 | 0.277 | −0.061 | −0.089 |
+| | | 0.8 | 0.377 | 0.243 | −0.134 | −0.123 |
+| 0.25 | 0.408 | 0.25 | 0.411 | 0.445 | **+0.034** | +0.037 |
+| | | 0.5 | 0.465 | 0.440 | −0.025 | +0.032 |
+| | | 0.8 | 0.435 | 0.461 | **+0.026** | +0.054 |
+| 0.5 | 0.745 | 0.25 | 0.692 | 0.445 | −0.247 | −0.300 |
+| | | 0.5 | 0.597 | 0.495 | −0.102 | −0.250 |
+| | | 0.8 | 0.750 | 0.472 | −0.278 | −0.273 |
+| 1.0 | 0.820 | 0.25 | 0.829 | 0.816 | −0.013 | −0.004 |
+| | | 0.5 | 0.773 | 0.756 | −0.017 | −0.064 |
+| | | 0.8 | 0.799 | 0.614 | −0.185 | −0.207 |
+
+Two cells are eligible: (r = 0.25, α = 0.25) and (r = 0.25, α = 0.8). Their effects differ by more than the tie
+tolerance, so the ranking is by effect. Both go to Stage 2.
+
+**Caveat.** The two margins are +0.034 and +0.026, each from one seed and 100 starts. The cell between them,
+α = 0.5, is −0.025. Duplication alone moves by 0.02–0.15 between neighbouring α at a fixed r, with no CCIL content
+involved. These margins are therefore within the variation of one seed. Everywhere else CCIL is below duplication,
+by up to 0.28 at r = 0.5.
+
+**Verification of the selection.**
+- [`surface_stage2.py`](../../tools/pusht_v2/surface_stage2.py) `derive` re-applies the frozen Stage 1 rule to the
+  record's per-unit scores. It is written independently of the harness's report stage, and it refuses unless both
+  select exactly these two cells.
+- It also refuses unless `surface.json` hashes to the specification Stage 1 ran.
+- It then writes [`surface-stage2.json`](../../tools/pusht_v2/surface-stage2.json).
+
+**Compute.** Elapsed GPU time, from `sacct`, was 3.12 GPU-hours, about $2.80 at $0.90 per H200-hour. Each unit took
+about 6 minutes. The declared ceiling was 24 GPU-hours, and the projection was about 3.5.
+
+**Stage 2.** It has five unique policy units on learner seed 2, using the same r = 0.25 subset, normalization and
+pool recipe:
+- one BC unit at r = 0.25, which both cells share;
+- duplication and CCIL at α = 0.25;
+- duplication and CCIL at α = 0.8.
+
+The Stage 2 run reports seed 2 alone. The frozen Stage 2 rule then combines it with this record: a cell stays
+eligible only if CCIL is above duplication and BC on both seeds, and the selection uses the mean CCIL − duplication
+over seeds 1 and 2. The Stage 2 run computes no BC competence, because it has no r = 1 unit; that gate belongs to
+Stage 1. D_test is not read.
+
 ## Compute
 
 **Hosts.** Policy training runs on Tillicum (H200), as a Slurm array of `ilsb unit` tasks with one GPU each. Everything
@@ -248,4 +312,4 @@ plugin, the IBC plugin and the learner of this tree installed. The harness check
 content.
 
 On Tillicum, [`slurm/setup.sh`](../../tools/pusht_v2/slurm/setup.sh) builds both environments at the protocol commit on
-the login node. [`slurm/timing.sbatch`](../../tools/pusht_v2/slurm/timing.sbatch) is the timing unit. Stage 1 runs [`slurm/stages.sbatch`](../../tools/pusht_v2/slurm/stages.sbatch) with `STAGES=preflight`, then the array [`slurm/units.sbatch`](../../tools/pusht_v2/slurm/units.sbatch) (`--array=0-27%8`), then `stages.sbatch` with the remaining stages. Submit each from the clone, with `--output` in the run directory.
+the login node. [`slurm/timing.sbatch`](../../tools/pusht_v2/slurm/timing.sbatch) is the timing unit. Stage 1 runs [`slurm/stages.sbatch`](../../tools/pusht_v2/slurm/stages.sbatch) with `STAGES=preflight`, then the array [`slurm/units.sbatch`](../../tools/pusht_v2/slurm/units.sbatch) (`--array=0-27%8`), then `stages.sbatch` with the remaining stages. Submit each from the clone, with `--output` in the run directory. Stage 2 runs the same jobs with `SPEC=tools/pusht_v2/surface-stage2.json` and `--array=0-4`, in a new run directory.
