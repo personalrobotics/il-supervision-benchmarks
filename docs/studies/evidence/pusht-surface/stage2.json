@@ -1,0 +1,228 @@
+{
+ "audit": {
+  "problems": {},
+  "units": 5
+ },
+ "code": {
+  "ccil": {
+   "commit": "a995ff9b38ec0044917842c950d1718bfba7f0b7",
+   "url": "https://github.com/personalrobotics/CCIL",
+   "version": "0.1.0.dev0"
+  },
+  "dirty": [],
+  "harness_commit": "36018aa14add4b4fb58d2d782219822ec7c6dc0d",
+  "uv_lock_sha256": "94e7d84e98ae761e2d8ae8983250fa59f4f6ea9436be21de4dc6fefb12562c72"
+ },
+ "compute": {
+  "cost_usd_at_rate": 0.52,
+  "gpu_hours": 0.5811,
+  "jobs": {
+   "459376": {
+    "gpus": 1,
+    "seconds": 35
+   },
+   "459377_0": {
+    "gpus": 1,
+    "seconds": 375
+   },
+   "459377_1": {
+    "gpus": 1,
+    "seconds": 375
+   },
+   "459377_2": {
+    "gpus": 1,
+    "seconds": 357
+   },
+   "459377_3": {
+    "gpus": 1,
+    "seconds": 356
+   },
+   "459377_4": {
+    "gpus": 1,
+    "seconds": 364
+   },
+   "459378": {
+    "gpus": 1,
+    "seconds": 230
+   }
+  },
+  "rate_usd_per_gpu_hour": 0.9
+ },
+ "evaluation_audit": {
+  "problems": {},
+  "repeat_unit": "bc/r0.25/a0/s2",
+  "units": 5
+ },
+ "preflight": {
+  "held_out_frames": 5109,
+  "plan_sha256": "d2bbff66eaf2c6324403cebe2f8307e67a0419554d4789dd2c907f22b90a58db",
+  "planned_units": 5,
+  "pools": {
+   "r0.25": {
+    "episodes": 41,
+    "held_out_current_frames": 0,
+    "outside_frozen_range_fraction": {
+     "action": 0.0023020718646782103,
+     "observation.environment_state": 0.05690121108998098,
+     "observation.state": 0.005955359823841457
+    },
+    "previous_slot_displacement_px": {
+     "10": 10.95129680633545,
+     "100": 287.16668701171875,
+     "50": 22.837806701660156,
+     "90": 55.19915008544922
+    },
+    "proposals": 19996,
+    "real_rows": 5040,
+    "selected": 19982,
+    "usable_fraction": 0.9992998599719944,
+    "violations": {
+     "invariant": 0,
+     "residual": 0,
+     "rigidity": 0
+    }
+   }
+  },
+  "real_rows": {
+   "r0.25": 5040
+  },
+  "source_content_sha256": "333a9b17ebfc6657591eb2b14a7f314200dd2ae1c743691802a319c1746e561d",
+  "subset_episodes": {
+   "r0.25": 41
+  }
+ },
+ "protocol_sha256": "7ea92092b0cfce1f2e2de4cd76d66eb926e2b48d00273bf2cafa354dac46ee06",
+ "report": {
+  "bc_competence": {},
+  "cells": {
+   "r0.25/a0.25": {
+    "alpha": 0.25,
+    "eligible": false,
+    "mean_ccil_minus_duplication": -0.02829947954542461,
+    "per_seed": {
+     "2": {
+      "bc": 0.4847795953967783,
+      "ccil": 0.45367606318125925,
+      "ccil_minus_bc": -0.031103532215519036,
+      "ccil_minus_duplication": -0.02829947954542461,
+      "complete": true,
+      "duplication": 0.48197554272668386,
+      "duplication_minus_bc": -0.0028040526700944257
+     }
+    },
+    "r": 0.25
+   },
+   "r0.25/a0.8": {
+    "alpha": 0.8,
+    "eligible": false,
+    "mean_ccil_minus_duplication": -0.04740941275623656,
+    "per_seed": {
+     "2": {
+      "bc": 0.4847795953967783,
+      "ccil": 0.3979138365320272,
+      "ccil_minus_bc": -0.08686575886475106,
+      "ccil_minus_duplication": -0.04740941275623656,
+      "complete": true,
+      "duplication": 0.4453232492882638,
+      "duplication_minus_bc": -0.039456346108514506
+     }
+    },
+    "r": 0.25
+   }
+  },
+  "competent": false,
+  "decision": {
+   "eligible": [],
+   "next": "see the protocol"
+  },
+  "eligible": [],
+  "metric": "avg_max_reward"
+ },
+ "spec_sha256": "aecad937d8642b0f7d2cef422bc95fc129d9a3f986e7419ea33584689708b0ac",
+ "stage_sha256": {
+  "audit": "2182cbb7c5de897ad0cbc054825dd1792b6dc1d6024270e36420c2432bea5f9c",
+  "evaluate": "000880b96dd14385a1accd7d65d675e9c99d83464fb4f1113f5d61316fef6cb2",
+  "evaluation_audit": "be5a241e6699793587097222f923acb2fc2d37e0ed56245cdf46176758636f96",
+  "preflight": "3989460d921ce4b2b1a2e2831b20eea9b726990383dd44cb93cbb4d480214cdc",
+  "report": "fd9fb77660d66c6c0a27d8b7a5a3ce8a850327882902e5a18e8401f588558a52",
+  "train": "c2e75ff6ac6086e8320f679a4527a26459e2825ecbffd6273929626af1c11230"
+ },
+ "study": "pusht-surface-stage2",
+ "train": {
+  "failed": {},
+  "incomplete_fit": [],
+  "missing": []
+ },
+ "units": {
+  "bc/r0.25/a0/s2": {
+   "avg_max_reward": 0.4847795953967783,
+   "evaluation_entry": "ed448d961cdb84dd0b1e593877a9672d0da79cdb5a7c5b0ab823ad16c42390fb",
+   "outcome": "complete",
+   "pc_success": 6.0,
+   "per_batch": {
+    "real": 256,
+    "synthetic": 0
+   },
+   "reached": 20000,
+   "selected_infonce": 2.3511413632094937,
+   "selected_step": 2500,
+   "train_entry": "77b8234f73055190efd16391d7051b8bcbb178efaf152815b110c53e1a0960eb"
+  },
+  "ccil/r0.25/a0.25/s2": {
+   "avg_max_reward": 0.45367606318125925,
+   "evaluation_entry": "843b8ad5dce0be4078e8d3a2194d5418330539aec3520561a6d3c2faed1d831c",
+   "outcome": "complete",
+   "pc_success": 10.0,
+   "per_batch": {
+    "real": 192,
+    "synthetic": 64
+   },
+   "reached": 20000,
+   "selected_infonce": 2.936120658236568,
+   "selected_step": 2500,
+   "train_entry": "26c40657b4fc98a57634efc9f58a3bb8613bbf21c9efe90fcff65b0f5c9788e5"
+  },
+  "ccil/r0.25/a0.8/s2": {
+   "avg_max_reward": 0.3979138365320272,
+   "evaluation_entry": "dba7a68ad711b7194f8b3c635cfe3f3ec744c781e586b9bf61eaf02788a37285",
+   "outcome": "complete",
+   "pc_success": 3.0,
+   "per_batch": {
+    "real": 51,
+    "synthetic": 205
+   },
+   "reached": 20000,
+   "selected_infonce": 3.169753931229159,
+   "selected_step": 2500,
+   "train_entry": "87d07062c7f754a0b35258bc3aad7bed562f627126918a1a940022763e974ea0"
+  },
+  "duplication/r0.25/a0.25/s2": {
+   "avg_max_reward": 0.48197554272668386,
+   "evaluation_entry": "a976cb8bd52fc1dc89dbba2f441052e22195db0844e63741173088b1ebbe57fa",
+   "outcome": "complete",
+   "pc_success": 13.0,
+   "per_batch": {
+    "real": 192,
+    "synthetic": 64
+   },
+   "reached": 20000,
+   "selected_infonce": 2.3496008039651106,
+   "selected_step": 2500,
+   "train_entry": "ff3a2ab32438008d7a0b7895ebbb421e8350fc4902d67c4db05f48b544729f02"
+  },
+  "duplication/r0.25/a0.8/s2": {
+   "avg_max_reward": 0.4453232492882638,
+   "evaluation_entry": "d76a6605f6ca01a9c760ac4e2dcf0279e6e8debcac45011a84c78a68ac825b22",
+   "outcome": "complete",
+   "pc_success": 11.0,
+   "per_batch": {
+    "real": 51,
+    "synthetic": 205
+   },
+   "reached": 20000,
+   "selected_infonce": 2.4677241429511136,
+   "selected_step": 2500,
+   "train_entry": "8cea3e8330c6a370be47f735255929c7228e8f2e1ab1859c4965d54cc3e413ac"
+  }
+ }
+}
