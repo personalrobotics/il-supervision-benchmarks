@@ -1,0 +1,47 @@
+{
+ "probe": "pusht-v2-pose-smoke-gate",
+ "ccil": {
+  "commit": "a995ff9b38ec0044917842c950d1718bfba7f0b7",
+  "config": "tools/pusht_v2/pusht.yaml with representation.modality state+state.pose"
+ },
+ "round_trip_tolerance_px": 0.0004142825662256655,
+ "root_tolerance": 0.0001,
+ "rigidity": {
+  "tolerance_px": 0.0004142825662256655,
+  "reference_pair_distances_px": [
+   120.00000006371896,
+   123.69316867684651,
+   30.000000153672104,
+   54.083269062633626,
+   80.77747208088692,
+   141.5097171156759,
+   128.1600559166668,
+   30.00000020368995,
+   123.69316872604671,
+   80.77747186123922,
+   54.08326903735766,
+   128.16005614652295,
+   141.509716812079,
+   119.99999946964672,
+   74.99999990392631,
+   45.00000017700303,
+   100.62305883359664,
+   117.15374507976202,
+   44.999999576237876,
+   74.99999972813957,
+   117.1537446274483,
+   100.62305851095192,
+   29.999999825499252,
+   94.8683298747725,
+   89.99999978965724,
+   90.0000004659976,
+   94.86832987947162,
+   30.000000209582502
+  ],
+  "rule": "10 x the demonstrations' largest T-shape deviation (evidence/pusht-v2/development/preimage-probe/rigidity.json)"
+ },
+ "min_usable_fraction": 0.5,
+ "sample_seed": 0,
+ "conditioning_sample": 2000,
+ "rule": "pass iff stored poses decode to every frame's keypoints within round_trip_tolerance_px, at least min_usable_fraction of all proposals are usable (accepted, residual <= root_tolerance, history invariant within eps_struct, decoded T rigid in both slots), and no accepted label breaks the residual, the invariant or the rigidity. Pass: build the pose adapter into v2, smoke, freeze v2 otherwise unchanged. Fail: if the 5 x 5 previous-slot Jacobian is ill-conditioned (median condition above 1e3), a damped solve in pose space is measured and reported; otherwise the PushT CCIL arm stops. No tolerance is relaxed and no policy trains"
+}
