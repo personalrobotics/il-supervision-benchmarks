@@ -7,9 +7,10 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=64G
 #SBATCH --time=00:55:00
-#SBATCH --output=%x-%j.log
 # The off-study 20k timing unit (learner seed 99, never reused): wall time, s/step, peak GPU and host memory.
-#   ILSB_COMMIT=<sha> ROOT=<new run dir> sbatch --export=ALL tools/pusht_v2/slurm/timing.sbatch
+# Submit from the clone; the job's log goes to the run directory (a file in the clone would make the tree dirty):
+#   mkdir -p $ROOT && ILSB_COMMIT=<sha> ROOT=$ROOT sbatch --export=ALL --output=$ROOT/%x-%j.log \
+#     tools/pusht_v2/slurm/timing.sbatch
 source "${SLURM_SUBMIT_DIR:-.}/tools/pusht_v2/slurm/env.sh"
 header
 SPEC=$SRC/tools/pusht_v2/surface-timing.json

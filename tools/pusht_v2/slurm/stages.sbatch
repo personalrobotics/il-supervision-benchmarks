@@ -7,10 +7,10 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=64G
 #SBATCH --time=02:00:00
-#SBATCH --output=%x-%j.log
 # The stages around the policy array, on one GPU: STAGES="preflight" before it; STAGES="train audit evaluate
 # evaluation_audit report" after it (train only collects the array's units: no --gpus).
-#   ILSB_COMMIT=<sha> ROOT=<run dir> SPEC=<spec> STAGES="..." sbatch --export=ALL tools/pusht_v2/slurm/stages.sbatch
+#   ILSB_COMMIT=<sha> ROOT=<run dir> SPEC=<spec> STAGES="..." sbatch --export=ALL --output=$ROOT/%x-%j.log \
+#     tools/pusht_v2/slurm/stages.sbatch   (from the clone; the log stays outside it)
 source "${SLURM_SUBMIT_DIR:-.}/tools/pusht_v2/slurm/env.sh"
 header
 cd "$SRC"

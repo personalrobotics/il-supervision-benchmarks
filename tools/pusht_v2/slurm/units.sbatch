@@ -7,10 +7,10 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=64G
 #SBATCH --time=02:30:00
-#SBATCH --output=%x-%A_%a.log
 # One policy unit per array task, in the design's order (preflight.json); a task whose unit exists does nothing, and
 # an interrupted one resumes from its newest checkpoint when resubmitted (only on an explicit decision to).
-#   ILSB_COMMIT=<sha> ROOT=<run dir> SPEC=<spec> sbatch --export=ALL --array=0-27%8 tools/pusht_v2/slurm/units.sbatch
+#   ILSB_COMMIT=<sha> ROOT=<run dir> SPEC=<spec> sbatch --export=ALL --array=0-27%8 --output=$ROOT/%x-%A_%a.log \
+#     tools/pusht_v2/slurm/units.sbatch   (from the clone; the logs stay outside it)
 source "${SLURM_SUBMIT_DIR:-.}/tools/pusht_v2/slurm/env.sh"
 header
 cd "$SRC"
