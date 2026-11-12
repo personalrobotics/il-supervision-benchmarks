@@ -9,10 +9,7 @@
   "evaluation_audit": {
    "all_pass": true,
    "problems": {},
-   "repeat_max_deviation": {
-    "max_reward": 1.1102230246251565e-16,
-    "sum_reward": 0.0
-   }
+   "repeat_within_tolerance": true
   },
   "pool": {
    "ccil_counts": {
