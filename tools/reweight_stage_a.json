@@ -1,0 +1,32 @@
+{
+ "study": "reweight-stage-a",
+ "issue": 40,
+ "inventory": "docs/studies/evidence/reweight/inventory.json",
+ "scope": "uncertified acceptance-selected CCIL labels against oracle relabels; the trust constraint is untestable from existing artifacts",
+ "statistic": {
+  "g": "jvp of the per-row training loss along grad L_V at the BC checkpoint",
+  "u": "c * max(0, g)",
+  "c": "the recorded weight, unchanged",
+  "precision": "fp32, tf32 off, eval mode",
+  "pendulum_loss": "vector_bc squared action error in min/max-scaled action units",
+  "pusht_loss": "IBC InfoNCE as the frozen selection scorer, negatives per row from seed 0",
+  "pusht_negatives": 1024
+ },
+ "cases": {
+  "pendulum-capture": {"seeds": [3311, 3312, 3313, 3314, 3315, 3316, 3317, 3318, 3319, 3320], "theta": "bc", "validation": "episodes outside the seed subset", "synthetic": "select/s<seed>.npz collection", "comparator": "subset demonstration rows", "check": "F1"},
+  "pendulum-pumping": {"seeds": [3301, 3302, 3303, 3304, 3305, 3306, 3307, 3308, 3309, 3310], "theta": "bc", "validation": "episodes outside the seed subset", "synthetic": "select/s<seed>.npz collection", "comparator": "subset demonstration rows", "check": null},
+  "pusht-surface-r0.1": {"seeds": [1], "theta": "bc/r0.1/a0/s1", "validation": "D_X outside the r0.1 subset", "synthetic": "pool r0.1 labels.npz", "comparator": "src_row per label", "check": "F2"},
+  "pusht-surface-r0.5": {"seeds": [1], "theta": "bc/r0.5/a0/s1", "validation": "D_X outside the r0.5 subset", "synthetic": "pool r0.5 labels.npz", "comparator": "src_row per label", "check": "F2"},
+  "pusht-surface-r0.25": {"seeds": [1, 2], "theta": "bc/r0.25/a0/s<seed>", "validation": "D_X outside the r0.25 subset", "synthetic": "pool r0.25 labels.npz", "comparator": "src_row per label", "check": null},
+  "pusht-surface-r1.0": {"seeds": [1], "theta": "bc/r1.0/a0/s1", "validation": "D_V (selection-contaminated)", "synthetic": "pool r1.0 labels.npz", "comparator": "src_row per label", "check": null},
+  "pusht-v22": {"seeds": [1, 2, 3, 4, 5], "theta": "bc-s<seed>", "validation": "D_V (selection-contaminated)", "synthetic": "the ccil arm's added rows (recorded source index)", "comparator": "their source rows", "check": null}
+ },
+ "checks": {
+  "F1": {"cases": ["pendulum-capture"], "rule": "D > 0 on at least 8 of 10 seeds"},
+  "F2": {"cases": ["pusht-surface-r0.1", "pusht-surface-r0.5"], "rule": "D <= 0 in every case"},
+  "pass": "F1 and F2"
+ },
+ "mass": {"pendulum": {"alpha": [0.5], "batch": 512}, "pusht": {"alpha": [0.25, 0.5, 0.8], "batch": 256}},
+ "not_read": ["PushT D_test (seeds 5000-5099)", "Pendulum final start sets"],
+ "host": "siddh"
+}
