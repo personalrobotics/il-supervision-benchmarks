@@ -7,6 +7,8 @@ Outcome-free: no label is generated, no policy is read. Over the r = 0.25 develo
               recorded one) with its recorded actions: the per-frame error against the recorded frames
   fresh_step  at every replay-verified frame, one step from a freshly built state (positions and velocities, no
               contact history) against the recorded successor, split by whether the replayed step had contact
+  reassign    a second replay in lockstep whose velocities are reassigned (to their own values) before every step:
+              it must equal the plain replay bitwise, so substituting velocities keeps the live contact cache intact
   spacing     the demonstrations' frame-to-frame displacement
 Distances are in pixels: the larger of the agent's displacement and the T's largest keypoint displacement.
 """
@@ -82,7 +84,8 @@ def main():
     eps = subset(SPEC["roles"]["train"], R, SPEC["subset_seed"])
     if len(eps) != SPEC["expected"]["subset_episodes"]["r0.25"]:
         sys.exit(f"refused: {len(eps)} subset episodes")
-    env, fresh = make_env(), make_env()
+    env, fresh, twin = make_env(), make_env(), make_env()
+    reassigned_equal, reassigned_steps = 0, 0
     replay_err, verified, fresh_free, fresh_contact, spacing, per_episode = [], 0, [], [], [], {}
     for e in eps:
         r = np.flatnonzero(src["episode"] == e)
@@ -93,13 +96,19 @@ def main():
         for _ in range(5):
             env.reset(options={"reset_to_state": x0})
             x0[2:5] += cur[0][2:5] - positions(env)[2:5]
+        twin.reset(options={"reset_to_state": x0})
         err = [float(distance(positions(env), cur[0])[0])]
         for t in range(len(r) - 1):
             s = full_state(env)
             ok_t = err[t] <= REPLAY_TOL_PX
             load_fresh(fresh, s)
             fresh.step(act[t])
+            twin.agent.velocity, twin.block.velocity, twin.block.angular_velocity = s[1], s[4], s[5]
+            twin.step(act[t])
             env.step(act[t])
+            reassigned_steps += 1
+            reassigned_equal += int(np.array_equal(positions(twin), positions(env))
+                                    and full_state(twin) == full_state(env))
             err.append(float(distance(positions(env), cur[t + 1])[0]))
             if ok_t and err[t + 1] <= REPLAY_TOL_PX:
                 d = float(distance(positions(fresh), cur[t + 1])[0])
@@ -121,10 +130,11 @@ def main():
            "fresh_step": {"no_contact_px": q(fresh_free), "contact_px": q(fresh_contact),
                           "steps": {"no_contact": len(fresh_free), "contact": len(fresh_contact)},
                           "exact_no_contact_fraction": float(np.mean(np.array(fresh_free) == 0)) if fresh_free else None},
+           "reassign": {"steps": reassigned_steps, "bitwise_equal": reassigned_equal},
            "spacing_px": q(spacing)}
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(out, indent=1, sort_keys=True) + "\n")
-    print(json.dumps({k: out[k] for k in ("fresh_step", "spacing_px")} | {"verified": verified,
+    print(json.dumps({k: out[k] for k in ("fresh_step", "spacing_px", "reassign")} | {"verified": verified,
                                                                          "frames": len(replay_err)}))
 
 
