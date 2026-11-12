@@ -160,6 +160,14 @@ def prepare_surface(run: Path, inv: dict, src: dict, stage: str, base: Path):
                   cmp_state=cmp["state"], cmp_env=cmp["env"], cmp_act=cmp["act"], cmp_weight=np.ones(len(srow)))
 
 
+def column(table, name: str) -> np.ndarray:
+    """A parquet column as an array: list columns as (N, D)."""
+    c = table.column(name).combine_chunks()
+    if hasattr(c, "flatten"):
+        return np.asarray(c.flatten().to_numpy(zero_copy_only=False)).reshape(len(c), -1)
+    return np.asarray(c.to_numpy(zero_copy_only=False))
+
+
 def prepare_v22(run: Path, inv: dict, src: dict, root: Path):
     import pyarrow.parquet as pq
     v = inv["sources"]["pusht-v22"]
@@ -167,15 +175,17 @@ def prepare_v22(run: Path, inv: dict, src: dict, root: Path):
     tabs = {}
     for arm in ("ccil", "duplication"):
         f = root / "arms" / arm / "data/chunk-000/file-000.parquet"
-        tabs[arm] = pq.read_table(need(f, arms[arm]["files"]["data/chunk-000/file-000.parquet"])).to_pandas()
+        t = pq.read_table(need(f, arms[arm]["files"]["data/chunk-000/file-000.parquet"]))
+        keep = t.column("ccil.synthetic").to_numpy(zero_copy_only=False).astype(bool)
+        tabs[arm] = {k: column(t, k)[keep] for k in (*FEATURES, "ccil.source_index", "ccil.candidate_row")}
     ev = v["labels"]["all"]["ccil"]
     sel = np.load(need(root / "labels/runs" / ev["selection"]["path"], ev["selection"]["sha256"]))
-    syn, dup = tabs["ccil"][tabs["ccil"]["ccil.synthetic"]], tabs["duplication"][tabs["duplication"]["ccil.synthetic"]]
-    if len(syn) != arms["ccil"]["added_rows"] or not np.array_equal(syn["ccil.source_index"].to_numpy(),
-                                                                     dup["ccil.source_index"].to_numpy()):
+    syn, dup = tabs["ccil"], tabs["duplication"]
+    if len(syn["action"]) != arms["ccil"]["added_rows"] or not np.array_equal(syn["ccil.source_index"],
+                                                                               dup["ccil.source_index"]):
         sys.exit("refused: the v2.2 arms' added rows are not source-matched as recorded")
-    stack = lambda t, k: np.stack(t[k].to_numpy()).astype(np.float32)  # noqa: E731
-    cand = syn["ccil.candidate_row"].to_numpy().astype(np.int64)
+    stack = lambda t, k: t[k].astype(np.float32)  # noqa: E731
+    cand = syn["ccil.candidate_row"].astype(np.int64)
     spec = json.loads((REPO / "tools/pusht_v2/surface.json").read_text())
     from ilsb.studies.pusht_surface import rows_of
     val_eps = sorted(spec["roles"]["held_out"])
@@ -190,7 +200,7 @@ def prepare_v22(run: Path, inv: dict, src: dict, root: Path):
                   checkpoint_sha256=np.array(u["checkpoint"]["model.safetensors"]),
                   val_state=val["state"], val_env=val["env"], val_act=val["act"], val_episodes=np.array(val_eps),
                   syn_state=stack(syn, FEATURES[0]), syn_env=stack(syn, FEATURES[1]), syn_act=stack(syn, FEATURES[2]),
-                  syn_transition=syn["ccil.source_index"].to_numpy().astype(np.int64), syn_candidate_row=cand,
+                  syn_transition=syn["ccil.source_index"].astype(np.int64), syn_candidate_row=cand,
                   syn_mask=sel["mask"][cand], syn_weight=sel["weight"][cand], syn_error=sel["error"][cand],
                   cmp_state=stack(dup, FEATURES[0]), cmp_env=stack(dup, FEATURES[1]), cmp_act=stack(dup, FEATURES[2]),
                   cmp_weight=np.ones(len(dup)))
