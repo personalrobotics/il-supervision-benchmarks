@@ -18,5 +18,6 @@ H=$HARNESS/bin/python
 cd "$SRC"
 $H -m ilsb stage preflight "$SPEC" --root "$ROOT"
 nvidia-smi --query-gpu=timestamp,memory.used,utilization.gpu --format=csv -l 30 > "$ROOT/nvidia-smi.csv" &
-/usr/bin/time -v $H -m ilsb unit "$SPEC" --root "$ROOT" --key ccil/r1.0/a0.8/s99 2> "$ROOT/time-v.txt"
+# the learner records wall time, s/step and peak host and GPU memory itself (result.json); nvidia-smi adds the device view
+$H -m ilsb unit "$SPEC" --root "$ROOT" --key ccil/r1.0/a0.8/s99
 echo "end: $(date -Is)"
