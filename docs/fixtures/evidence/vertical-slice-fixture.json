@@ -1,149 +1,107 @@
 {
  "all_pass": true,
- "audits": {
-  "audit": true,
-  "evaluation_audit": true
- },
  "demonstrations_sha256": "de149d4d9872e9b1e560fa06f676852d074b11bed99ae565fb5349c745ca44f1",
- "design": {
-  "planned_units": 26,
-  "seeds_by_cell": {
-   "bc/r0.5/k0": 3,
-   "bc/r1.0/k0": 3,
-   "ccil_exact/r0.5/k1": 2,
-   "ccil_exact/r0.5/k2": 3,
-   "ccil_exact/r1.0/k1": 2,
-   "ccil_exact/r1.0/k2": 3,
-   "ccil_learned/r0.5/k1": 2,
-   "ccil_learned/r0.5/k2": 3,
-   "ccil_learned/r1.0/k1": 2,
-   "ccil_learned/r1.0/k2": 3
-  }
- },
- "failure_gate": {
-  "infeasible": 8,
+ "exposure": {
+  "all_synthetic_rows_drawn_before_stop": true,
+  "bc_rows": 1080,
+  "demonstration_rows": 1080,
   "pass": true,
-  "run_exit": 1,
-  "trained_infeasible": 0,
+  "realized": 0.5,
+  "requested": 0.5,
+  "synthetic_rows": 2157,
+  "within_tolerance": true
+ },
+ "feasibility": {
+  "exit": 1,
+  "feasibility": {
+   "ccil_learned/r1.0/s1/sigma0.005": {
+    "failure": 0.0010416666666666667,
+    "feasible": false
+   },
+   "ccil_learned/r1.0/s1/sigma1.0": {
+    "failure": 0.001736111111111111,
+    "feasible": false
+   },
+   "ccil_learned/r1.0/s2/sigma0.005": {
+    "failure": 0.0,
+    "feasible": true
+   },
+   "ccil_learned/r1.0/s2/sigma1.0": {
+    "failure": 0.00034722222222222224,
+    "feasible": false
+   }
+  },
+  "pass": true,
+  "seeds_with_feasible_and_infeasible": [
+   2
+  ],
+  "train_all_pass": false,
+  "trained_settings": [
+   [
+    2,
+    0.005
+   ]
+  ],
   "unselectable": [
-   "r1.0/k1/s1",
    "r1.0/k2/s1"
   ]
  },
- "first_run": {
-  "exit": 0,
-  "stages": {
-   "audit": "pass",
-   "evaluate": "pass",
-   "evaluation_audit": "pass",
-   "preflight": "pass",
-   "report": "pass",
-   "train": "pass"
-  },
-  "stderr_tail": ""
- },
  "implementation_change": {
-  "exit": 0,
-  "source_differs": true,
-  "trained": 26,
-  "units": 26
+  "changed_code": {
+   "exit": 0,
+   "trained": 2,
+   "units": 2
+  },
+  "pass": true,
+  "same_code": {
+   "exit": 0,
+   "trained": 0,
+   "units": 2
+  },
+  "source_differs": true
  },
  "incomplete_fit": {
   "audit_refused": true,
-  "incomplete_units": 26,
+  "incomplete_units": [
+   "bc/r1.0/k0/s1",
+   "bc/r1.0/k0/s2"
+  ],
+  "pass": true,
   "run_exit": 1,
   "train_all_pass": false,
-  "units": 26
+  "units": [
+   "bc/r1.0/k0/s1",
+   "bc/r1.0/k0/s2"
+  ]
  },
- "realized_synthetic_row_fractions": [
-  0.0,
-  0.5
- ],
+ "planner": {
+  "exit": 0,
+  "one_k_max_set_per_arm_r_seed": true,
+  "pass": true,
+  "planned_units": 34,
+  "policies_trained": 0,
+  "seed_roles": true,
+  "subsets_nested": true,
+  "train_stage_written": false,
+  "units_match_design": true
+ },
+ "policy_fits": {
+  "feasibility": 1,
+  "implementation_change": 2,
+  "incomplete_fit": 2,
+  "study": 6,
+  "total": 11
+ },
  "refusals": {
-  "corrupted_rollout": {
-   "refused": true
-  },
-  "mismatched_reuse": {
-   "refused": true
-  },
-  "out_of_order": {
-   "refused": true
-  },
-  "report_after_failed_audit": {
-   "refused": true
-  },
-  "wrong_input_hash": {
-   "refused": true
-  }
- },
- "report": {
-  "cells": {
-   "bc/r0.5/k0": 0.00034722222222222224,
-   "bc/r1.0/k0": 0.00034722222222222224,
-   "ccil_exact/r0.5/k1": 0.0,
-   "ccil_exact/r0.5/k2": 0.00034722222222222224,
-   "ccil_exact/r1.0/k1": 0.0,
-   "ccil_exact/r1.0/k2": 0.0,
-   "ccil_learned/r0.5/k1": 0.0,
-   "ccil_learned/r0.5/k2": 0.00034722222222222224,
-   "ccil_learned/r1.0/k1": 0.0,
-   "ccil_learned/r1.0/k2": 0.0
-  },
-  "contrasts": {
-   "ccil_exact-ccil_learned/r0.5/k2": {
-    "interval": [
-     0.0,
-     0.0
-    ],
-    "mean": 0.0,
-    "outcome": "no_detectable_difference"
-   },
-   "ccil_exact-ccil_learned/r1.0/k2": {
-    "interval": [
-     0.0,
-     0.0
-    ],
-    "mean": 0.0,
-    "outcome": "no_detectable_difference"
-   },
-   "ccil_learned-bc/r0.5/k2": {
-    "interval": [
-     0.0,
-     0.0
-    ],
-    "mean": 0.0,
-    "outcome": "no_detectable_difference"
-   },
-   "ccil_learned-bc/r1.0/k2": {
-    "interval": [
-     -0.0018411988644778273,
-     0.0011467544200333827
-    ],
-    "mean": -0.00034722222222222224,
-    "outcome": "no_detectable_difference"
-   }
-  },
-  "derived": {
-   "ccil_exact-bc/r0.5/k2": {
-    "interval": [
-     0.0,
-     0.0
-    ],
-    "mean": 0.0,
-    "outcome": "no_detectable_difference"
-   },
-   "ccil_exact-bc/r1.0/k2": {
-    "interval": [
-     -0.0018411988644778273,
-     0.0011467544200333827
-    ],
-    "mean": -0.00034722222222222224,
-    "outcome": "no_detectable_difference"
-   }
-  }
+  "corrupted_rollout": true,
+  "mismatched_reuse": true,
+  "out_of_order": true,
+  "report_after_failed_audit": true,
+  "wrong_input_hash": true
  },
  "resume": {
   "exit": 0,
+  "pass": true,
   "stages": {
    "audit": "resumed",
    "evaluate": "resumed",
@@ -155,73 +113,9 @@
  },
  "reuse": {
   "exit": 0,
+  "pass": true,
   "report_identical": true,
   "trained": 0
- },
- "selection": {
-  "feasibility": {
-   "ccil_learned/r0.5/s1/sigma0.005": {
-    "failure": 0.0,
-    "feasible": true
-   },
-   "ccil_learned/r0.5/s1/sigma0.02": {
-    "failure": 0.0,
-    "feasible": true
-   },
-   "ccil_learned/r0.5/s2/sigma0.005": {
-    "failure": 0.0,
-    "feasible": true
-   },
-   "ccil_learned/r0.5/s2/sigma0.02": {
-    "failure": 0.0,
-    "feasible": true
-   },
-   "ccil_learned/r0.5/s3/sigma0.02": {
-    "failure": 0.0006944444444444445,
-    "feasible": true
-   },
-   "ccil_learned/r1.0/s1/sigma0.02": {
-    "failure": 0.001388888888888889,
-    "feasible": true
-   },
-   "ccil_learned/r1.0/s1/sigma1.0": {
-    "failure": 0.001736111111111111,
-    "feasible": true
-   },
-   "ccil_learned/r1.0/s2/sigma0.02": {
-    "failure": 0.0006944444444444445,
-    "feasible": true
-   },
-   "ccil_learned/r1.0/s2/sigma1.0": {
-    "failure": 0.00034722222222222224,
-    "feasible": true
-   },
-   "ccil_learned/r1.0/s3/sigma1.0": {
-    "failure": 0.00034722222222222224,
-    "feasible": true
-   }
-  },
-  "learned_candidates": 10,
-  "selected_sigmas": {
-   "r0.5/k1": [
-    0.005,
-    0.005
-   ],
-   "r0.5/k2": [
-    0.02,
-    0.02,
-    0.02
-   ],
-   "r1.0/k1": [
-    0.02,
-    0.02
-   ],
-   "r1.0/k2": [
-    1.0,
-    1.0,
-    1.0
-   ]
-  }
  },
  "spec": {
   "analysis": {
@@ -242,7 +136,7 @@
      "bc"
     ]
    ],
-   "metric": "upright_occupancy",
+   "metric": "normalized_height",
    "min_pairs": 2
   },
   "arms": [
@@ -270,10 +164,7 @@
    "max_failure": 0.05,
    "max_iterations": 30,
    "sigma": {
-    "r0.5/k1": 0.005,
-    "r0.5/k2": 0.02,
-    "r1.0/k1": 0.02,
-    "r1.0/k2": 1.0
+    "r1.0/k2": 0.005
    },
    "support_radius": 0.5,
    "tolerance": 1e-08
@@ -301,24 +192,17 @@
    "validation_interval_steps": 20
   },
   "real_fractions": [
-   0.5,
    1.0
   ],
   "seeds": [
    1,
-   2,
-   3
+   2
   ],
   "split": {
    "validation_fraction": 0.25
   },
   "study": "vertical-slice-fixture",
-  "surface_seeds": [
-   1,
-   2
-  ],
   "synthetic_doses": [
-   1,
    2
   ],
   "task": {
@@ -329,18 +213,113 @@
    "variant": "continuous"
   }
  },
- "stopping_outcomes": {
-  "patience": 26
- },
- "store_entries": {
-  "candidates": 20,
-  "dynamics": 6,
-  "policy": 26,
-  "rollout": 26,
-  "split": 6,
-  "subset": 6,
-  "view": 20
- },
- "trained": 26,
- "units": 26
+ "study": {
+  "audits": {
+   "audit": true,
+   "evaluation_audit": true
+  },
+  "exact_feasibility": {
+   "ccil_exact/r1.0/k2/s1/sigma0.005": {
+    "failure": 0.0,
+    "feasible": true
+   },
+   "ccil_exact/r1.0/k2/s2/sigma0.005": {
+    "failure": 0.0,
+    "feasible": true
+   }
+  },
+  "exit": 0,
+  "feasibility": {
+   "ccil_learned/r1.0/s1/sigma0.005": {
+    "failure": 0.0010416666666666667,
+    "feasible": true
+   },
+   "ccil_learned/r1.0/s2/sigma0.005": {
+    "failure": 0.0,
+    "feasible": true
+   }
+  },
+  "pass": true,
+  "report": {
+   "cells": {
+    "bc/r1.0/k0": 0.23725013511036216,
+    "ccil_exact/r1.0/k2": 0.2308876682108806,
+    "ccil_learned/r1.0/k2": 0.229350622153743
+   },
+   "contrasts": {
+    "ccil_exact-ccil_learned/r1.0/k2": {
+     "bca": [
+      0.0012999287700082574,
+      0.0017741633442669713
+     ],
+     "interval": [
+      -0.0014758147396753503,
+      0.004549906853950579
+     ],
+     "mean": 0.0015370460571376143,
+     "outcome": "no_detectable_difference"
+    },
+    "ccil_learned-bc/r1.0/k2": {
+     "bca": [
+      -0.008864279878646436,
+      -0.006934746034591904
+     ],
+     "interval": [
+      -0.020158038990835028,
+      0.00435901307759669
+     ],
+     "mean": -0.00789951295661917,
+     "outcome": "no_detectable_difference"
+    }
+   },
+   "derived": {
+    "ccil_exact-bc/r1.0/k2": {
+     "bca": [
+      -0.007090116534379465,
+      -0.005634817264583647
+     ],
+     "interval": [
+      -0.01560813213688445,
+      0.0028831983379213385
+     ],
+     "mean": -0.006362466899481556,
+     "outcome": "no_detectable_difference"
+    }
+   }
+  },
+  "selected_sigmas": {
+   "r1.0/k2": [
+    0.005,
+    0.005
+   ]
+  },
+  "stages": {
+   "audit": "pass",
+   "evaluate": "pass",
+   "evaluation_audit": "pass",
+   "preflight": "pass",
+   "report": "pass",
+   "train": "pass"
+  },
+  "stopping_outcomes": [
+   "patience"
+  ],
+  "store_entries": {
+   "candidates": 4,
+   "dynamics": 2,
+   "policy": 6,
+   "rollout": 6,
+   "split": 2,
+   "subset": 2,
+   "view": 4
+  },
+  "units": [
+   "bc/r1.0/k0/s1",
+   "bc/r1.0/k0/s2",
+   "ccil_exact/r1.0/k2/s1",
+   "ccil_exact/r1.0/k2/s2",
+   "ccil_learned/r1.0/k2/s1/sigma0.005",
+   "ccil_learned/r1.0/k2/s2/sigma0.005"
+  ]
+ }
 }
