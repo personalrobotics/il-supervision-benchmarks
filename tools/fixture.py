@@ -1,22 +1,36 @@
 #!/usr/bin/env python3
-"""The compact end-to-end fixture of the vertical slice (il-supervision-benchmarks#11).
+"""The compact end-to-end fixture of the vertical slice (il-supervision-benchmarks#11, #34).
 
-    uv run python tools/fixture.py --work NEW_DIR [--out docs/fixtures/evidence/vertical-slice-fixture.json]
+    python tools/fixture.py --work NEW_DIR [--out docs/fixtures/evidence/vertical-slice-fixture.json]
 
-On a 12-episode demonstration file from the corrected demonstrator (120 steps), a tiny study with every arm
-(BC, learned-dynamics CCIL, exact-dynamics CCIL), two real fractions and two synthetic doses runs through the whole
-state machine, on CPU, in the study's design: three seeds at K = 0 and K_max, the first two (the surface seeds) at the
-dose between, and a fixed sigma per (r, K) (normalized action units; proposals truncated to the action bound) at which
-both CCIL arms train. Then:
-- resume: the same command on the same root reruns no stage and trains nothing;
-- reuse: a second study root on the same store trains nothing and reports identically;
-- refusals, each on a copy: a wrong dataset hash (preflight), a corrupted rollout (evaluation audit), a mismatched
-  store entry (train), and an evaluation before any training (out of order);
-- a changed implementation (a copy of the harness source with one added comment) reuses no policy from the store;
-- a step ceiling the patience rule never reaches fails the train stage (incomplete fit), and the audit refuses;
-- with a sigma grid selected per (r, K, seed) and no genuine generation failure tolerated, every sigma with any
-  failure is skipped untrained, and a coordinate left with no feasible sigma fails the train stage.
-The written evidence holds no paths, times or commits, so a rerun on the same host reproduces it byte for byte.
+It runs from whatever ilsb is importable; CI runs it from the built wheel in a clean environment. On a 12-episode
+demonstration file from the corrected demonstrator (120 steps, CPU), the valid artifacts are built once, by one real
+study through every stage: BC, learned-dynamics CCIL and exact-dynamics CCIL, one real fraction, one synthetic dose,
+one accepted sigma, two seeds (the fewest that give the paired analysis its intervals), scored on the continuous
+normalized height. Every other check reuses them or copies of them, and trains only where its failure needs new
+numerical work. Each protected failure, and its check:
+
+- a numerical path breaks (dynamics fit, generation, training, evaluation, audits, analysis, report): the study.
+  Every stage passes, every arm trains and stops by patience, and every contrast has its BCa and t intervals.
+- the design plans the wrong units, seed roles or nesting: the planner. Preflight alone on 2 fractions x 3 doses x
+  3 seeds plans 34 units, trains nothing, and matches the expected cells, seed roles, one K_max candidate set per
+  (arm, r, seed) and nested subsets.
+- CCIL units do not train on the demonstrations plus their synthetic rows: exposure, from the saved records of a
+  learned unit and the BC unit on the same data.
+- a resume recomputes: the same command reruns no stage.
+- a store is not shared exactly: a second root on the store trains nothing and reports identically.
+- a wrong input, a corrupted rollout, a report after a failed audit, a mismatched store entry or an out-of-order
+  stage is accepted: refusals, each on a copy, none training.
+- changed code reuses stored work: the BC cell reuses under the same code and retrains under a copy of the installed
+  harness whose source differs by one comment.
+- a fit that hits its ceiling counts as a result: the BC cell under a ceiling below any patience stop fails the train
+  stage, and the audit refuses.
+- an infeasible generation trains, or a coordinate without a feasible sigma passes: a sigma grid with no failure
+  tolerated trains exactly the feasible settings; one seed has a feasible and an infeasible sigma, and the other,
+  with none feasible, leaves its coordinate unselectable and fails the train stage.
+
+The written evidence holds no paths, times or commits, so a rerun on the same host reproduces it byte for byte. It
+counts every policy the fixture trained (each check's train stage reports its own).
 """
 from __future__ import annotations
 
@@ -30,44 +44,52 @@ from pathlib import Path
 
 import yaml
 
+import ilsb
 from ilsb.store import sha256_file
 from ilsb.tasks.pendulum import Task, demonstrations
 
-REPO = Path(__file__).resolve().parents[1]
 TASK = {"variant": "continuous", "action_bound": 3.0, "horizon": 120, "eval_episodes": 8, "eval_seed": 9001}
+SIGMA, GATE_GRID = 0.005, [0.005, 1.0]
+LEARNER = {"hidden_layers": [32, 32], "learning_rate": 1e-3, "batch_size": 32, "epochs": 1,
+           "observation_scaler": "standard", "action_scaler": "min_max", "balance_labels": None,
+           "step_budget": 4000, "checkpoint_selection": "validation", "validation_interval_steps": 20,
+           "patience": 3, "lr_schedule": "plateau", "lr_factor": 0.5, "lr_patience": 2, "min_lr": 2.5e-4,
+           "synthetic_fraction": 0.5, "synthetic_coverage_before_stop": True}
 SPEC = {
     "study": "vertical-slice-fixture",
     "task": TASK,
     "split": {"validation_fraction": 0.25},
-    "real_fractions": [0.5, 1.0],
-    "synthetic_doses": [1, 2],
+    "real_fractions": [1.0],
+    "synthetic_doses": [2],
     "arms": ["bc", "ccil_learned", "ccil_exact"],
-    "seeds": [1, 2, 3],
-    "surface_seeds": [1, 2],
+    "seeds": [1, 2],
     "dynamics": {"hidden_layers": [32, 32], "activation": "relu", "lipschitz_type": "none", "learning_rate": 1e-3,
                  "weight_decay": 0.0, "epochs": 3, "batch_size": 64},
-    "generation": {"generator": "noisy_action_preimage", "max_failure": 0.05,
-                   "sigma": {"r0.5/k1": 0.005, "r0.5/k2": 0.02, "r1.0/k1": 0.02, "r1.0/k2": 1.0},
+    "generation": {"generator": "noisy_action_preimage", "max_failure": 0.05, "sigma": {"r1.0/k2": SIGMA},
                    "support_radius": 0.5, "max_iterations": 30, "tolerance": 1e-8},
-    "learner": {"hidden_layers": [32, 32], "learning_rate": 1e-3, "batch_size": 32, "epochs": 1,
-                "observation_scaler": "standard", "action_scaler": "min_max", "balance_labels": None,
-                "step_budget": 4000, "checkpoint_selection": "validation", "validation_interval_steps": 20,
-                "patience": 3, "lr_schedule": "plateau", "lr_factor": 0.5, "lr_patience": 2, "min_lr": 2.5e-4,
-                "synthetic_fraction": 0.5, "synthetic_coverage_before_stop": True},
-    "analysis": {"metric": "upright_occupancy", "confidence": 0.95, "min_pairs": 2,
+    "learner": LEARNER,
+    "analysis": {"metric": "normalized_height", "confidence": 0.95, "min_pairs": 2,
                  "contrasts": [["ccil_learned", "bc"], ["ccil_exact", "ccil_learned"]],
                  "derived": [["ccil_exact", "bc"]]},
     "compute": {"device": "cpu"},
 }
+# The planner's matrix and the seeds each cell must plan: every seed at K = 0 and K_max, the surface seeds between.
+PLANNER = {"real_fractions": [0.5, 1.0], "synthetic_doses": [1, 2, 4], "seeds": [1, 2, 3], "surface_seeds": [1, 2]}
+PLANNER_SEEDS = {0: [1, 2, 3], 1: [1, 2], 2: [1, 2], 4: [1, 2, 3]}
 
 
-def ilsb(*args, allow_dirty=False, env=None) -> subprocess.CompletedProcess:
-    return subprocess.run([sys.executable, "-W", "error::FutureWarning", "-m", "ilsb", *args, *(["--allow-dirty"] if allow_dirty else [])],
-                          capture_output=True, text=True, env=env)
+def ilsb_cmd(*args, allow_dirty=False, env=None) -> subprocess.CompletedProcess:
+    return subprocess.run([sys.executable, "-W", "error::FutureWarning", "-m", "ilsb", *args,
+                           *(["--allow-dirty"] if allow_dirty else [])], capture_output=True, text=True, env=env)
 
 
 def stage(root: Path, name: str) -> dict:
     return json.loads((root / "stages" / f"{name}.json").read_text())
+
+
+def write_spec(path: Path, spec: dict) -> Path:
+    path.write_text(yaml.safe_dump(spec, sort_keys=True))
+    return path
 
 
 def main() -> int:
@@ -79,57 +101,105 @@ def main() -> int:
     work = a.work.resolve()
     work.mkdir(parents=True)
     dirty = a.allow_dirty
+
+    def run(spec_path, root, store, *, name=None, env=None, allow=None):
+        cmd = ("stage", name) if name else ("run",)
+        return ilsb_cmd(*cmd, str(spec_path), "--root", str(root), "--store", str(store),
+                        allow_dirty=dirty if allow is None else allow, env=env)
+
     demonstrations(Task(**TASK), episodes=12, steps=120, seed=5, out=work / "demos.npz")
     spec = {**SPEC, "data": {"path": "demos.npz", "sha256": sha256_file(work / "demos.npz")}}
-    (work / "spec.yaml").write_text(yaml.safe_dump(spec, sort_keys=True))
+    main_spec = write_spec(work / "spec.yaml", spec)
     store, root = work / "store", work / "root"
     ev = {"spec": {k: v for k, v in spec.items() if k != "data"}, "demonstrations_sha256": spec["data"]["sha256"]}
+    fits = {}
 
-    # 1. The full study.
-    p = ilsb("run", str(work / "spec.yaml"), "--root", str(root), "--store", str(store), allow_dirty=dirty)
-    ev["first_run"] = {"exit": p.returncode, "stages": json.loads(p.stdout.strip().splitlines()[-1]) if p.stdout else None,
-                       "stderr_tail": p.stderr[-400:] if p.returncode else ""}
+    # 1. The study: every arm through every stage. These are the valid artifacts every later check starts from.
+    p = run(main_spec, root, store)
+    ev["study"] = {"exit": p.returncode, "stages": json.loads(p.stdout.strip().splitlines()[-1]) if p.stdout else None}
     if p.returncode:
         print(p.stdout, p.stderr)
         return 1
     tr, rep = stage(root, "train"), stage(root, "report")
-    ev["units"] = len(tr["units"])
-    ev["trained"] = tr["trained"]
-    ev["store_entries"] = {k.name: len(list(k.iterdir())) for k in sorted(store.iterdir()) if k.is_dir()}
-    outcomes = {}
-    for u in tr["units"].values():
-        outcomes[u["stopping"]["outcome"]] = outcomes.get(u["stopping"]["outcome"], 0) + 1
-    ev["stopping_outcomes"] = outcomes
-    ev["realized_synthetic_row_fractions"] = sorted({u["exposure"]["realized_synthetic_row_fraction"]
-                                                     for u in tr["units"].values()})
-    ev["audits"] = {s: stage(root, s)["all_pass"] for s in ("audit", "evaluation_audit")}
-    ev["selection"] = {"feasibility": tr["feasibility"], "selected_sigmas": rep["selected_sigmas"],
-                       "learned_candidates": sum(u["arm"] == "ccil_learned" for u in tr["units"].values())}
-    ev["report"] = {"cells": {k: v["mean"] for k, v in rep["cells"].items()},
-                    **{part: {k: {"mean": v["mean"], "interval": v["interval"], "outcome": v["outcome"]}
-                              for k, v in rep[part].items()} for part in ("contrasts", "derived")}}
-    ev["design"] = {"planned_units": stage(root, "preflight")["planned_units"],
-                    "seeds_by_cell": {k: v["n"] for k, v in rep["cells"].items()}}
+    fits["study"] = tr["trained"]
+    ev["study"] |= {
+        "units": sorted(tr["units"]),
+        "stopping_outcomes": sorted({u["stopping"]["outcome"] for u in tr["units"].values()}),
+        "audits": {s: stage(root, s)["all_pass"] for s in ("audit", "evaluation_audit")},
+        "feasibility": tr["feasibility"], "exact_feasibility": tr["exact_feasibility"],
+        "selected_sigmas": rep["selected_sigmas"],
+        "store_entries": {k.name: len(list(k.iterdir())) for k in sorted(store.iterdir()) if k.is_dir()},
+        "report": {"cells": {k: v["mean"] for k, v in rep["cells"].items()},
+                   **{part: {k: {"mean": v["mean"], "bca": v["bca"], "interval": v["interval"], "outcome": v["outcome"]}
+                             for k, v in rep[part].items()} for part in ("contrasts", "derived")}}}
+    ev["study"]["pass"] = bool(
+        set(ev["study"]["stages"].values()) == {"pass"} and all(ev["study"]["audits"].values())
+        and ev["study"]["stopping_outcomes"] == ["patience"]
+        and {u["arm"] for u in tr["units"].values()} == set(SPEC["arms"])
+        and all(v["bca"] is not None for part in ("contrasts", "derived") for v in rep[part].values()))
 
-    # 2. Resume: the same command reruns no stage and trains nothing.
-    p = ilsb("run", str(work / "spec.yaml"), "--root", str(root), "--store", str(store), allow_dirty=dirty)
+    # 2. The planner: preflight alone on a multi-coordinate matrix; its unit plan against the design, nothing trained.
+    plan_spec = write_spec(work / "spec-planner.yaml", {**spec, **PLANNER, "generation": {
+        **spec["generation"], "sigma": {f"r{r}/k{k}": SIGMA for r in PLANNER["real_fractions"]
+                                        for k in PLANNER["synthetic_doses"]}}})
+    policies_before = len(list((store / "policy").iterdir()))
+    p = run(plan_spec, work / "r-planner", store, name="preflight")
+    pf = stage(work / "r-planner", "preflight")
+    expected = {f"{arm}/r{r}/k{k}/s{s}" for r in PLANNER["real_fractions"] for arm in SPEC["arms"]
+                for k in ([0] if arm == "bc" else PLANNER["synthetic_doses"]) for s in PLANNER_SEEDS[k]}
+    k_max = max(PLANNER["synthetic_doses"])
+    roles_ok = all(u["seeds"] == ("all" if u["k"] in (0, k_max) else "surface") for u in pf["units"].values())
+    views_ok = all(u["views"] == (None if u["arm"] == "bc" else f"{u['arm']}/r{u['r']}/s{u['seed']}/k{k_max}")
+                   for u in pf["units"].values())
+    real = pf["real_data"]
+    nested = all(real[f"r1.0/s{s}"]["episodes"][:len(real[f"r0.5/s{s}"]["episodes"])] == real[f"r0.5/s{s}"]["episodes"]
+                 and len(real[f"r0.5/s{s}"]["episodes"]) == 6 for s in PLANNER["seeds"])
+    ev["planner"] = {"exit": p.returncode, "planned_units": pf["planned_units"],
+                     "units_match_design": set(pf["units"]) == expected, "seed_roles": roles_ok,
+                     "one_k_max_set_per_arm_r_seed": views_ok, "subsets_nested": nested,
+                     "policies_trained": len(list((store / "policy").iterdir())) - policies_before,
+                     "train_stage_written": (work / "r-planner" / "stages" / "train.json").exists()}
+    ev["planner"]["pass"] = bool(p.returncode == 0 and pf["planned_units"] == len(expected) == 34 and roles_ok
+                                 and views_ok and nested and set(pf["units"]) == expected
+                                 and ev["planner"]["policies_trained"] == 0
+                                 and not ev["planner"]["train_stage_written"])
+
+    # 3. Exposure, from the saved learner records: the learned unit trains on the BC unit's demonstration rows plus
+    # synthetic rows, draws every synthetic row before stopping, and realizes the requested fraction.
+    def record(key):
+        return json.loads((store / "policy" / tr["units"][key]["entry"] / "training.json").read_text())
+    bc, cl = record("bc/r1.0/k0/s1"), record(f"ccil_learned/r1.0/k2/s1/sigma{SIGMA}")
+    x = cl["exposure"]
+    ev["exposure"] = {"demonstration_rows": cl["row_sources"]["demonstration"], "bc_rows": bc["rows"],
+                      "synthetic_rows": cl["row_sources"]["synthetic"], "requested": x["requested_synthetic_fraction"],
+                      "realized": x["realized_synthetic_row_fraction"], "within_tolerance": x["within_tolerance"],
+                      "all_synthetic_rows_drawn_before_stop": x["synthetic_coverage"]["at_stop"]["all_rows_drawn"]}
+    ev["exposure"]["pass"] = bool(
+        cl["row_sources"]["demonstration"] == bc["rows"] == bc["row_sources"]["demonstration"]
+        and cl["row_sources"]["synthetic"] == x["synthetic_coverage"]["rows"] > 0
+        and x["requested_synthetic_fraction"] == LEARNER["synthetic_fraction"] and x["within_tolerance"]
+        and x["rows"]["synthetic"] == sum(e["rows_seen"]["synthetic"] for e in cl["epochs"]) > 0
+        and x["synthetic_coverage"]["at_stop"]["all_rows_drawn"])
+
+    # 4. Resume: the same command reruns no stage.
+    p = run(main_spec, root, store)
     ev["resume"] = {"exit": p.returncode, "stages": json.loads(p.stdout.strip().splitlines()[-1])}
+    ev["resume"]["pass"] = p.returncode == 0 and set(ev["resume"]["stages"].values()) == {"resumed"}
 
-    # 3. Reuse across studies: a new root on the same store trains nothing and reports identically.
+    # 5. Reuse across studies: a new root on the same store trains nothing and reports identically.
     root2 = work / "root-reuse"
-    p = ilsb("run", str(work / "spec.yaml"), "--root", str(root2), "--store", str(store), allow_dirty=dirty)
+    p = run(main_spec, root2, store)
     rep2 = stage(root2, "report") if p.returncode == 0 else {}
     ev["reuse"] = {"exit": p.returncode, "trained": stage(root2, "train")["trained"] if p.returncode == 0 else None,
-                   "report_identical": {k: rep2.get(k) for k in ("cells", "contrasts")} ==
-                   {k: rep.get(k) for k in ("cells", "contrasts")}}
+                   "report_identical": {k: rep2.get(k) for k in ("cells", "contrasts", "derived")} ==
+                   {k: rep.get(k) for k in ("cells", "contrasts", "derived")}}
+    ev["reuse"]["pass"] = p.returncode == 0 and ev["reuse"]["trained"] == 0 and ev["reuse"]["report_identical"]
 
-    # 4. Refusals, each on its own copy.
+    # 6. Refusals, each on its own copy; none trains.
     refusals = {}
-    bad = {**spec, "data": {"path": "demos.npz", "sha256": "0" * 64}}
-    (work / "spec-wrong-hash.yaml").write_text(yaml.safe_dump(bad, sort_keys=True))
-    p = ilsb("run", str(work / "spec-wrong-hash.yaml"), "--root", str(work / "r-hash"), "--store", str(store),
-             allow_dirty=dirty)
-    refusals["wrong_input_hash"] = {"refused": p.returncode != 0 and "not the declared dataset" in p.stderr + p.stdout}
+    bad = write_spec(work / "spec-wrong-hash.yaml", {**spec, "data": {"path": "demos.npz", "sha256": "0" * 64}})
+    p = run(bad, work / "r-hash", store)
+    refusals["wrong_input_hash"] = p.returncode != 0 and "not the declared dataset" in p.stderr + p.stdout
 
     root3, store3 = work / "r-corrupt", work / "store-corrupt"
     shutil.copytree(root, root3)
@@ -138,13 +208,11 @@ def main() -> int:
     data = bytearray(victim.read_bytes())
     data[len(data) // 2] ^= 0xFF
     victim.write_bytes(bytes(data))
-    p = ilsb("stage", "evaluation_audit", str(work / "spec.yaml"), "--root", str(root3), "--store", str(store3),
-             allow_dirty=dirty)
+    p = run(main_spec, root3, store3, name="evaluation_audit")
     ea = stage(root3, "evaluation_audit")
-    refusals["corrupted_rollout"] = {"refused": p.returncode != 0 and not ea["all_pass"] and len(ea["problems"]) == 1}
-    p = ilsb("stage", "report", str(work / "spec.yaml"), "--root", str(root3), "--store", str(store3),
-             allow_dirty=dirty)
-    refusals["report_after_failed_audit"] = {"refused": p.returncode != 0 and "evaluation_audit" in p.stderr + p.stdout}
+    refusals["corrupted_rollout"] = p.returncode != 0 and not ea["all_pass"] and len(ea["problems"]) == 1
+    p = run(main_spec, root3, store3, name="report")
+    refusals["report_after_failed_audit"] = p.returncode != 0 and "evaluation_audit" in p.stderr + p.stdout
 
     root4, store4 = work / "r-mismatch", work / "store-mismatch"
     shutil.copytree(store, store4)
@@ -152,73 +220,90 @@ def main() -> int:
     ident = json.loads((entry / "identity.json").read_text())
     ident["seed"] = 999
     (entry / "identity.json").write_text(json.dumps(ident, sort_keys=True, separators=(",", ":")) + "\n")
-    p = ilsb("run", str(work / "spec.yaml"), "--root", str(root4), "--store", str(store4), allow_dirty=dirty)
+    p = run(main_spec, root4, store4)
     tr4 = stage(root4, "train")
-    refusals["mismatched_reuse"] = {"refused": p.returncode != 0 and not tr4["all_pass"]
-                                    and "mismatched reuse" in tr4.get("error", "")}
+    refusals["mismatched_reuse"] = (p.returncode != 0 and not tr4["all_pass"]
+                                    and "mismatched reuse" in tr4.get("error", "")
+                                    and len(list((store4 / "policy").iterdir()))
+                                    == len(list((store / "policy").iterdir())))
 
-    p = ilsb("stage", "evaluate", str(work / "spec.yaml"), "--root", str(work / "r-order"), "--store", str(store),
-             allow_dirty=dirty)
-    refusals["out_of_order"] = {"refused": p.returncode != 0 and "needs a completed preflight" in p.stderr + p.stdout}
+    p = run(main_spec, work / "r-order", store, name="evaluate")
+    refusals["out_of_order"] = p.returncode != 0 and "needs a completed preflight" in p.stderr + p.stdout
     ev["refusals"] = refusals
 
-    # 5. A changed implementation: the same study from a copy of the harness whose source differs by one comment
-    # trains every unit again on the same store instead of reusing work done by other code.
+    # 7. A changed implementation: the BC cell, reused under the same code, retrains under a copy of the installed
+    # harness whose source differs by one comment.
+    bc_only = {**spec, "arms": ["bc"], "analysis": {**spec["analysis"], "contrasts": [], "derived": []}}
+    bc_spec = write_spec(work / "spec-bc.yaml", bc_only)
+    for name in ("preflight", "train"):
+        p = run(bc_spec, work / "r-same", store, name=name)
+    same = stage(work / "r-same", "train")
     impl = work / "impl"
-    shutil.copytree(REPO / "src", impl / "src")
-    shutil.copy(REPO / "uv.lock", impl / "uv.lock")
-    with open(impl / "src" / "ilsb" / "run.py", "a") as f:
+    shutil.copytree(Path(ilsb.__file__).resolve().parent, impl / "ilsb", ignore=shutil.ignore_patterns("__pycache__"))
+    with open(impl / "ilsb" / "run.py", "a") as f:
         f.write("# implementation changed\n")
-    env = {**os.environ, "PYTHONPATH": str(impl / "src")}
+    env = {**os.environ, "PYTHONPATH": str(impl)}
     root5 = work / "r-impl"
     for name in ("preflight", "train"):
-        p = ilsb("stage", name, str(work / "spec.yaml"), "--root", str(root5), "--store", str(store),
-                 allow_dirty=True, env=env)
+        p5 = run(bc_spec, root5, store, name=name, env=env, allow=True)
     tr5 = stage(root5, "train")
+    fits["implementation_change"] = tr5["trained"]
     ev["implementation_change"] = {
-        "exit": p.returncode, "trained": tr5["trained"], "units": len(tr5["units"]),
-        "source_differs": json.loads((root5 / "root.json").read_text())["scope"]["ilsb_source_sha256"]
-        != json.loads((root / "root.json").read_text())["scope"]["ilsb_source_sha256"]}
+        "same_code": {"exit": p.returncode, "trained": same["trained"], "units": len(same["units"])},
+        "changed_code": {"exit": p5.returncode, "trained": tr5["trained"], "units": len(tr5["units"])},
+        "source_differs": json.loads((root5 / "root.json").read_text())["scope"].get("ilsb_source_sha256")
+        != json.loads((root / "root.json").read_text())["scope"].get("ilsb_source_sha256")}
+    ev["implementation_change"]["pass"] = bool(
+        p.returncode == 0 and same["trained"] == 0 and same["units"].keys() == tr5["units"].keys()
+        and p5.returncode == 0 and tr5["trained"] == len(tr5["units"]) == len(SPEC["seeds"])
+        and ev["implementation_change"]["source_differs"])
 
-    # 6. A ceiling below any patience stop: every unit is an incomplete fit, the stage fails, and the audit refuses.
-    ceiling = {**spec, "learner": {**spec["learner"], "step_budget": 40, "patience": 50}}
-    (work / "spec-ceiling.yaml").write_text(yaml.safe_dump(ceiling, sort_keys=True))
+    # 8. A ceiling below any patience stop: the BC cell is an incomplete fit, the stage fails, and the audit refuses.
+    ceiling = write_spec(work / "spec-ceiling.yaml", {**bc_only, "learner": {**LEARNER, "step_budget": 40,
+                                                                                     "patience": 50}})
     root6 = work / "r-ceiling"
-    p = ilsb("run", str(work / "spec-ceiling.yaml"), "--root", str(root6), "--store", str(store), allow_dirty=dirty)
+    p = run(ceiling, root6, store)
     tr6 = stage(root6, "train")
-    p2 = ilsb("stage", "audit", str(work / "spec-ceiling.yaml"), "--root", str(root6), "--store", str(store),
-              allow_dirty=dirty)
+    fits["incomplete_fit"] = tr6["trained"]
+    p2 = run(ceiling, root6, store, name="audit")
     ev["incomplete_fit"] = {"run_exit": p.returncode, "train_all_pass": tr6["all_pass"],
-                            "incomplete_units": len(tr6["incomplete_fit"]), "units": len(tr6["units"]),
-                            "audit_refused": p2.returncode != 0 and "needs a completed train stage" in p2.stderr + p2.stdout}
+                            "incomplete_units": tr6["incomplete_fit"], "units": sorted(tr6["units"]),
+                            "audit_refused": p2.returncode != 0
+                            and "needs a completed train stage" in p2.stderr + p2.stdout}
+    ev["incomplete_fit"]["pass"] = bool(p.returncode != 0 and tr6["all_pass"] is False
+                                        and tr6["incomplete_fit"] == sorted(tr6["units"]) and tr6["units"]
+                                        and ev["incomplete_fit"]["audit_refused"])
 
-    # 7. The feasibility gate, with a sigma grid selected per (r, K, seed): with no genuine failure tolerated, every
-    # sigma with any failure is skipped untrained, and a coordinate left with no feasible sigma fails the train stage.
-    grid = {k: v for k, v in spec["generation"].items() if k != "sigma"}
-    gate = {**spec, "generation": {**grid, "sigma_grid": [0.005, 0.02, 1.0], "max_failure": 0.0}}
-    (work / "spec-gate.yaml").write_text(yaml.safe_dump(gate, sort_keys=True))
-    root7 = work / "r-gate"
-    p = ilsb("run", str(work / "spec-gate.yaml"), "--root", str(root7), "--store", str(store), allow_dirty=dirty)
-    tr7 = stage(root7, "train")
-    infeasible = sorted(k_ for k_, v in tr7["feasibility"].items() if not v["feasible"])
-    trained_infeasible = [k_ for k_ in infeasible for u in tr7["units"].values() if u["arm"] == "ccil_learned"
-                          and k_ == f"ccil_learned/r{u['r']}/s{u['seed']}/sigma{u['sigma']}"]
-    ev["failure_gate"] = {"run_exit": p.returncode, "infeasible": len(infeasible), "unselectable": tr7["unselectable"],
-                          "trained_infeasible": len(trained_infeasible),
-                          "pass": bool(p.returncode != 0 and infeasible and not trained_infeasible
-                                       and all(v["failure"] > 0 for k_, v in tr7["feasibility"].items()
-                                               if k_ in infeasible) and tr7["unselectable"])}
+    # 9. Feasibility, with a sigma grid selected per (r, K, seed) and no genuine generation failure tolerated: every
+    # setting with any failure is generated but never trained, every feasible one trains, and a coordinate left with no
+    # feasible sigma is unselectable and fails the train stage. The check needs both cases to occur: a seed with a
+    # feasible and an infeasible sigma, and a seed with none feasible.
+    g_spec = write_spec(work / "spec-gate.yaml", {
+        **spec, "arms": ["bc", "ccil_learned"], "generation": {
+            **{k: v for k, v in spec["generation"].items() if k != "sigma"}, "sigma_grid": GATE_GRID,
+            "max_failure": 0.0},
+        "analysis": {**spec["analysis"], "contrasts": [["ccil_learned", "bc"]], "derived": []}})
+    p = run(g_spec, work / "r-gate", store)
+    t = stage(work / "r-gate", "train")
+    fits["feasibility"] = t["trained"]
+    setting = {k_: (int(k_.split("/")[2][1:]), float(k_.split("/")[3][5:])) for k_ in t["feasibility"]}
+    feasible = {setting[k_] for k_, v in t["feasibility"].items() if v["feasible"]}
+    infeasible = {setting[k_] for k_, v in t["feasibility"].items() if not v["feasible"]}
+    trained = {(u["seed"], u["sigma"]) for u in t["units"].values() if u["arm"] == "ccil_learned"}
+    without = sorted(f"r1.0/k2/s{s_}" for s_ in SPEC["seeds"] if not any(f[0] == s_ for f in feasible))
+    mixed = sorted({s_ for s_, _ in feasible} & {s_ for s_, _ in infeasible})
+    ev["feasibility"] = {"exit": p.returncode, "train_all_pass": t["all_pass"], "feasibility": t["feasibility"],
+                         "trained_settings": sorted(trained), "seeds_with_feasible_and_infeasible": mixed,
+                         "unselectable": t["unselectable"]}
+    ev["feasibility"]["pass"] = bool(
+        trained == feasible and not trained & infeasible and mixed and without and t["unselectable"] == without
+        and all(t["feasibility"][k_]["failure"] > 0 for k_ in setting if setting[k_] in infeasible)
+        and p.returncode != 0 and t["all_pass"] is False)
 
-    ev["all_pass"] = bool(ev["first_run"]["exit"] == 0 and all(ev["audits"].values())
-                          and ev["resume"]["exit"] == 0 and set(ev["resume"]["stages"].values()) == {"resumed"}
-                          and ev["reuse"]["exit"] == 0 and ev["reuse"]["trained"] == 0 and ev["reuse"]["report_identical"]
-                          and all(r["refused"] for r in refusals.values())
-                          and ev["failure_gate"]["pass"]
-                          and ev["implementation_change"]["exit"] == 0 and ev["implementation_change"]["source_differs"]
-                          and ev["implementation_change"]["trained"] == ev["implementation_change"]["units"] == ev["units"]
-                          and ev["incomplete_fit"]["run_exit"] != 0 and ev["incomplete_fit"]["train_all_pass"] is False
-                          and ev["incomplete_fit"]["incomplete_units"] == ev["incomplete_fit"]["units"] == ev["units"]
-                          and ev["incomplete_fit"]["audit_refused"])
+    ev["policy_fits"] = {**fits, "total": sum(fits.values())}
+    ev["all_pass"] = bool(all(ev[k]["pass"] for k in ("study", "planner", "exposure", "resume", "reuse",
+                                                      "implementation_change", "incomplete_fit", "feasibility"))
+                          and all(refusals.values()))
     text = json.dumps(ev, indent=1, sort_keys=True) + "\n"
     if a.out:
         a.out.parent.mkdir(parents=True, exist_ok=True)

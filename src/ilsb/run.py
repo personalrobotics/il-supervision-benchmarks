@@ -368,10 +368,23 @@ def analysis_units(ctx, selection: dict) -> dict:
 
 # --- stages -----------------------------------------------------------------------------------------------------------
 def preflight(ctx) -> dict:
+    """The dataset, and the plan without training: every unit with its seed role and the K_max candidate set it views
+    (one generation per (arm, r, seed), nested in K), and each (r, seed)'s real-data subset and split entries."""
     ctx.dataset()
     plan = [f"{a}/r{r}/k{k}/s{s}" for a, r, k in ctx.cells() for s in ctx.seeds(k)]
+    k_max = max(ctx.spec["synthetic_doses"])
+    units = {f"{a}/r{r}/k{k}/s{s}": {
+        "arm": a, "r": r, "k": k, "seed": s, "seeds": "all" if k in (0, k_max) else "surface",
+        "views": None if a == "bc" else f"{a}/r{r}/s{s}/k{k_max}"} for a, r, k in ctx.cells() for s in ctx.seeds(k)}
+    from ccil.schema import read_trajectories
+    real = {}
+    for r in ctx.spec["real_fractions"]:
+        for s in ctx.spec["seeds"]:
+            subset_p, split_p = data_units(ctx, r, s)
+            real[f"r{r}/s{s}"] = {"subset_sha256": sha256_file(subset_p), "split_sha256": sha256_file(split_p),
+                                  "episodes": read_trajectories(subset_p).meta["subset"]["episodes"]}
     return {"all_pass": True, "dataset_sha256": ctx.spec["data"]["sha256"], "planned_units": len(plan),
-            "plan_sha256": digest(plan), "code": ctx.protocol["code"]}
+            "plan_sha256": digest(plan), "units": units, "real_data": real, "code": ctx.protocol["code"]}
 
 
 def train_groups(ctx, groups: dict) -> dict:
