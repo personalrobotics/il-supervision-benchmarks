@@ -1,0 +1,136 @@
+{
+ "decision": "pass: Stage B may run after separate approval of its paid jobs",
+ "diagnostics": {
+  "action_disagreement": 0.0,
+  "actual_residual_px": {
+   "10": 8.910231125106273e-06,
+   "100": 0.04999959009951799,
+   "50": 5.435357196271734e-05,
+   "90": 0.02884802860939448,
+   "99": 0.047597318713889315
+  },
+  "converged_fresh_but_failed_actual": 308,
+  "demonstrations_beyond_envelope": {
+   "extent": 0,
+   "penetration": 0,
+   "rows": 5040
+  },
+  "displacement_from_source_px": {
+   "learned": {
+    "10": 11.460532452756294,
+    "100": 352.4865857265658,
+    "50": 24.30708081214703,
+    "90": 57.02281508004611,
+    "99": 129.89649796457402
+   },
+   "oracle": {
+    "10": 4.295711537302945,
+    "100": 115.88855955858318,
+    "50": 11.446799483469063,
+    "90": 21.932702551444663,
+    "99": 42.87371798298937
+   }
+  },
+  "fresh_residual_px": {
+   "10": 5.619115956723003e-10,
+   "100": 0.04999327448736297,
+   "50": 6.207754739100697e-09,
+   "90": 0.028359685262081432,
+   "99": 0.04778326573371993
+  },
+  "iterations": {
+   "10": 1.0,
+   "100": 9.0,
+   "50": 1.0,
+   "90": 3.0,
+   "99": 6.0
+  },
+  "nearest_demonstration_px": {
+   "learned": {
+    "10": 19.250375424840872,
+    "100": 620.7785687590376,
+    "50": 38.90832892235474,
+    "90": 102.02384125345564,
+    "99": 212.00426136887552
+   },
+   "oracle": {
+    "10": 4.778702222960816,
+    "100": 182.36025825688634,
+    "50": 12.646956211312983,
+    "90": 27.926572857049663,
+    "99": 80.98474735899548
+   }
+  },
+  "oracle_learned_disagreement_px": {
+   "10": 7.601881862133277,
+   "100": 354.4050298482689,
+   "50": 19.11533888009958,
+   "90": 58.379791958572376,
+   "99": 129.381799691616
+  },
+  "penetration_px": {
+   "learned": {
+    "10": -57.314081410039925,
+    "100": 29.96468321473961,
+    "50": -15.361498236964472,
+    "90": 13.476928801646382,
+    "99": 26.72563644666877
+   },
+   "oracle": {
+    "10": -48.34350115809467,
+    "100": 22.971643269407544,
+    "50": -11.84410619104716,
+    "90": 8.90246716898566,
+    "99": 21.057617440641163
+   }
+  }
+ },
+ "identities": {
+  "candidates_sha256": "6f8c9c97f85d08e775430f67284b964ebe3b68572c06ae8db8dd8f915202747f",
+  "labels_npz_sha256": "6024b739dff0551221d13c670a2153087006a0c83ee664221e713e1cc55cbf25",
+  "learned_labels": 19982,
+  "oracle_json_sha256": "074017e0c13fb1e5011e3123b3f347507619759fda0bc8d137ea610e0129d559",
+  "pool_entry": "c30c0f98b1741162feda2165c83f47bd000ba81aabe22e003eef2702e5e65691",
+  "probe_sha256": "8a9d5d26804f21244e4152849f1955ee68327b7551dabe30c02bcb24891fdd1a",
+  "proposals": 19996,
+  "proposals_npz_content_sha256": "b31c22018bf582b7687220ce05cb49372679a9b31bb1c7e891ab589ad8646adf",
+  "selection_sha256": "ed5beb46e6aa29326b27faccd44683989a314f3ad1b936fa48ba8fd50db3e1d0",
+  "simulator": {
+   "gym_pusht": "0.1.8",
+   "pymunk": "6.11.1"
+  },
+  "source_content_sha256": "333a9b17ebfc6657591eb2b14a7f314200dd2ae1c743691802a319c1746e561d"
+ },
+ "mass": {
+  "alpha": 0.25,
+  "passes_over_common_in_20k_steps": 100.47884449328832,
+  "synthetic_rows_per_batch": 64
+ },
+ "proposals": {
+  "attempted": 19996,
+  "common": 12739,
+  "counts": {
+   "beyond_extent_envelope": 33,
+   "beyond_penetration_envelope": 275,
+   "fails_actual_history": 308,
+   "invariant": 0,
+   "non_finite": 0,
+   "ok": 12743,
+   "singular_jacobian": 0,
+   "solve_failed": 2597,
+   "source_not_verified": 4040
+  },
+  "exact": 12743,
+  "exact_without_learned": 4,
+  "learned_labels": 19982,
+  "total": 19996
+ },
+ "rules": {
+  "median_oracle_displacement_px": 11.446799483469063,
+  "median_oracle_learned_disagreement_px": 19.11533888009958,
+  "min_common_rows": 64,
+  "scale_px": 2.773829975752033
+ },
+ "schema": "ilsb.pusht_oracle.stage_a 1",
+ "smoke": false
+}

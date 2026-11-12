@@ -168,6 +168,52 @@ Per-proposal arrays go to a content-hashed `.npz` kept outside git.
 A failed Stage A is a result. The solver, τ, the decoding, the proposals, the dose and the cell are not changed after
 it is seen.
 
+## Stage A result
+
+**Stage A passes.** The oracle labels are novel and distinguishable from the learned ones, and the common pool is large
+enough. Stage B may run after separate approval of its paid jobs.
+
+The record is [`evidence/pusht-oracle/stage-a.json`](evidence/pusht-oracle/stage-a.json), from
+[`oracle_stage_a.py`](../../tools/pusht_v2/oracle_stage_a.py) at `9ace9bb` on siddh. Two independent runs wrote it byte for byte.
+Its per-proposal arrays stay on siddh, under `runs/20261112T232556Z-oracle-stage-a-a/proposals.npz`, identified by
+the content SHA-256 in the record.
+
+**Yield.** 12,743 of the 19,996 proposals have exact, valid oracle labels. Every rejection, by reason:
+
+| reason | proposals |
+|---|---|
+| source frame or successor not replay-verified | 4,040 |
+| the fresh solve did not converge in 20 iterations | 2,597 |
+| converged in the fresh operator, missed in the actual history | 308 |
+| previous slot beyond the demonstrated penetration | 275 |
+| previous slot beyond the demonstrated extent | 33 |
+| singular Jacobian, non-finite, invariant | 0 |
+
+The **common pool** has 12,739 proposals: the exact oracle labels that are also learned labels. At α = 0.25, 20k
+steps pass over it about 100 times.
+
+**The rules,** with s = 2.77 px:
+- **Novelty:** the oracle labels' median previous-slot displacement from the source is 11.4 px, above s.
+- **Distinguishable:** oracle and learned labels disagree by a median of 19.1 px, above s. The action is the
+  proposal's in both.
+
+**Accuracy.** Accepted labels reach the successor to a median of 5 × 10⁻⁵ px in the actual history, and to at most
+0.05 px. The median solve takes 1 iteration and the maximum 9. The demonstrations' own previous slots all lie within
+the envelope.
+
+**What the learned model does differently,** on the common rows (medians unless stated):
+
+| | oracle | learned |
+|---|---|---|
+| previous-slot displacement from the source | 11.4 px | 24.3 px |
+| distance to the nearest demonstration (policy observation) | 12.6 px | 38.9 px |
+| agent penetration into the T, 90th percentile | 8.9 px | 13.5 px |
+| beyond the demonstrated penetration envelope | 0 | 359 of 12,739 |
+
+For the same proposals, the learned dynamics place their labels about twice as far from the source and three times as
+far from the data as the simulator does. Some of those labels are physically less plausible than any demonstrated
+state. Whether that difference matters to the learner is Stage B's question.
+
 ## Stage B: the matched learner comparison
 
 Stage B runs only if Stage A passes, and only after separate approval of its paid jobs.
