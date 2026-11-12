@@ -8,43 +8,58 @@
   "pass": true,
   "realized": 0.5,
   "requested": 0.5,
-  "synthetic_rows": 2157,
+  "synthetic_rows": 2088,
   "within_tolerance": true
  },
  "feasibility": {
-  "exit": 1,
-  "feasibility": {
-   "ccil_learned/r1.0/s1/sigma0.005": {
-    "failure": 0.0010416666666666667,
-    "feasible": false
+  "infeasible_only": {
+   "exit": 1,
+   "feasibility": {
+    "ccil_learned/r1.0/s1/sigma1.0": {
+     "failure": 0.5434027777777778,
+     "feasible": false
+    },
+    "ccil_learned/r1.0/s2/sigma1.0": {
+     "failure": 0.5940972222222223,
+     "feasible": false
+    }
    },
-   "ccil_learned/r1.0/s1/sigma1.0": {
-    "failure": 0.001736111111111111,
-    "feasible": false
-   },
-   "ccil_learned/r1.0/s2/sigma0.005": {
-    "failure": 0.0,
-    "feasible": true
-   },
-   "ccil_learned/r1.0/s2/sigma1.0": {
-    "failure": 0.00034722222222222224,
-    "feasible": false
-   }
-  },
-  "pass": true,
-  "seeds_with_feasible_and_infeasible": [
-   2
-  ],
-  "train_all_pass": false,
-  "trained_settings": [
-   [
-    2,
-    0.005
+   "train_all_pass": false,
+   "trained": 0,
+   "trained_sigmas": [],
+   "unselectable": [
+    "r1.0/k2/s1",
+    "r1.0/k2/s2"
    ]
-  ],
-  "unselectable": [
-   "r1.0/k2/s1"
-  ]
+  },
+  "mixed": {
+   "exit": 0,
+   "feasibility": {
+    "ccil_learned/r1.0/s1/sigma0.005": {
+     "failure": 0.029513888888888888,
+     "feasible": true
+    },
+    "ccil_learned/r1.0/s1/sigma1.0": {
+     "failure": 0.5434027777777778,
+     "feasible": false
+    },
+    "ccil_learned/r1.0/s2/sigma0.005": {
+     "failure": 0.03819444444444445,
+     "feasible": true
+    },
+    "ccil_learned/r1.0/s2/sigma1.0": {
+     "failure": 0.5940972222222223,
+     "feasible": false
+    }
+   },
+   "train_all_pass": true,
+   "trained": 0,
+   "trained_sigmas": [
+    0.005
+   ],
+   "unselectable": []
+  },
+  "pass": true
  },
  "implementation_change": {
   "changed_code": {
@@ -86,11 +101,12 @@
   "units_match_design": true
  },
  "policy_fits": {
-  "feasibility": 1,
+  "feasibility_infeasible_only": 0,
+  "feasibility_mixed": 0,
   "implementation_change": 2,
   "incomplete_fit": 2,
   "study": 6,
-  "total": 11
+  "total": 10
  },
  "refusals": {
   "corrupted_rollout": true,
@@ -150,7 +166,7 @@
   "dynamics": {
    "activation": "relu",
    "batch_size": 64,
-   "epochs": 3,
+   "epochs": 100,
    "hidden_layers": [
     32,
     32
@@ -161,12 +177,12 @@
   },
   "generation": {
    "generator": "noisy_action_preimage",
-   "max_failure": 0.05,
+   "max_failure": 0.2,
    "max_iterations": 30,
    "sigma": {
     "r1.0/k2": 0.005
    },
-   "support_radius": 0.5,
+   "support_radius": 0.03,
    "tolerance": 1e-08
   },
   "learner": {
@@ -231,11 +247,11 @@
   "exit": 0,
   "feasibility": {
    "ccil_learned/r1.0/s1/sigma0.005": {
-    "failure": 0.0010416666666666667,
+    "failure": 0.029513888888888888,
     "feasible": true
    },
    "ccil_learned/r1.0/s2/sigma0.005": {
-    "failure": 0.0,
+    "failure": 0.03819444444444445,
     "feasible": true
    }
   },
@@ -244,31 +260,31 @@
    "cells": {
     "bc/r1.0/k0": 0.23725013511036216,
     "ccil_exact/r1.0/k2": 0.2308876682108806,
-    "ccil_learned/r1.0/k2": 0.229350622153743
+    "ccil_learned/r1.0/k2": 0.2337810824202954
    },
    "contrasts": {
     "ccil_exact-ccil_learned/r1.0/k2": {
      "bca": [
-      0.0012999287700082574,
-      0.0017741633442669713
+      -0.005818267960653545,
+      3.143954182394104e-05
      ],
      "interval": [
-      -0.0014758147396753503,
-      0.004549906853950579
+      -0.04005720479677569,
+      0.03427037637794609
      ],
-     "mean": 0.0015370460571376143,
+     "mean": -0.002893414209414802,
      "outcome": "no_detectable_difference"
     },
     "ccil_learned-bc/r1.0/k2": {
      "bca": [
-      -0.008864279878646436,
-      -0.006934746034591904
+      -0.007121556076203406,
+      0.00018345069606989783
      ],
      "interval": [
-      -0.020158038990835028,
-      0.00435901307759669
+      -0.04987850851483055,
+      0.04294040313469704
      ],
-     "mean": -0.00789951295661917,
+     "mean": -0.003469052690066754,
      "outcome": "no_detectable_difference"
     }
    },
