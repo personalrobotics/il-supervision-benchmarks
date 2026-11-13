@@ -598,6 +598,7 @@ def schedule(ctx, todo: list, gpus: list, dirs: dict) -> dict:
     stall = 60 * ctx.spec["compute"]["stall_minutes"]
     queue, running, done, failed = list(todo), {}, [], {}
     plog = ctx.root / "progress.log"
+    (ctx.root / "work").mkdir(exist_ok=True)  # a matched specification generates no pool, which would have made it
 
     def note(msg):
         with open(plog, "a") as f:
