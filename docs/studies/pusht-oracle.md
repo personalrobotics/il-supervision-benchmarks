@@ -306,6 +306,40 @@ is unchanged from the surface study's smoke.
 A unit's 80k worst case is about 0.45 hours on an H200, inside its 1-hour limit. The jobs bill on elapsed time, so the
 expected cost is about $1.10. A failed job is not resubmitted without a separate decision.
 
+## Stage B result
+
+**Stop. This oracle completion did not help in this cell.** Oracle CCIL scored below duplication on both seeds, so the
+oracle ceiling is not established. All eight fits were complete, so the fail-closed rule did not apply.
+
+The result does not rule out dynamics-model error in general: the oracle's history slot is a fixed decoding whose
+realizability is not verified. It does leave the generator, the placement, the exposure and the learner interaction as
+the more likely limits.
+
+Average maximum coverage on D_dev (100 starts), at (r, α) = (0.25, 0.25):
+
+| seed | BC | duplication | learned CCIL | oracle CCIL | oracle − duplication | oracle − learned | learned − duplication |
+|---|---|---|---|---|---|---|---|
+| 1 | 0.408 | 0.422 | 0.478 | 0.416 | −0.005 | −0.062 | +0.056 |
+| 2 | 0.485 | 0.457 | 0.429 | 0.428 | −0.029 | −0.001 | −0.029 |
+| mean | | | | | −0.017 | −0.031 | +0.014 |
+
+- **Learned CCIL:** above duplication on seed 1 and below it on seed 2. With two seeds this is the same reversal as in
+  the surface study, not a signal.
+- **Success rates** (%, seed 1 / seed 2): BC 9 / 6, duplication 4 / 15, learned CCIL 5 / 6, oracle CCIL 3 / 5.
+- **Selections:** every unit selected its 2.5k checkpoint and stopped at the first boundary (20k).
+
+With two seeds these are paired values and their mean, with no interval and no population claim.
+
+**The record** is [`evidence/pusht-oracle/stage-b.json`](evidence/pusht-oracle/stage-b.json). It holds:
+- the commit `ffb376a` (the merge of #47), from a clean clone on Tillicum;
+- each stage record's SHA-256;
+- every unit's identity and store entry;
+- the per-seed values;
+- the compute.
+
+Every stage passed, and the evaluation repeat was within tolerance. Stage B used 0.89 H200 GPU-hours, which cost
+$0.80 against its $8.18 ceiling.
+
 ## Not in this study
 
 - changing CCIL's product code or its quality schema;

@@ -1,0 +1,193 @@
+{
+ "code": {
+  "commit": "ffb376aa3492087658834791fd2c25d554b6aa95",
+  "dirty": false
+ },
+ "compute": {
+  "account_used_after_usd": 4.26,
+  "ceiling_usd": 8.18,
+  "cost_usd": 0.8,
+  "gpu_hours": 0.8911,
+  "jobs": {
+   "461471": {
+    "elapsed_s": 16,
+    "state": "COMPLETED"
+   },
+   "461472_0": {
+    "elapsed_s": 377,
+    "state": "COMPLETED"
+   },
+   "461472_1": {
+    "elapsed_s": 380,
+    "state": "COMPLETED"
+   },
+   "461472_2": {
+    "elapsed_s": 356,
+    "state": "COMPLETED"
+   },
+   "461472_3": {
+    "elapsed_s": 353,
+    "state": "COMPLETED"
+   },
+   "461472_4": {
+    "elapsed_s": 362,
+    "state": "COMPLETED"
+   },
+   "461472_5": {
+    "elapsed_s": 344,
+    "state": "COMPLETED"
+   },
+   "461472_6": {
+    "elapsed_s": 365,
+    "state": "COMPLETED"
+   },
+   "461472_7": {
+    "elapsed_s": 349,
+    "state": "COMPLETED"
+   },
+   "461473": {
+    "elapsed_s": 306,
+    "state": "COMPLETED"
+   }
+  }
+ },
+ "decision": {
+  "outcome": "stop",
+  "why": "oracle CCIL does not beat duplication on both seeds: this oracle completion did not help in this cell"
+ },
+ "evaluation_repeat": "bc/r0.25/a0/s1 within tolerance",
+ "incomplete_fit": [],
+ "matched": 12739,
+ "mean": {
+  "learned_minus_duplication": 0.013924904155776435,
+  "oracle_minus_duplication": -0.017374438505863843,
+  "oracle_minus_learned": -0.03129934266164028
+ },
+ "metric": "avg_max_reward",
+ "oracle_established": false,
+ "per_seed": {
+  "1": {
+   "bc": 0.4076506800087316,
+   "complete": true,
+   "duplication": 0.4218425202252761,
+   "learned_ccil": 0.47820098912403425,
+   "learned_minus_duplication": 0.056358468898758174,
+   "oracle_ccil": 0.4163804812416971,
+   "oracle_minus_duplication": -0.005462038983578998,
+   "oracle_minus_learned": -0.06182050788233717,
+   "pc_success": {
+    "bc": 9.0,
+    "ccil": 5.0,
+    "duplication": 4.0,
+    "oracle": 3.0
+   },
+   "selected_step": {
+    "bc": 2500,
+    "ccil": 2500,
+    "duplication": 2500,
+    "oracle": 2500
+   }
+  },
+  "2": {
+   "bc": 0.4847795953967783,
+   "complete": true,
+   "duplication": 0.45703930356093225,
+   "learned_ccil": 0.42853064297372695,
+   "learned_minus_duplication": -0.028508660587205303,
+   "oracle_ccil": 0.42775246553278357,
+   "oracle_minus_duplication": -0.029286838028148687,
+   "oracle_minus_learned": -0.0007781774409433839,
+   "pc_success": {
+    "bc": 6.0,
+    "ccil": 6.0,
+    "duplication": 15.0,
+    "oracle": 5.0
+   },
+   "selected_step": {
+    "bc": 2500,
+    "ccil": 2500,
+    "duplication": 2500,
+    "oracle": 2500
+   }
+  }
+ },
+ "policies": {
+  "bc/r0.25/a0/s1": {
+   "entry": "9892ad89ecbba4dd97d9ca5a3035f0ac894d855b5e3552eca14f9258763d75be",
+   "outcome": "complete",
+   "reached": 20000,
+   "selected_step": 2500
+  },
+  "bc/r0.25/a0/s2": {
+   "entry": "3707e451791463372c0f81891193b3a671a9e46b6b03aa6a6b55b8bff2cf1b0d",
+   "outcome": "complete",
+   "reached": 20000,
+   "selected_step": 2500
+  },
+  "ccil/r0.25/a0.25/s1": {
+   "entry": "fbfe44eef74dace65de30b10a2bef0b49876633d10a05e86a8b7b27119d7133a",
+   "outcome": "complete",
+   "reached": 20000,
+   "selected_step": 2500
+  },
+  "ccil/r0.25/a0.25/s2": {
+   "entry": "7ad17d21122238a0a134c99e0832889f8aa20923b4223c272f74e52fd54772a2",
+   "outcome": "complete",
+   "reached": 20000,
+   "selected_step": 2500
+  },
+  "duplication/r0.25/a0.25/s1": {
+   "entry": "5dba3e6b92908528961b3df4ff4f432f161323cbf5375bf0888a9252bda785a7",
+   "outcome": "complete",
+   "reached": 20000,
+   "selected_step": 2500
+  },
+  "duplication/r0.25/a0.25/s2": {
+   "entry": "79d8ceb12bca58426bccb1669f9d628d136e309dbb3eabd7dce04e7ccc12980b",
+   "outcome": "complete",
+   "reached": 20000,
+   "selected_step": 2500
+  },
+  "oracle/r0.25/a0.25/s1": {
+   "entry": "7ab89962e11b06ddedb33b7dbeaa65e27922ec9be1bb87759d565044ff6b8a86",
+   "outcome": "complete",
+   "reached": 20000,
+   "selected_step": 2500
+  },
+  "oracle/r0.25/a0.25/s2": {
+   "entry": "858df1fb838ef046b3ccd35d709f68dd7766ab6d351127d2a8fb550ff80a8ead",
+   "outcome": "complete",
+   "reached": 20000,
+   "selected_step": 2500
+  }
+ },
+ "run": "/gpfs/projects/toteconsolidation/siddh/runs/pusht-oracle/20261113T020331-stage-b",
+ "schema": "ilsb.pusht_oracle.stage_b 1",
+ "spec": "tools/pusht_v2/oracle-stage-b.json",
+ "stages_pass": {
+  "audit": true,
+  "evaluate": true,
+  "evaluation_audit": true,
+  "preflight": true,
+  "report": true,
+  "train": true
+ },
+ "stages_sha256": {
+  "audit": "267e941e3c8be126bcf4df494e9850ff3ea4ba5a2f37be935c626840bdf3b0ae",
+  "evaluate": "cf6b60522c51a53652a30eac40e355e1bfc8d2b0012b7b9c3c7e8dff36a55769",
+  "evaluation_audit": "494f63defcaf7ff5a4b497cfbea2198b03681eeb2e4dde2e8a6ee2bdcdb1b589",
+  "preflight": "20c6c94366c528c9febcdb13b7e0fc54eb015ce0cbfe1bb19e15e911a98d446f",
+  "report": "8b5b498d4fc0fa47165773a1db80c71613055d6e46bdc6b29d010ad6d5e4a3b9",
+  "train": "b41ce224fbde0f74f82b0bdc10fc7af97f6e5d32e62a3cbe1cc947c1931d5cb2"
+ },
+ "units": {
+  "bc/r0.25/a0/s1": "9892ad89ecbba4dd97d9ca5a3035f0ac894d855b5e3552eca14f9258763d75be",
+  "bc/r0.25/a0/s2": "3707e451791463372c0f81891193b3a671a9e46b6b03aa6a6b55b8bff2cf1b0d",
+  "ccil/r0.25/a0.25/s1": "fbfe44eef74dace65de30b10a2bef0b49876633d10a05e86a8b7b27119d7133a",
+  "ccil/r0.25/a0.25/s2": "7ad17d21122238a0a134c99e0832889f8aa20923b4223c272f74e52fd54772a2",
+  "duplication/r0.25/a0.25/s1": "5dba3e6b92908528961b3df4ff4f432f161323cbf5375bf0888a9252bda785a7",
+  "duplication/r0.25/a0.25/s2": "79d8ceb12bca58426bccb1669f9d628d136e309dbb3eabd7dce04e7ccc12980b",
+  "oracle/r0.25/a0.25/s1": "7ab89962e11b06ddedb33b7dbeaa65e27922ec9be1bb87759d565044ff6b8a86",
+  "oracle/r0.25/a0.25/s2": "858df1fb838ef046b3ccd35d709f68dd7766ab6d351127d2a8fb550ff80a8ead"
+ }
+}
