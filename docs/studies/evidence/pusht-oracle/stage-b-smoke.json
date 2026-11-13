@@ -1,6 +1,6 @@
 {
  "audit_problems": {},
- "code": "9f039028c337cab43d7f576a13c369291a683fbe",
+ "code": "e3b228d296e069e69229ef6c85a3a6e4cb41cb18",
  "dirty": false,
  "evaluation_audit_problems": {},
  "preflight": {
@@ -39,6 +39,15 @@
   "real_rows": {
    "r0.25": 5040
   }
+ },
+ "report_fail_closed": {
+  "incomplete": [
+   "ccil/r0.25/a0.25/s1",
+   "duplication/r0.25/a0.25/s1",
+   "oracle/r0.25/a0.25/s1"
+  ],
+  "oracle_established": false,
+  "outcome": "inconclusive"
  },
  "schema": "ilsb.pusht_oracle.stage_b_smoke 1",
  "spec": "tools/pusht_v2/oracle-stage-b-smoke.json",

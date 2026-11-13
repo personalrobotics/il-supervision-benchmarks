@@ -288,9 +288,10 @@ the surface study's Stage 2 specification at one cell, (0.25, 0.25), on seeds 1 
 
 **Smoke.** [`evidence/pusht-oracle/stage-b-smoke.json`](evidence/pusht-oracle/stage-b-smoke.json) records the whole
 chain on [`oracle-stage-b-smoke.json`](../../tools/pusht_v2/oracle-stage-b-smoke.json): seed 1, boundaries
-500/1000/2000, 4 evaluation episodes. It ran on siddh at `9f03902`, from a clean tree, and every stage passed. The
+500/1000/2000, 4 evaluation episodes. It ran on siddh at `e3b228d`, from a clean tree, and every stage passed. The
 matched rows passed their checks: 12,739 common rows, and no held-out current frame in either arm. All three
-synthetic arms drew identical index streams. It records no outcome values. The scheduler's failure and resume path
+synthetic arms drew identical index streams. Their fits reach the smoke's 2k ceiling, so they are incomplete, and the
+report correctly returned **inconclusive**, with oracle not established. It records no outcome values. The scheduler's failure and resume path
 is unchanged from the surface study's smoke.
 
 **Exact maximum cost** on Tillicum (`gpu-h200`, `normal` QoS, $0.90 per GPU-hour, 1 GPU per job), by requested time:
