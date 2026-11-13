@@ -5,7 +5,8 @@
 ROOT is a finished `ilsb run tools/pusht_v2/oracle-stage-b-smoke.json --root ROOT --gpus 0,1` (ILSB_ORACLE_INPUTS set
 to the pinned labels.npz and Stage A's proposals.npz). The record holds each stage's verdict, the matched rows'
 checks, and each unit's structure (rows, per-batch counts, exposure, selection, extension, index digests). No coverage,
-success or decision of the 2k-step smoke is recorded: they say nothing about Stage B.
+success or substantive decision of the 2k-step smoke is recorded: they say nothing about Stage B. Its synthetic
+fits are incomplete at the shortened ceiling, so the report's fail-closed verdict (inconclusive) is recorded.
 """
 import argparse
 import json
@@ -35,6 +36,11 @@ def main():
                          "held_out_frames": pre["held_out_frames"], "planned_units": pre["planned_units"],
                          "matched": pre["matched"]},
            "audit_problems": st["audit"]["problems"], "evaluation_audit_problems": st["evaluation_audit"]["problems"],
+           # the fail-closed rule, exercised: the smoke's synthetic fits reach its shortened ceiling, so the report
+           # must be inconclusive (this records the rule's verdict, not an outcome)
+           "report_fail_closed": {"outcome": st["report"]["decision"]["outcome"],
+                                  "incomplete": st["report"]["decision"].get("incomplete"),
+                                  "oracle_established": st["report"]["oracle_established"]},
            "units": units}
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(json.dumps(out, indent=1, sort_keys=True) + "\n")

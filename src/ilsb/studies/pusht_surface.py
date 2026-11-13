@@ -911,8 +911,8 @@ def report(ctx) -> dict:
 
 
 def report_matched(ctx, prior) -> dict:
-    """Stage B of the oracle study and its frozen rule (docs/studies/pusht-oracle.md): oracle CCIL - duplication per
-    seed, established only when positive on both; oracle - learned and learned - duplication, success rates and the
+    """Stage B of the oracle study and its frozen rule (docs/studies/pusht-oracle.md): inconclusive if any fit is
+    incomplete; otherwise oracle CCIL - duplication per seed, established only when positive on both; oracle - learned and learned - duplication, success rates and the
     selections descriptively; two seeds give paired values and their mean, no interval."""
     m = ctx.spec["analysis"]["metric"]
     ev, tr = prior["evaluate"]["units"], prior["train"]["units"]
@@ -931,7 +931,12 @@ def report_matched(ctx, prior) -> dict:
             for c in ("oracle_minus_duplication", "oracle_minus_learned", "learned_minus_duplication")}
     oracle = all(v["oracle_minus_duplication"] > 0 for v in per.values())
     learned = all(v["learned_minus_duplication"] > 0 for v in per.values())
-    if not oracle:
+    incomplete = sorted(k for k, v in tr.items() if v["outcome"] != "complete")
+    if incomplete:  # fail closed: a fit that reached the last boundary never converged, so no comparison is a claim
+        decision = {"outcome": "inconclusive", "why": f"{len(incomplete)} of {len(tr)} fits are incomplete "
+                                                      f"(selected at the final boundary): no substantive claim",
+                    "incomplete": incomplete}
+    elif not oracle:
         decision = {"outcome": "stop", "why": "oracle CCIL does not beat duplication on both seeds: this oracle "
                                               "completion did not help in this cell"}
     elif not learned:
@@ -942,7 +947,7 @@ def report_matched(ctx, prior) -> dict:
         decision = {"outcome": "positive development signal", "why": "oracle and learned CCIL both beat duplication "
                                                                      "on both seeds"}
     return {"all_pass": True, "metric": m, "cell": {"r": r, "alpha": al}, "per_seed": per, "mean": mean,
-            "oracle_established": oracle, "decision": decision, "incomplete_fit": prior["train"]["incomplete_fit"]}
+            "oracle_established": oracle and not incomplete, "decision": decision, "incomplete_fit": prior["train"]["incomplete_fit"]}
 
 
 RUNNERS = {"preflight": preflight, "train": train, "audit": audit, "evaluate": evaluate,

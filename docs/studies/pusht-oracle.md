@@ -240,6 +240,8 @@ oracle ceiling is established only if it is positive on both seeds.
 With two seeds the report gives the paired values and their mean, with no interval and no population claim.
 
 **Decision.**
+- **Any of the eight fits is incomplete** (its selected checkpoint is the 80k one): the study is **inconclusive**, and
+  no substantive claim is made. This rule is checked first and applies whatever the differences are.
 - **Oracle does not beat duplication on both seeds:** stop. **This oracle completion did not help in this cell.** The
   result does not rule out dynamics-model error in general, because the oracle's history slot is a fixed decoding
   whose realizability is not verified. It does leave the generator, the placement, the exposure and the learner
