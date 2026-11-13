@@ -13,6 +13,11 @@ policy trains), train (each unit's 20k -> 40k -> 80k life, by the bounded local 
 collected from units trained elsewhere, e.g. a Slurm array of `ilsb unit`), audit (selection, extension, exposure and
 pairing recomputed; selected checkpoints re-scored), evaluate (lerobot-eval on the declared starts), evaluation_audit
 (scores recomputed, one unit re-evaluated), report (the cells and the stage's frozen rule).
+
+A specification with `matched` is the oracle study's Stage B (ilsb#43, docs/studies/pusht-oracle.md): at its one cell
+the synthetic arms are duplication, learned CCIL (`ccil`) and oracle CCIL (`oracle`), all on the common proposals of
+Stage A, read from ILSB_ORACLE_INPUTS (the pinned learned labels.npz and Stage A's proposals.npz, by digest); no pool is
+generated.
 """
 from __future__ import annotations
 
@@ -33,6 +38,7 @@ from ..store import StoreError, digest, sha256_file, write_json
 REPO = Path(__file__).resolve().parents[3]
 TOOLS = REPO / "tools" / "pusht_v2"
 ARMS = ("bc", "duplication", "ccil")
+MATCHED_ARMS = ("bc", "duplication", "ccil", "oracle")
 FEATURES = ("observation.state", "observation.environment_state", "action")
 PARTS = ("state", "env", "action")
 EPS32 = float(np.finfo(np.float32).eps)
@@ -77,10 +83,12 @@ NEED = {"study", "task", "stage", "data", "roles", "real_fractions", "subset_see
 
 
 def load_spec(spec: dict) -> dict:
-    if set(spec) - NEED - {"cells"} or NEED - set(spec):
-        raise Refused(f"refused: specification keys {sorted(spec)} differ from {sorted(NEED)} (+ cells)")
-    if spec["arms"] != list(ARMS):
-        raise Refused(f"refused: the arms are {list(ARMS)}")
+    if set(spec) - NEED - {"cells", "matched"} or NEED - set(spec):
+        raise Refused(f"refused: specification keys {sorted(spec)} differ from {sorted(NEED)} (+ cells, matched)")
+    if spec["arms"] != list(MATCHED_ARMS if "matched" in spec else ARMS):
+        raise Refused(f"refused: the arms are {list(ARMS)}, or {list(MATCHED_ARMS)} with matched")
+    if "matched" in spec and (spec["real_fractions"] != [spec["matched"]["r"]] or len(cells(spec)) != 1):
+        raise Refused("refused: a matched specification has one real fraction, its matched r, and one cell")
     tr, ho = spec["roles"]["train"], spec["roles"]["held_out"]
     if len(set(tr)) != len(tr) or len(set(ho)) != len(ho) or set(tr) & set(ho):
         raise Refused("refused: the training pool and the held-out episodes must be disjoint lists of distinct ids")
@@ -322,6 +330,91 @@ def _pairs(kp16: np.ndarray) -> np.ndarray:
     return np.linalg.norm(p[:, i] - p[:, j], axis=-1)
 
 
+def content_sha256(arrays) -> str:
+    """Arrays by content (name, dtype, shape, bytes), as Stage A identifies its proposals.npz."""
+    h = hashlib.sha256()
+    for k in sorted(arrays):
+        a = np.ascontiguousarray(arrays[k])
+        h.update(f"{k}|{a.dtype.str}|{a.shape}|".encode() + a.tobytes())
+    return h.hexdigest()
+
+
+def matched_entry(ctx, src, eps, held) -> Path:
+    """Stage B's matched synthetic rows (docs/studies/pusht-oracle.md): the common proposals of Stage A (an exact,
+    valid oracle label and a learned label), in candidate-row order, each as its learned label, its oracle label
+    (the previous slot decoded from Stage A's prev_oracle, the current slot the source frame's own) and its source.
+    The inputs are the pinned learned labels.npz and Stage A's proposals.npz, checked by digest."""
+    m = ctx.spec["matched"]
+    ident = {"kind": "matched", "source": ctx.spec["data"]["content_sha256"], "episodes": eps, "held_out": held,
+             "matched": m}
+    return ctx.store.ensure("matched", ident, lambda d: _make_matched(ctx, src, eps, held, d))[0]
+
+
+def _make_matched(ctx, src, eps, held, d: Path):
+    m, pose = ctx.spec["matched"], _pose()
+    inputs = os.environ.get("ILSB_ORACLE_INPUTS")
+    if not inputs:
+        raise Refused("refused: set ILSB_ORACLE_INPUTS to the directory of labels.npz and proposals.npz")
+    lab_p, pro_p = Path(inputs) / "labels.npz", Path(inputs) / "proposals.npz"
+    if sha256_file(lab_p) != m["labels_npz_sha256"]:
+        raise Refused(f"refused: {lab_p} is not the pinned learned labels {m['labels_npz_sha256'][:12]}")
+    with np.load(lab_p) as z:
+        lab = {k: z[k] for k in z.files}
+    with np.load(pro_p) as z:
+        pro = {k: z[k] for k in z.files}
+    if content_sha256(pro) != m["proposals_npz_content_sha256"]:
+        raise Refused(f"refused: {pro_p} is not Stage A's proposals {m['proposals_npz_content_sha256'][:12]}")
+    common = pro["common"].astype(bool)
+    rows = np.flatnonzero(common)
+    li = pro["learned_row"][rows]
+    problems = []
+    if len(pro["status"]) != m["proposals"] or len(lab["candidate_row"]) != m["learned_labels"]:
+        problems.append("the proposal or learned-label count is not the protocol's")
+    if len(rows) != m["common"]:
+        problems.append(f"{len(rows)} common proposals, the protocol records {m['common']}")
+    if not np.array_equal(common, (pro["status"] == 0) & (pro["learned_row"] >= 0)):
+        problems.append("common is not 'exact and valid oracle label, and a learned label'")
+    if (li < 0).any() or not np.array_equal(lab["candidate_row"][li], pro["candidate_row"][rows]) or \
+            not np.array_equal(lab["src_row"][li], pro["src_row"][rows]):
+        problems.append("a common proposal's learned label is another proposal's or another source's")
+    src_row = pro["src_row"][rows]
+    if not np.isin(src["episode"][src_row], eps).all():
+        problems.append("a common proposal's source is outside the subset")
+    prev = pro["prev_oracle"][rows]
+    if not np.isfinite(prev).all():
+        problems.append("a common oracle label is not finite")
+    oracle_state = np.concatenate([prev[:, 0:2], src["state"][src_row][:, 2:4]], 1).astype(np.float32)
+    oracle_env = np.concatenate([pose.keypoints(prev[:, 2:5]), src["env"][src_row][:, 16:32]], 1).astype(np.float32)
+    arrays = {"src_row": src_row, "candidate_row": pro["candidate_row"][rows],
+              "ccil_state": lab["syn_state"][li], "ccil_env": lab["syn_env"][li], "ccil_action": lab["syn_action"][li],
+              "oracle_state": oracle_state, "oracle_env": oracle_env, "oracle_action": lab["syn_action"][li]}
+    # the history invariant: both labels' current slots are the source frame's own, bitwise
+    for arm in ("ccil", "oracle"):
+        if not (np.array_equal(arrays[f"{arm}_state"][:, 2:4], src["state"][src_row][:, 2:4])
+                and np.array_equal(arrays[f"{arm}_env"][:, 16:32], src["env"][src_row][:, 16:32])):
+            problems.append(f"a {arm} label's current slot is not its source frame's")
+    # containment by content: no label's current frame is a held-out frame's
+    held_frames = {x.tobytes() for x in current_frames(src["state"], src["env"])[rows_of(src, held)]}
+    hits = {arm: int(sum(x.tobytes() in held_frames for x in current_frames(arrays[f"{arm}_state"],
+                                                                             arrays[f"{arm}_env"])))
+            for arm in ("ccil", "oracle")}
+    problems += [f"{v} {arm} labels carry a held-out current frame" for arm, v in hits.items() if v]
+    disp = {arm: np.maximum(np.abs(arrays[f"{arm}_state"][:, 0:2] - src["state"][src_row][:, 0:2]).max(1),
+                            np.abs(arrays[f"{arm}_env"][:, 0:16] - src["env"][src_row][:, 0:16]).max(1))
+            for arm in ("ccil", "oracle")}
+    q = lambda x: {str(p): float(np.percentile(x, p)) for p in (10, 50, 90, 100)} if len(x) else None  # noqa: E731
+    rec = {"proposals": int(len(common)), "common": int(len(rows)), "held_out_current_frames": hits,
+           "previous_slot_displacement_px": {k: q(v) for k, v in disp.items()},
+           "inputs": {"labels_npz_sha256": m["labels_npz_sha256"],
+                      "proposals_npz_content_sha256": m["proposals_npz_content_sha256"]},
+           "problems": problems}
+    (d / "matched.json").write_text(json.dumps(rec, indent=1, sort_keys=True) + "\n")
+    if problems:
+        write_json(ctx.root / f"matched-failure-{int(time.time())}.json", rec)
+        raise StoreError(f"the matched rows fail their checks: {problems}")
+    np.savez(d / "matched.npz", **arrays)
+
+
 # --- design -----------------------------------------------------------------------------------------------------------
 def cells(spec) -> list:
     """(r, alpha) coordinates of the treatment arms: the declared cells, or the full grid."""
@@ -332,8 +425,9 @@ def cells(spec) -> list:
 
 def design(ctx) -> list[dict]:
     """Every policy unit, from the specification alone: BC at alpha 0 once per (r, seed) of a used r, and duplication
-    and CCIL at every cell."""
+    and CCIL (and, matched, oracle CCIL) at every cell."""
     cs = cells(ctx.spec)
+    syn = [a for a in ctx.spec["arms"] if a != "bc"]
     rs = [r for r in ctx.spec["real_fractions"] if any(c[0] == r for c in cs)]
     out = []
     for s in ctx.spec["seeds"]:
@@ -342,7 +436,7 @@ def design(ctx) -> list[dict]:
             for (rr, a) in cs:
                 if rr == r:
                     out += [{"key": f"{arm}/r{r}/a{a}/s{s}", "arm": arm, "r": r, "alpha": a, "seed": s}
-                            for arm in ("duplication", "ccil")]
+                            for arm in syn]
     return out
 
 
@@ -352,10 +446,12 @@ def data(ctx) -> dict:
     ro = roles(ctx, src)
     out = {"src": src, "roles": ro, "r": {}}
     used = {d["r"] for d in design(ctx) if d["arm"] != "bc"}
+    matched = "matched" in ctx.spec
     for r in ctx.spec["real_fractions"]:
         eps = subset_episodes(ro["train"], r, ctx.spec["subset_seed"])
         out["r"][r] = {"episodes": eps, "stats": stats_entry(ctx, src, eps),
-                       "pool": pool_entry(ctx, src, eps, ro["held_out"]) if r in used else None}
+                       "pool": pool_entry(ctx, src, eps, ro["held_out"]) if r in used and not matched else None,
+                       "matched": matched_entry(ctx, src, eps, ro["held_out"]) if r in used and matched else None}
     return out
 
 
@@ -380,7 +476,8 @@ def unit_identity(ctx, u, dd) -> dict:
     return {"kind": "policy", "arm": u["arm"], "r": u["r"], "alpha": u["alpha"], "seed": u["seed"],
             "episodes": d["episodes"], "held_out": dd["roles"]["held_out"],
             "stats": sha256_file(d["stats"] / "stats.json"),
-            "pool": None if u["arm"] == "bc" else sha256_file(d["pool"] / "labels.npz"),
+            "pool": None if u["arm"] == "bc" else sha256_file(d["matched"] / "matched.npz") if d["matched"]
+            else sha256_file(d["pool"] / "labels.npz"),
             "learner": ctx.spec["learner"]}
 
 
@@ -395,6 +492,12 @@ def unit_files(ctx, u, dd, work: Path) -> None:
     if u["arm"] == "bc":
         arr |= {"syn_state": np.zeros((0, 4), np.float32), "syn_env": np.zeros((0, 32), np.float32),
                 "syn_action": np.zeros((0, 2), np.float32)}
+    elif d["matched"]:
+        with np.load(d["matched"] / "matched.npz") as z:
+            if u["arm"] == "duplication":  # each common proposal's source row, in the same order
+                arr |= {f"syn_{p}": src[p][z["src_row"]] for p in PARTS}
+            else:
+                arr |= {f"syn_{p}": z[f"{u['arm']}_{p}"] for p in PARTS}
     else:
         with np.load(d["pool"] / "labels.npz") as z:
             if u["arm"] == "ccil":
@@ -470,8 +573,11 @@ def preflight(ctx) -> dict:
         problems.append(f"{len(units)} units, expected {exp['units']}")
     features_root(ctx, src)
     pools = {f"r{r}": json.loads((v["pool"] / "labels.json").read_text()) for r, v in dd["r"].items() if v["pool"]}
+    matched = {f"r{r}": json.loads((v["matched"] / "matched.json").read_text()) for r, v in dd["r"].items()
+               if v["matched"]}
     idents = {u["key"]: digest(ctx.store.full(unit_identity(ctx, u, dd))) for u in units}
     return {"all_pass": not problems, "problems": problems, "source_content_sha256": ctx.spec["data"]["content_sha256"],
+            **({"matched": matched} if matched else {}),
             "subsets": subsets, "real_rows": {f"r{r}": int(len(rows_of(src, v["episodes"]))) for r, v in dd["r"].items()},
             "held_out_frames": val, "pools": pools, "planned_units": len(units), "units": idents,
             "plan_sha256": digest([u["key"] for u in units]), "code": ctx.protocol["code"]}
@@ -660,14 +766,14 @@ def audit(ctx) -> dict:
         except (StoreError, KeyError, ValueError, OSError) as ex:
             problems[key] = str(ex)
     for u in design(ctx):  # pairing: duplication and CCIL drew the same positions at every common step
-        if u["arm"] == "ccil":
-            dk = u["key"].replace("ccil/", "duplication/", 1)
+        if u["arm"] in ("ccil", "oracle"):
+            dk = u["key"].replace(f"{u['arm']}/", "duplication/", 1)
             a, b = streams.get(u["key"], {}), streams.get(dk, {})
             if any(a[s] != b[s] for s in set(a) & set(b)) or not (set(a) & set(b)):
                 problems[f"pair {u['key']}"] = "duplication and CCIL index streams differ"
     for r, v in dd["r"].items():
-        if v["pool"] is not None:
-            with np.load(v["pool"] / "labels.npz") as z:
+        if v["pool"] is not None or v["matched"] is not None:
+            with np.load(v["pool"] / "labels.npz" if v["pool"] else v["matched"] / "matched.npz") as z:
                 if not np.isin(dd["src"]["episode"][z["src_row"]], v["episodes"]).all():
                     problems[f"pool r{r}"] = "a label's source is outside its subset"
     return {"all_pass": not problems, "units": len(tr["units"]), "problems": problems}
@@ -753,6 +859,8 @@ def report(ctx) -> dict:
     """The response surface and the stage's frozen rule (docs/studies/pusht-surface.md)."""
     from ..run import require
     prior = require(ctx, "report")
+    if "matched" in ctx.spec:
+        return report_matched(ctx, prior)
     a, m = ctx.spec["analysis"], ctx.spec["analysis"]["metric"]
     sc = {k: v[m] for k, v in prior["evaluate"]["units"].items()}
     tr = prior["train"]["units"]
@@ -799,6 +907,41 @@ def report(ctx) -> dict:
     return {"all_pass": True, "metric": m, "cells": out_cells, "bc_competence": competence, "competent": competent,
             "eligible": eligible, "decision": decision,
             "incomplete_fit": prior["train"]["incomplete_fit"]}
+
+
+def report_matched(ctx, prior) -> dict:
+    """Stage B of the oracle study and its frozen rule (docs/studies/pusht-oracle.md): oracle CCIL - duplication per
+    seed, established only when positive on both; oracle - learned and learned - duplication, success rates and the
+    selections descriptively; two seeds give paired values and their mean, no interval."""
+    m = ctx.spec["analysis"]["metric"]
+    ev, tr = prior["evaluate"]["units"], prior["train"]["units"]
+    (r, al), = cells(ctx.spec)
+    per = {}
+    for s in ctx.spec["seeds"]:
+        k = {arm: f"{arm}/r{r}/a{al}/s{s}" for arm in ("duplication", "ccil", "oracle")} | {"bc": f"bc/r{r}/a0/s{s}"}
+        v = {arm: ev[key][m] for arm, key in k.items()}
+        per[s] = {"bc": v["bc"], "duplication": v["duplication"], "learned_ccil": v["ccil"],
+                  "oracle_ccil": v["oracle"], "oracle_minus_duplication": v["oracle"] - v["duplication"],
+                  "oracle_minus_learned": v["oracle"] - v["ccil"], "learned_minus_duplication": v["ccil"] - v["duplication"],
+                  "pc_success": {arm: ev[key]["pc_success"] for arm, key in k.items()},
+                  "selected_step": {arm: tr[key]["selected_step"] for arm, key in k.items()},
+                  "complete": all(tr[key]["outcome"] == "complete" for key in k.values())}
+    mean = {c: float(np.mean([v[c] for v in per.values()]))
+            for c in ("oracle_minus_duplication", "oracle_minus_learned", "learned_minus_duplication")}
+    oracle = all(v["oracle_minus_duplication"] > 0 for v in per.values())
+    learned = all(v["learned_minus_duplication"] > 0 for v in per.values())
+    if not oracle:
+        decision = {"outcome": "stop", "why": "oracle CCIL does not beat duplication on both seeds: this oracle "
+                                              "completion did not help in this cell"}
+    elif not learned:
+        decision = {"outcome": "model fidelity", "why": "oracle CCIL beats duplication on both seeds and learned CCIL "
+                                                        "does not: model fidelity is a demonstrated bottleneck in "
+                                                        "this construction"}
+    else:
+        decision = {"outcome": "positive development signal", "why": "oracle and learned CCIL both beat duplication "
+                                                                     "on both seeds"}
+    return {"all_pass": True, "metric": m, "cell": {"r": r, "alpha": al}, "per_seed": per, "mean": mean,
+            "oracle_established": oracle, "decision": decision, "incomplete_fit": prior["train"]["incomplete_fit"]}
 
 
 RUNNERS = {"preflight": preflight, "train": train, "audit": audit, "evaluate": evaluate,
