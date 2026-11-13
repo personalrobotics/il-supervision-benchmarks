@@ -1,0 +1,176 @@
+{
+ "audit_problems": {},
+ "code": "e3b228d296e069e69229ef6c85a3a6e4cb41cb18",
+ "dirty": false,
+ "evaluation_audit_problems": {},
+ "preflight": {
+  "held_out_frames": 5109,
+  "matched": {
+   "r0.25": {
+    "common": 12739,
+    "held_out_current_frames": {
+     "ccil": 0,
+     "oracle": 0
+    },
+    "inputs": {
+     "labels_npz_sha256": "6024b739dff0551221d13c670a2153087006a0c83ee664221e713e1cc55cbf25",
+     "proposals_npz_content_sha256": "b31c22018bf582b7687220ce05cb49372679a9b31bb1c7e891ab589ad8646adf"
+    },
+    "previous_slot_displacement_px": {
+     "ccil": {
+      "10": 10.257949829101562,
+      "100": 287.16668701171875,
+      "50": 21.742523193359375,
+      "90": 52.58668518066406
+     },
+     "oracle": {
+      "10": 3.7916808128356934,
+      "100": 115.66658020019531,
+      "50": 10.203323364257812,
+      "90": 19.8581600189209
+     }
+    },
+    "problems": [],
+    "proposals": 19996
+   }
+  },
+  "planned_units": 4,
+  "problems": [],
+  "real_rows": {
+   "r0.25": 5040
+  }
+ },
+ "report_fail_closed": {
+  "incomplete": [
+   "ccil/r0.25/a0.25/s1",
+   "duplication/r0.25/a0.25/s1",
+   "oracle/r0.25/a0.25/s1"
+  ],
+  "oracle_established": false,
+  "outcome": "inconclusive"
+ },
+ "schema": "ilsb.pusht_oracle.stage_b_smoke 1",
+ "spec": "tools/pusht_v2/oracle-stage-b-smoke.json",
+ "stages": {
+  "audit": true,
+  "evaluate": true,
+  "evaluation_audit": true,
+  "preflight": true,
+  "report": true,
+  "train": true
+ },
+ "units": {
+  "bc/r0.25/a0/s1": {
+   "exposure": {
+    "real_rows": 512000,
+    "steps": 2000,
+    "synthetic_rows": 0
+   },
+   "index_sha256": {
+    "1000": "18d9580a3ac7bd96ac522e1054c87350ff7c6d0b4151f7e2deb26d12078d8442",
+    "1250": "30bac0ab85a9dd8b85ee65a2f9d0e8e30debef0c8b07d33ee98562dac23b85ab",
+    "1500": "90d1ec875b42a590d44f6fa9f5e8e04691e39e1c2b26d5a526e7455094168889",
+    "1750": "44441d4d0d4ca78f7965899192ad602dea72269dd2ad268ce525e52e02f47063",
+    "2000": "aaf59f82a5cd2b52dc423cf9b001e860eb96825142cf281b3c14c20034b17eaa",
+    "250": "98dedb15cddc1e287954e4d34112e0a5107e2ec6e570927cecd5fa463748611c",
+    "500": "5de22357f34ce5cbb4079ca2bf599cd7ab0684a40ace5b066728d70e49689f76",
+    "750": "3e2814aeb90bb78150d1ceaf4ca99054b88bebb607a1eaefe74db9017ffd25f6"
+   },
+   "outcome": "complete",
+   "per_batch": {
+    "real": 256,
+    "synthetic": 0
+   },
+   "reached": 2000,
+   "rows": {
+    "real": 5040,
+    "synthetic": 0
+   },
+   "selected_step": 1750
+  },
+  "ccil/r0.25/a0.25/s1": {
+   "exposure": {
+    "real_rows": 384000,
+    "steps": 2000,
+    "synthetic_rows": 128000
+   },
+   "index_sha256": {
+    "1000": "8be473c43e6e96f795760fe7dc5c2758bb5d4a4c62c028dfcae284d5b913148a",
+    "1250": "af7724c4126edfd2fe6ed5417ee9947303c0de049d8d8eb9080e0eb55d1eb0db",
+    "1500": "4d68cfa264846d7881514c304ee5aca89308d000cbd9c5ee82944fa811239897",
+    "1750": "3963517637c93849417c1c4fc5495023ec26f34634f63795a09fe825b0ca46c2",
+    "2000": "ede10e607951cbb926c77d8513a72a1d96a9789870cbaac8204a4e33a0b44b0d",
+    "250": "403ed37cdaa391fa6cf5c9bd0c0bcf5c1f2b5763851a9ba6f1d7826f90650ced",
+    "500": "041464890f362b94044a558772f8a1d6e491b5cb1e55c80459b9564546447bd8",
+    "750": "c325e1ebe308f137cef84538bd4d082806eeac9068dd5bf0f644ef1f06ed1b19"
+   },
+   "outcome": "incomplete_fit",
+   "per_batch": {
+    "real": 192,
+    "synthetic": 64
+   },
+   "reached": 2000,
+   "rows": {
+    "real": 5040,
+    "synthetic": 12739
+   },
+   "selected_step": 2000
+  },
+  "duplication/r0.25/a0.25/s1": {
+   "exposure": {
+    "real_rows": 384000,
+    "steps": 2000,
+    "synthetic_rows": 128000
+   },
+   "index_sha256": {
+    "1000": "8be473c43e6e96f795760fe7dc5c2758bb5d4a4c62c028dfcae284d5b913148a",
+    "1250": "af7724c4126edfd2fe6ed5417ee9947303c0de049d8d8eb9080e0eb55d1eb0db",
+    "1500": "4d68cfa264846d7881514c304ee5aca89308d000cbd9c5ee82944fa811239897",
+    "1750": "3963517637c93849417c1c4fc5495023ec26f34634f63795a09fe825b0ca46c2",
+    "2000": "ede10e607951cbb926c77d8513a72a1d96a9789870cbaac8204a4e33a0b44b0d",
+    "250": "403ed37cdaa391fa6cf5c9bd0c0bcf5c1f2b5763851a9ba6f1d7826f90650ced",
+    "500": "041464890f362b94044a558772f8a1d6e491b5cb1e55c80459b9564546447bd8",
+    "750": "c325e1ebe308f137cef84538bd4d082806eeac9068dd5bf0f644ef1f06ed1b19"
+   },
+   "outcome": "incomplete_fit",
+   "per_batch": {
+    "real": 192,
+    "synthetic": 64
+   },
+   "reached": 2000,
+   "rows": {
+    "real": 5040,
+    "synthetic": 12739
+   },
+   "selected_step": 2000
+  },
+  "oracle/r0.25/a0.25/s1": {
+   "exposure": {
+    "real_rows": 384000,
+    "steps": 2000,
+    "synthetic_rows": 128000
+   },
+   "index_sha256": {
+    "1000": "8be473c43e6e96f795760fe7dc5c2758bb5d4a4c62c028dfcae284d5b913148a",
+    "1250": "af7724c4126edfd2fe6ed5417ee9947303c0de049d8d8eb9080e0eb55d1eb0db",
+    "1500": "4d68cfa264846d7881514c304ee5aca89308d000cbd9c5ee82944fa811239897",
+    "1750": "3963517637c93849417c1c4fc5495023ec26f34634f63795a09fe825b0ca46c2",
+    "2000": "ede10e607951cbb926c77d8513a72a1d96a9789870cbaac8204a4e33a0b44b0d",
+    "250": "403ed37cdaa391fa6cf5c9bd0c0bcf5c1f2b5763851a9ba6f1d7826f90650ced",
+    "500": "041464890f362b94044a558772f8a1d6e491b5cb1e55c80459b9564546447bd8",
+    "750": "c325e1ebe308f137cef84538bd4d082806eeac9068dd5bf0f644ef1f06ed1b19"
+   },
+   "outcome": "incomplete_fit",
+   "per_batch": {
+    "real": 192,
+    "synthetic": 64
+   },
+   "reached": 2000,
+   "rows": {
+    "real": 5040,
+    "synthetic": 12739
+   },
+   "selected_step": 2000
+  }
+ }
+}

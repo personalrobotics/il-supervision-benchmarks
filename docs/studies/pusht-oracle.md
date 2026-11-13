@@ -240,6 +240,8 @@ oracle ceiling is established only if it is positive on both seeds.
 With two seeds the report gives the paired values and their mean, with no interval and no population claim.
 
 **Decision.**
+- **Any of the eight fits is incomplete** (its selected checkpoint is the 80k one): the study is **inconclusive**, and
+  no substantive claim is made. This rule is checked first and applies whatever the differences are.
 - **Oracle does not beat duplication on both seeds:** stop. **This oracle completion did not help in this cell.** The
   result does not rule out dynamics-model error in general, because the oracle's history slot is a fixed decoding
   whose realizability is not verified. It does leave the generator, the placement, the exposure and the learner
@@ -260,7 +262,49 @@ r = 0.25 stopped at 20k in the surface study.
 | expected (8 units, plus the stage jobs) | about 1.2 | about $1.10 |
 | worst case (every unit runs to 80k) | about 3.5 | about $3.20 |
 
-The exact maximum is stated before submission.
+### How Stage B runs
+
+The harness runs Stage B from [`tools/pusht_v2/oracle-stage-b.json`](../../tools/pusht_v2/oracle-stage-b.json), which is
+the surface study's Stage 2 specification at one cell, (0.25, 0.25), on seeds 1 and 2, with an `oracle` arm and a
+`matched` block. Its learner, selection and evaluation are the surface study's, unchanged.
+
+- **The matched rows.** No pool is generated. The harness reads two pinned files from `ILSB_ORACLE_INPUTS`:
+  - the learned `labels.npz`, by SHA-256 `6024b739…`;
+  - Stage A's `proposals.npz`, by content SHA-256 `b31c2201…`.
+
+  It keeps the 12,739 common proposals in candidate-row order. Each one appears as its learned label, its oracle label
+  and its source row. The oracle label's previous slot is Stage A's decoded q′_{t−1}; its current slot and action are the
+  source frame's and the proposal's. Before any unit trains, it checks:
+  - the counts;
+  - that each common proposal's learned label is that proposal's, from the same source;
+  - that every source is in the subset;
+  - that the oracle labels are finite;
+  - that both labels' current slots equal the source frame bitwise;
+  - containment by content: no label's current frame is a held-out frame.
+- **Pairing.** Duplication, learned CCIL and oracle CCIL draw the same index streams at every step. The audit checks
+  this for both CCIL arms.
+- **BC is retrained.** The harness implementation is part of every store identity, so the surface study's BC units
+  do not match. Stage B therefore trains all 8 units.
+
+**Smoke.** [`evidence/pusht-oracle/stage-b-smoke.json`](evidence/pusht-oracle/stage-b-smoke.json) records the whole
+chain on [`oracle-stage-b-smoke.json`](../../tools/pusht_v2/oracle-stage-b-smoke.json): seed 1, boundaries
+500/1000/2000, 4 evaluation episodes. It ran on siddh at `e3b228d`, from a clean tree, and every stage passed. The
+matched rows passed their checks: 12,739 common rows, and no held-out current frame in either arm. All three
+synthetic arms drew identical index streams. Their fits reach the smoke's 2k ceiling, so they are incomplete, and the
+report correctly returned **inconclusive**, with oracle not established. It records no outcome values. The scheduler's failure and resume path
+is unchanged from the surface study's smoke.
+
+**Exact maximum cost** on Tillicum (`gpu-h200`, `normal` QoS, $0.90 per GPU-hour, 1 GPU per job), by requested time:
+
+| job | requested | maximum |
+|---|---|---|
+| preflight | 1 × 0:20 | $0.30 |
+| units (array of 8, `%8`) | 8 × 1:00 | $7.20 |
+| train (collect), audit, evaluate, evaluation_audit, report | 1 × 0:45 | $0.68 |
+| **total** | 9.08 GPU-hours | **$8.18** |
+
+A unit's 80k worst case is about 0.45 hours on an H200, inside its 1-hour limit. The jobs bill on elapsed time, so the
+expected cost is about $1.10. A failed job is not resubmitted without a separate decision.
 
 ## Not in this study
 
