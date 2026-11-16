@@ -53,8 +53,7 @@ A specification with `task.kind: lerobot` selects the study, and its `learner.ki
              "steps": 100000, "batch_size": 64, "save_freq": 10000, "log_freq": 1000, "num_workers": 4,
              "selection": {"rule": "last", "seed": 0, "batch_size": 256}},
  "seeds": [1, 2],
- "evaluation": {"start_seed": 1000, "n_episodes": 100, "batch_size": 50, "device": "cuda",
-                "repeat_tolerance": {"max_reward": 1e-12, "sum_reward": 1e-9}},
+ "evaluation": {"start_seed": 1000, "n_episodes": 100, "batch_size": 50, "device": "cuda"},
  "acceptance": {"metric": "avg_max_reward", "min_mean": 0.85},
  "expected": {"train_episodes": 165, "held_out_episodes": 41, "train_frames": 20500, "held_out_frames": 5150,
               "train_windows": 19345, "held_out_windows": 4863, "units": 2},
@@ -98,7 +97,17 @@ Training runs with deterministic cuDNN and cuBLAS (`--cudnn_deterministic=true`,
 
 A unit records the steps it resumed from and the steps it restarted from. Without the deterministic setting, a repeat with the same seed already differs, by up to 4e-7 in a parameter after 60 steps.
 
-The held-out loss is the policy's own training loss (`DiffusionPolicy.forward`) over every anchored held-out window, in anchor order. Its diffusion noise and timesteps come from a generator seeded once. It is computed in strict FP32, with no autocast and no TF32. So the audit re-scores the selected checkpoint in a fresh process and requires the same number. Evaluation is `lerobot-eval` with deterministic cuDNN and cuBLAS. A repeat of a full-size PushT evaluation on the GPU reproduces every episode's success, but not every reward bit for bit. Its max and sum rewards drift in the last digits, at about 3e-16 and 1e-14. That drift remains with cuDNN autotuning held off; the tiny fixture's evaluation repeats exactly. So the evaluation audit requires identical successes, and max and sum rewards within the specification's `repeat_tolerance`. The PushT reference uses the PushT studies' tolerances, 1e-12 and 1e-9.
+The held-out loss is the policy's own training loss (`DiffusionPolicy.forward`) over every anchored held-out window, in anchor order. Its diffusion noise and timesteps come from a generator seeded once. It is computed in strict FP32, with no autocast and no TF32. So the audit re-scores the selected checkpoint in a fresh process and requires the same number. Evaluation is `lerobot-eval` with deterministic cuDNN and cuBLAS. The policy's inference then repeats bit for bit: on fixed observations and a fixed seed, `select_action` gives the same actions in two processes. A closed-loop rollout still does not repeat, because the PushT simulator does not.
+- **The test:** [`tools/lerobot_diffusion/pusht_env_repeat.py`](../tools/lerobot_diffusion/pusht_env_repeat.py) replays fixed, seeded action sequences from fixed reset seeds: 20 episodes of 300 steps, most of them with contact.
+- **The result:** three processes on siddh gave three different trajectories (gym-pusht 0.1.8).
+- **The effect on evaluation:** in a full evaluation, those last-digit differences grow over contact into different episodes. Two evaluations of the same checkpoint on the same starts differed by up to 0.32 in one episode's maximum coverage, and in a few successes.
+
+So the evaluation audit gates on what the record determines:
+- every rollout's scores recompute from its recorded episodes;
+- its `lerobot-eval` arguments and starts are the protocol's;
+- its checkpoint is the audited one.
+
+It also re-evaluates one unit and records how far the repeat moves (the average coverage, the success rate, and the episodes whose success changed) as a measurement, not a gate. A study's numbers are single evaluations of a simulator that is not exactly repeatable. The tiny fixture's rollouts repeat exactly, because they are too short to diverge.
 
 Units are store entries like every other study's. A complete unit is reused under an equal identity: the split, the learner configuration, the seed, the device, the code and the environment.
 

@@ -259,9 +259,9 @@ def stats(checkpoint: str, out: str) -> None:
 
 
 def evaluate(argv: list) -> None:
-    """lerobot-eval itself, with cuDNN restricted to deterministic algorithms and cuBLAS's deterministic workspace.
-    A full-size GPU evaluation still repeats only to the last digits of its rewards (docs/lerobot-learners.md), which
-    the evaluation audit's declared tolerance covers."""
+    """lerobot-eval itself, with cuDNN restricted to deterministic algorithms and cuBLAS's deterministic workspace, so
+    the policy's own inference repeats. A closed-loop rollout still repeats only where the simulator does
+    (docs/lerobot-learners.md)."""
     import torch
     from lerobot.scripts import lerobot_eval
     os.environ.update(DETERMINISTIC_ENV)

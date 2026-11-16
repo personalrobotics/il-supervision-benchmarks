@@ -22,7 +22,7 @@ The specification is [`tools/lerobot_diffusion/pusht-reference.json`](../../tool
   - Diffusion Policy's denoising loss is a weak guide to closed-loop quality, and the anchor below used the final checkpoint.
   - The held-out loss of every checkpoint is recorded as a diagnostic, with fixed noise (seed 0) in strict FP32.
 - **Evaluation:** unchanged `lerobot-eval` on `pusht` with `environment_state_agent_pos` observations, 100 episodes from start seeds 1000–1099 (the canonical starts), in batches of 50. The policy keeps its own two-step observation queue.
-- **Evaluation audit:** each rollout's scores are recomputed. Seed 1 is re-evaluated, and every episode's success must be identical, its max reward within 1e-12 and its sum reward within 1e-9. These are the PushT studies' repeat tolerances.
+- **Evaluation audit:** each rollout's scores are recomputed from its episodes, and its arguments, starts and checkpoint are checked. Seed 1 is re-evaluated and the repeat's deviation recorded. The PushT simulator does not repeat contact-rich trajectories ([lerobot-learners.md](../lerobot-learners.md#determinism-resume-and-reuse)), so the repeat is a measurement, not a gate.
 - **Acceptance:** the mean over the seeds of the average maximum coverage is at least 0.85.
 
 ### Anchor
