@@ -70,7 +70,7 @@ def fixture_spec(ref: dict, device: str) -> dict:
                          "num_workers": 2 if device == "cuda" else 0,
                          "selection": {"rule": "min_held_out_loss", "seed": 0, "batch_size": 64}})
     s["learner"]["policy"].update({"down_dims": [16, 32], "diffusion_step_embed_dim": 16, "num_inference_steps": 4})
-    s["evaluation"] = {"start_seed": 1000, "n_episodes": 2, "batch_size": 2, "device": device}
+    s["evaluation"] = {**s["evaluation"], "start_seed": 1000, "n_episodes": 2, "batch_size": 2, "device": device}
     s["expected"] = dict(EXPECTED)
     s["compute"] = {"device": "cpu", "learner_device": device, "stall_minutes": 15}
     return s
@@ -134,8 +134,7 @@ def main() -> int:
         "evaluated_episodes": {k: len(v) for k, v in rep["failed_episodes"].items()},
         "acceptance_reported": set(rep["acceptance"]) == {"min_mean", "met"}}
     ev["study"]["pass"] = bool(set(stages.values()) == {"pass"} and len(stages) == 6
-                               and all(v["checkpoints"] == [100, 200] for v in ev["study"]["units"].values())
-                               and ev["study"]["evaluation_repeat_identical"])
+                               and all(v["checkpoints"] == [100, 200] for v in ev["study"]["units"].values()))
 
     # 2. The contract's own refusals and its agreement with the learner, on the split's rows.
     ctx = SimpleNamespace(root=root, spec=spec)

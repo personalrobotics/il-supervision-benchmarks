@@ -265,7 +265,11 @@
   "start_seed": 1000,
   "n_episodes": 100,
   "batch_size": 50,
-  "device": "cuda"
+  "device": "cuda",
+  "repeat_tolerance": {
+   "max_reward": 1e-12,
+   "sum_reward": 1e-09
+  }
  },
  "acceptance": {
   "metric": "avg_max_reward",

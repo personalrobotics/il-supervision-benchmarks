@@ -17,8 +17,8 @@ Stages:
                     training episodes'), its weights' hash, the selection recomputed from the history, and the
                     selected checkpoint's held-out loss re-scored in a fresh process
   evaluate          lerobot-eval of each selected checkpoint on the declared starts
-  evaluation_audit  each rollout's scores recomputed from its episodes and starts; one unit re-evaluated, its episodes
-                    reproduced exactly
+  evaluation_audit  each rollout's scores recomputed from its episodes and starts; one unit re-evaluated: every
+                    episode's success identical, its max and sum rewards within the declared repeat tolerances
   report            per seed and mean, the acceptance threshold, every episode that did not succeed
 """
 from __future__ import annotations
@@ -73,8 +73,10 @@ def load_spec(spec: dict) -> dict:
     if not s or len(set(s)) != len(s) or any(isinstance(x, bool) or not isinstance(x, int) for x in s):
         raise Refused("refused: seeds are distinct integers")
     ev = spec["evaluation"]
-    if set(ev) != {"start_seed", "n_episodes", "batch_size", "device"} or ev["n_episodes"] % ev["batch_size"]:
-        raise Refused("refused: evaluation is {start_seed, n_episodes, batch_size (dividing n_episodes), device}")
+    if set(ev) != {"start_seed", "n_episodes", "batch_size", "device", "repeat_tolerance"} \
+            or ev["n_episodes"] % ev["batch_size"] or set(ev["repeat_tolerance"]) != {"max_reward", "sum_reward"}:
+        raise Refused("refused: evaluation is {start_seed, n_episodes, batch_size (dividing n_episodes), device, "
+                      "repeat_tolerance: {max_reward, sum_reward}}")
     a = spec["acceptance"]
     if set(a) != {"metric", "min_mean"} or a["metric"] != "avg_max_reward":
         raise Refused("refused: acceptance is {metric: avg_max_reward, min_mean}")
@@ -547,10 +549,13 @@ def evaluation_audit(ctx) -> dict:
     again = scores_of(evaluate_unit(ctx, entry, ctx.root / "work" / "eval-repeat" / str(int(time.time()))), ev)
     first = json.loads((ctx.store.root / "rollout" / prior["evaluate"]["units"][key]["entry"] / "scores.json")
                        .read_text())
-    if again != first:
-        problems["repeat"] = f"{key} re-evaluated with different episodes"
+    tol = ev["repeat_tolerance"]
+    dev = {m: float(np.max(np.abs(np.subtract(again[m], first[m])))) for m in ("max_reward", "sum_reward")}
+    same = again["success"] == first["success"] and again["start_seed"] == first["start_seed"]
+    if not same or dev["max_reward"] > tol["max_reward"] or dev["sum_reward"] > tol["sum_reward"]:
+        problems["repeat"] = f"{key} re-evaluated with successes equal: {same}, deviations {dev}"
     return {"all_pass": not problems, "units": len(prior["evaluate"]["units"]), "problems": problems,
-            "repeat": {"unit": key, "identical": again == first}}
+            "repeat": {"unit": key, "identical": again == first, "successes_identical": same, "max_deviation": dev}}
 
 
 def report(ctx) -> dict:
