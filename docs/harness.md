@@ -86,6 +86,7 @@ A benchmark contributes adapters, not a runner.
   - a plateau learning-rate schedule and a stop at its floor, on the validation history, with the step budget only a ceiling;
   - a fixed synthetic sampling fraction;
   - a realized-exposure record.
+- **`lerobot_diffusion`** is LeRobot's Diffusion Policy, trained and evaluated by the pinned LeRobot release through a thin adapter, on temporal windows whose contract is `ilsb.temporal`. A specification with `task.kind: lerobot` selects it for any LeRobot dataset and environment; see [lerobot-learners.md](lerobot-learners.md).
 
 ## One policy: `ilsb policy train`
 
@@ -138,4 +139,4 @@ run:
 
   The fixture's docstring maps each protected failure to its check. The evidence counts every policy trained, and holds no paths, times or commits, so a rerun on the same host reproduces it byte for byte.
 
-CI (`.github/workflows/fixture.yml`) builds the wheel, installs it in a clean environment with CPU PyTorch, and runs `learner_check.py` (with a reference environment at `REFERENCE_CCIL`) and `fixture.py` from there; the evidence is uploaded as the run's artifact. A fixture runs only when its inputs changed: `src/`, `pyproject.toml`, `uv.lock`, the workflow, or its own script. Otherwise its check passes without running. A new push to a pull request cancels the obsolete run. Each fixture takes about ten minutes on a GitHub-hosted runner, and the two run in parallel. There is no unit-test collection.
+CI (`.github/workflows/fixture.yml`) builds the wheel, installs it in a clean environment with CPU PyTorch, and runs `learner_check.py` (with a reference environment at `REFERENCE_CCIL`) and `fixture.py` from there; the evidence is uploaded as the run's artifact. A fixture runs only when its inputs changed: `src/`, `pyproject.toml`, `uv.lock`, the workflow, or its own script. Otherwise its check passes without running. A new push to a pull request cancels the obsolete run. Each fixture takes about ten minutes on a GitHub-hosted runner, and they run in parallel. There is no unit-test collection. The third fixture, `tools/diffusion_fixture.py`, checks the LeRobot Diffusion Policy learner against a second, pinned LeRobot environment ([lerobot-learners.md](lerobot-learners.md#evidence)); it also runs when `tools/lerobot_diffusion/` changes.
