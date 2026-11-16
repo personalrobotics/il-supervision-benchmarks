@@ -136,6 +136,6 @@ The study's scope records the environment's distributions, Python, PyTorch, CUDA
 - rerun and shared-store reuse;
 - refusals of overlapping roles, an unpinned LeRobot, an altered dataset and corrupted weights.
 
-CI runs it from the built wheel, against the pinned LeRobot environment on CPU PyTorch. Full training is never a CI job. The same fixture with `--device cuda` (two data-loading workers, the pinned CUDA environment) is written to `docs/fixtures/evidence/diffusion-fixture-cuda.json`; it is where the interrupted unit resumes rather than restarts. Both records were made on siddh from a clean clone of e36045c, the implementation they check.
+CI runs it from the built wheel, against the pinned LeRobot environment on CPU PyTorch. Full training is never a CI job. The same fixture with `--device cuda` (two data-loading workers, the pinned CUDA environment) is written to `docs/fixtures/evidence/diffusion-fixture-cuda.json`; it is where the interrupted unit resumes rather than restarts. Both records were made on siddh from a clean clone of 428a141, the implementation they check.
 
 The PushT reference, a competent policy on the canonical split and starts, is [docs/studies/pusht-diffusion.md](studies/pusht-diffusion.md).

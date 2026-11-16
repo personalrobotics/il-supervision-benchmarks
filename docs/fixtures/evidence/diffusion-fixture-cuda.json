@@ -92,10 +92,6 @@
    "batch_size": 2,
    "device": "cuda",
    "n_episodes": 2,
-   "repeat_tolerance": {
-    "max_reward": 1e-12,
-    "sum_reward": 1e-09
-   },
    "start_seed": 1000
   },
   "expected": {
