@@ -1,0 +1,66 @@
+{
+ "study": "pusht-recovery",
+ "issue": 52,
+ "stage": "A",
+ "base_spec": "tools/pusht_v2/surface.json",
+ "oracle_spec": "tools/pusht_v2/oracle.json",
+ "cell": {"r": 0.25, "subset_seed": 0, "alpha": 0.25},
+ "inputs": {
+  "source_content_sha256": "333a9b17ebfc6657591eb2b14a7f314200dd2ae1c743691802a319c1746e561d",
+  "candidates_sha256": "6f8c9c97f85d08e775430f67284b964ebe3b68572c06ae8db8dd8f915202747f",
+  "oracle_proposals_content_sha256": "b31c22018bf582b7687220ce05cb49372679a9b31bb1c7e891ab589ad8646adf",
+  "population": "the oracle Stage A proposals with status ok (#43): their action and decoded previous slot"
+ },
+ "simulator": {"gym_pusht": "0.1.8", "pymunk": "6.11.1", "env": "gym_pusht/PushT-v0"},
+ "window": {
+  "n_obs_steps": 2, "horizon": 16, "n_action_steps": 8, "drop_n_last_frames": 7,
+  "observations": "[o'_{t-1}, o_t]: o'_{t-1} the agent position and T keypoints of the predecessor state P; o_t the source frame's own",
+  "actions": "slot 0 the preceding action b; slot 1 the proposal action (the correction); slot k >= 2 the demonstrated action of frame t + k - 1, the episode's last action beyond its end",
+  "chain": "P loaded fresh (oracle.json simulator fresh_state), then in the same live space: b, the correction, then the demonstrated actions",
+  "anchor": "the source frame t; eligible when t <= T - 1 - drop_n_last_frames (LeRobot's rule) and frame t - 1 is a source row"
+ },
+ "solve": {
+  "unknowns": "z = (agent x, y, T x, y, l*theta, agent vx*dt, vy*dt, T vx*dt, vy*dt, l*omega*dt, b x, b y), px; dt = 0.1 s",
+  "residual": "(r(after b, frame t), r(after the correction, frame t + 1)), oracle.json's r, 10 values in px",
+  "init": "positions: the oracle's decoded previous slot; velocities: the replayed source state at t - 1; b: the demonstrated action of frame t - 1",
+  "method": "Gauss-Newton: the minimum-norm least-squares step (lstsq, singular values below rcond times the largest treated as zero). The residual is rank-deficient by design: when nothing touches the T, its velocity dies within one control step, so its position after b and after the correction are the same equation; those rows are consistent and the step ignores the redundancy",
+  "jacobian": "central finite differences of the residual in z",
+  "fd_step": 0.001,
+  "max_iterations": 20,
+  "line_search": 8,
+  "rcond": 1e-10,
+  "singular": "the Jacobian is non-finite or zero",
+  "converged": "distance(after b, frame t) <= tolerance_px and distance(after the correction, frame t + 1) <= tolerance_px",
+  "tolerance_px": 0.05
+ },
+ "mask": {
+  "rule": "slots 0 and 1 are supervised; slot k >= 2 is supervised when its frame t + k - 1 lies in the episode and the chain's positions at frames t + 1 .. t + k - 1 are each within continuation_px of the recorded frames",
+  "continuation_px": 1.0,
+  "required_slots": [1, 2, 3, 4, 5, 6, 7, 8],
+  "required": "the executed chunk (slots 1 .. n_action_steps) is supervised"
+ },
+ "validity": {
+  "action_bounds": [0.0, 512.0],
+  "action_bounds_apply_to": "every supervised action slot: b, the correction and the supervised demonstrated actions",
+  "action_change": "||b - a_{t-1}|| <= the 99.9th percentile of ||a_s - a_{s-1}|| over consecutive subset source rows",
+  "action_change_percentile": 99.9,
+  "speed": "P's agent speed, T speed and l*|omega| each <= its maximum over the replay-verified subset source states",
+  "envelope": "oracle.json validity.envelope (penetration and extent), at P and at every chain state where a supervised action is applied",
+  "reasons": ["no_predecessor", "anchor_in_dropped_frames", "singular_jacobian", "solve_failed", "non_finite",
+              "action_out_of_bounds", "b_beyond_action_change", "speed_beyond_envelope", "beyond_penetration_envelope",
+              "beyond_extent_envelope", "short_continuation"]
+ },
+ "selection": "one window per source anchor: of its accepted proposals in candidate-row order, the index default_rng(SeedSequence([52, source row])).integers(count)",
+ "yield": {
+  "n_real": "the subset's real Diffusion Policy windows (ilsb.temporal, the window above)",
+  "n_synthetic": "round(alpha / (1 - alpha) * n_real)",
+  "min_anchors": "n_synthetic",
+  "min_episodes": 30,
+  "pass": "at least n_synthetic selected windows (distinct anchors) from at least min_episodes episodes"
+ },
+ "expected": {"subset_episodes": 41, "subset_rows": 5040, "proposals": 19996, "oracle_accepted": 12743,
+              "n_real": 4794, "n_synthetic": 1598},
+ "novelty": "o'_{t-1} against the source frame t - 1 and the oracle's decoded previous slot (oracle_probe.distance), and the history's distance to the nearest real history of the subset",
+ "containment": "every slot's episode is a subset episode of roles.train; by content, no window observation equals a held-out (roles.held_out) observation (current or previous slot). Actions are not compared: a 2-d target can coincide by chance",
+ "not_read": ["D_test (seeds 5000-5099)", "any policy", "any evaluation outcome"]
+}
