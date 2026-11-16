@@ -218,6 +218,36 @@ def training_rows(supervision, balance_labels: int | None):
     return np.concatenate([syn] + [demo] * (int(balance_labels) + 1))
 
 
+class _StepGraph:
+    """The eager step's forward, loss and backward on prescaled rows, captured once and replayed as one CUDA graph."""
+
+    def __init__(self, policy, obs_t, act_t, w_t, bs):
+        net, self.idx = policy.net, torch.zeros(bs, dtype=torch.long, device=obs_t.device)
+        self.obs_s, self.act_s, self.w_t = policy.scale_obs(obs_t), policy.scale_act(act_t), w_t
+
+        def forward_backward():
+            loss = weighted_loss(net(self.obs_s[self.idx]), self.act_s[self.idx], self.w_t[self.idx])
+            net.zero_grad()
+            loss.backward()
+            return loss.detach()
+
+        with torch.cuda.device(obs_t.device):
+            side = torch.cuda.Stream()
+            side.wait_stream(torch.cuda.current_stream())
+            with torch.cuda.stream(side): # warm up
+                for _ in range(3):
+                    forward_backward()
+            torch.cuda.current_stream().wait_stream(side)
+            self.graph = torch.cuda.CUDAGraph()
+            with torch.cuda.graph(self.graph, stream=side, capture_error_mode="thread_local"):
+                self.loss = forward_backward()
+
+    def step(self, idx_t):
+        self.idx.copy_(idx_t)
+        self.graph.replay()
+        return self.loss.clone()
+
+
 def train_vector_bc(supervision, settings: dict, *, seed: int, device: str = "cpu", deterministic: bool = False,
                     noise=None, resume=None, on_epoch=None):
     """Train on supervision.arrays(); return (policy, record).
@@ -277,14 +307,30 @@ def train_vector_bc(supervision, settings: dict, *, seed: int, device: str = "cp
             act_t = torch.as_tensor(act_all, device=device)
             w_t = torch.as_tensor(w_all, device=device)
             source = np.asarray(supervision.source)
+            # CUDA fast path can only happen if 1. we're on cuda, 2. we aren't running NoiseBC, 3. observations and
+            # actions have the same number of rows as weights, and 4. weights are well-behaved
+            bits = w_all.view(np.int32)
+            fast = (obs_t.is_cuda and noise is None and w_all.shape == obs_all.shape[:1] == act_all.shape[:1]
+                    and (((bits & 0x7FFFFFFF) == 0) | (bits >= 0x00800000) & (bits <= 0x7F7FFFFF)).all())
+            takes, graph = bits > 0, None
             for epoch in range(start, epochs):
                 policy.net.train()
                 perm = rows[np.random.default_rng(np.random.SeedSequence([int(seed), epoch])).permutation(n)]
+                fast = fast and not torch.is_anomaly_enabled()
+                perm_t = torch.as_tensor(perm, device=device) if fast else None
                 trace = NoiseTrace() if noise is not None else None
                 losses, seen = [], {"demonstration": 0, "synthetic": 0}
                 for b in range(steps_per_epoch):
                     step = epoch * steps_per_epoch + b
                     idx = perm[b * bs:(b + 1) * bs]
+                    if fast:
+                        if takes[idx].any():
+                            graph = graph or _StepGraph(policy, obs_t, act_t, w_t, bs)
+                            losses.append(graph.step(perm_t[b * bs:(b + 1) * bs]))
+                            opt.step()
+                        for s, c in zip(*np.unique(source[idx], return_counts=True)):
+                            seen[str(s)] += int(c)
+                        continue
                     x = policy.scale_obs(obs_t[idx])
                     if noise is not None:
                         batch = x.detach().cpu().numpy()
@@ -300,11 +346,14 @@ def train_vector_bc(supervision, settings: dict, *, seed: int, device: str = "cp
                         losses.append(float(loss.detach()))
                     for s, c in zip(*np.unique(source[idx], return_counts=True)):
                         seen[str(s)] += int(c)
+                if fast and losses:
+                    losses = torch.stack(losses).tolist()
                 if trace is not None:
                     digests.append(trace.summary()["sha256"])
                 epoch_records.append({"epoch": epoch, "steps": steps_per_epoch, "mean_loss": float(np.mean(losses)) if losses else None,
                                       "rows_seen": seen, "zero_weight_steps": steps_per_epoch - len(losses)})
                 if on_epoch is not None:
+                    graph = None
                     on_epoch(policy, opt, epoch + 1, {"noise_trace_epochs": list(digests), "epoch_records": list(epoch_records),
                                                       "training_identity": identity})
         finally:
