@@ -1,0 +1,122 @@
+{
+ "byte_identical_rerun": true,
+ "code": {
+  "commit": "f991ff44753de63c191cb7a354af1a39f3dda5fd",
+  "dirty": false,
+  "files_sha256": {
+   "src/ilsb/temporal.py": "b6054b14690a5260e093b39a2646336123561eb160d0552043b0a5f9e1b5f81c",
+   "tools/pusht_recovery/stage-a.json": "5365afc4d27aa9f138457b88863a49817c73880bd9763868930f4ecbcabbed50",
+   "tools/pusht_recovery/stage_a.py": "7bb22943deecf1d1e4cfc8f59a6e99a20cfecb01057d7cfc4cdc99a545ce6a85",
+   "tools/pusht_v2/oracle.json": "074017e0c13fb1e5011e3123b3f347507619759fda0bc8d137ea610e0129d559",
+   "tools/pusht_v2/oracle_probe.py": "3ae3e960533c5c974039fbe4d66ef231e7871739e2471f4bfd1d1fc921b7a58f",
+   "tools/pusht_v2/oracle_stage_a.py": "efda5989b705754da43387659884e0f11bb0bbf752b46b85fb1a1de0285f7572",
+   "tools/pusht_v2/pose.py": "0d7b14f0d09fdb0dbe9911fccd6db13e71c5b00f89c5e9bfd05a68ae462976f0",
+   "tools/pusht_v2/source.py": "70f3fed087209e767f1ba2140bc50d2bce0a03a2e7704d4f92efbbac62c7af1e",
+   "tools/pusht_v2/surface.json": "b90f67084e91481a9b50899df5ad7c64e1d4c6ad642e90617aa7dad85c2fb0b5"
+  }
+ },
+ "construction": {
+  "mass": {
+   "n_real": 265,
+   "n_synthetic": 88,
+   "real_supervised_values_per_window": 32,
+   "selected_supervised_values": 2828,
+   "selected_windows": 89
+  },
+  "proposals": {
+   "accepted": 105,
+   "anchors": 89,
+   "attempted": 409,
+   "counts": {
+    "action_out_of_bounds": 0,
+    "anchor_in_dropped_frames": 20,
+    "b_beyond_action_change": 43,
+    "beyond_extent_envelope": 0,
+    "beyond_penetration_envelope": 0,
+    "no_predecessor": 0,
+    "non_finite": 0,
+    "ok": 105,
+    "short_continuation": 126,
+    "singular_jacobian": 0,
+    "solve_failed": 107,
+    "speed_beyond_envelope": 8
+   },
+   "episodes_with_anchors": 2,
+   "per_episode": {
+    "0": 56,
+    "1": 33
+   },
+   "population": 409
+  }
+ },
+ "episodes": [
+  0,
+  1
+ ],
+ "faults": {
+  "action_out_of_bounds": {
+   "named": true,
+   "problems": 8,
+   "refused": true
+  },
+  "altered_source": {
+   "named": true,
+   "problems": 1,
+   "refused": true
+  },
+  "held_out_observation": {
+   "named": true,
+   "problems": 4,
+   "refused": true
+  },
+  "predecessor_inside_t": {
+   "named": true,
+   "problems": 7,
+   "refused": true
+  },
+  "slot_from_another_episode": {
+   "named": true,
+   "problems": 3,
+   "refused": true
+  },
+  "wrong_limit": {
+   "named": true,
+   "problems": 1,
+   "refused": true
+  },
+  "wrong_mask": {
+   "named": true,
+   "problems": 4,
+   "refused": true
+  },
+  "wrong_n_synthetic": {
+   "named": true,
+   "problems": 1,
+   "refused": true
+  },
+  "wrong_selection": {
+   "named": true,
+   "problems": 7,
+   "refused": true
+  },
+  "wrong_slot_frame": {
+   "named": true,
+   "problems": 3,
+   "refused": true
+  }
+ },
+ "fresh_process_audit": {
+  "exit": 0,
+  "problems": []
+ },
+ "oracle": {
+  "oracle_accepted": 409,
+  "oracle_failed": 89,
+  "proposals": 550,
+  "source_not_verified": 52
+ },
+ "pass": true,
+ "schema": "ilsb.pusht_recovery.smoke 1",
+ "windows_content_sha256": "5934a0cbb4dcc6350436842df9aacd5db6df8406abb2918e90d81f66a262386a",
+ "windows_npz_content_sha256": "a9319603dcdd4864e5bcf0f6afa27aa63ec929fe65a7cf79dc9e76eee6fa54a8"
+}
