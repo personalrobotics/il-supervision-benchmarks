@@ -43,9 +43,13 @@ class Refused(SystemExit):
 # --- protocol ---------------------------------------------------------------------------------------------------------
 def study_of(spec: dict):
     """The study module of a specification whose task declares a kind (None: the Pendulum study in this file)."""
-    if spec.get("task", {}).get("kind") == "pusht":
+    kind = spec.get("task", {}).get("kind")
+    if kind == "pusht":
         from .studies import pusht_surface
         return pusht_surface
+    if kind == "lerobot":
+        from .studies import lerobot_policy
+        return lerobot_policy
     return None
 
 
@@ -624,9 +628,10 @@ def main(argv=None) -> int:
         p.add_argument("--root", type=Path, required=True)
         p.add_argument("--store", type=Path)
         p.add_argument("--allow-dirty", action="store_true", help="smoke and fixture runs only; recorded")
-        p.add_argument("--gpus", default="", help="PushT train stage: comma-separated GPU slots, an id once per "
-                                                  "concurrent unit (0,0,1,1); empty collects units trained elsewhere")
-    un = sub_.add_parser("unit", help="PushT: train one unit of the design (a Slurm array task)")
+        p.add_argument("--gpus", default="", help="PushT and LeRobot train stage: comma-separated slots, a GPU id "
+                                                  "once per concurrent unit (0,0,1,1) or cpu; empty collects units "
+                                                  "trained elsewhere")
+    un = sub_.add_parser("unit", help="PushT and LeRobot studies: train one unit of the design (a Slurm array task)")
     un.add_argument("spec", type=Path)
     un.add_argument("--root", type=Path, required=True)
     un.add_argument("--store", type=Path)
@@ -643,7 +648,7 @@ def main(argv=None) -> int:
     if a.cmd == "unit":
         ctx = Context(a.spec, a.root, a.store, a.allow_dirty)
         if ctx.study is None:
-            raise Refused("refused: ilsb unit is for the PushT study")
+            raise Refused("refused: ilsb unit is for the PushT and LeRobot studies")
         return ctx.study.train_unit(ctx, a.key, a.gpu)
     ctx = Context(a.spec, a.root, a.store, a.allow_dirty, {"gpus": [g for g in a.gpus.split(",") if g]})
     if a.cmd == "run":

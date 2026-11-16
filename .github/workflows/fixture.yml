@@ -39,9 +39,11 @@ jobs:
           fi
           shared='src/|pyproject\.toml$|uv\.lock$|\.github/workflows/fixture\.yml$'
           run=()
-          for fixture in learner-migration:tools/learner_check.py vertical-slice-fixture:tools/fixture.py; do
-            name=${fixture%%:*} script=${fixture#*:}
-            if [ "$changed" = '*' ] || grep -qE "^($shared|${script//./\\.}\$)" <<<"$changed"; then
+          # name:script[:other inputs], the other inputs an extended regex of paths
+          for fixture in learner-migration:tools/learner_check.py vertical-slice-fixture:tools/fixture.py \
+                         'diffusion-fixture:tools/diffusion_fixture.py:tools/lerobot_diffusion/'; do
+            name=${fixture%%:*} rest=${fixture#*:} script=${rest%%:*} extra=${rest#"$script"}; extra=${extra#:}
+            if [ "$changed" = '*' ] || grep -qE "^($shared|${script//./\\.}\$${extra:+|$extra})" <<<"$changed"; then
               run+=("\"$name\"")
             fi
           done
@@ -60,6 +62,8 @@ jobs:
           - {name: learner-migration, script: tools/learner_check.py, python_flags: -I,
              args: --reference "$RUNNER_TEMP/reference/bin/python"}
           - {name: vertical-slice-fixture, script: tools/fixture.py, python_flags: "", args: ""}
+          - {name: diffusion-fixture, script: tools/diffusion_fixture.py, python_flags: "",
+             args: --lerobot-python "$RUNNER_TEMP/lerobot/bin/python"}
     name: ${{ matrix.fixture.name }}
     # Every fixture's check reports; one whose inputs did not change passes without running.
     env:
@@ -91,6 +95,14 @@ jobs:
           uv venv --python 3.12 "$RUNNER_TEMP/reference"
           uv pip install --python "$RUNNER_TEMP/reference/bin/python" --torch-backend cpu "torch==$torch" \
             "ccil[torch] @ git+https://github.com/personalrobotics/CCIL@$commit"
+      # The pinned LeRobot environment of the Diffusion Policy learner, on CPU PyTorch: the freeze without its CUDA
+      # wheels (PyTorch's CPU build needs none of them).
+      - name: Install the pinned LeRobot environment in a second environment
+        if: env.RUN == 'true' && matrix.fixture.name == 'diffusion-fixture'
+        run: |
+          grep -vE '^(nvidia-|cuda-|triton==)' tools/lerobot_diffusion/lerobot-env.txt > "$RUNNER_TEMP/lerobot-cpu.txt"
+          uv venv --python 3.12 "$RUNNER_TEMP/lerobot"
+          uv pip install --python "$RUNNER_TEMP/lerobot/bin/python" --torch-backend cpu -r "$RUNNER_TEMP/lerobot-cpu.txt"
       - name: Run the fixture
         if: env.RUN == 'true'
         run: |

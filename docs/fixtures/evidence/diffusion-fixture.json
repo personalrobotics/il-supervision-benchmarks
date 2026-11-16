@@ -1,0 +1,267 @@
+{
+ "contract": {
+  "cross_episode_slot_refused": true,
+  "interleaved_episodes_refused": true,
+  "other_anchor_rule_reported": true
+ },
+ "interrupted": {
+  "killed_after_first_checkpoint": true,
+  "restarted_from": [
+   100
+  ],
+  "resumed_from": [],
+  "same_checkpoints_bitwise": true,
+  "stages": {
+   "audit": "pass",
+   "evaluate": "pass",
+   "evaluation_audit": "pass",
+   "preflight": "resumed",
+   "report": "pass",
+   "train": "pass"
+  }
+ },
+ "normalization": {
+  "full_dataset_statistics_refused": true,
+  "selected_checkpoint_problems": 0,
+  "split_differs_from_full": true
+ },
+ "pass": true,
+ "refusals": {
+  "altered_dataset": {
+   "refused": true,
+   "trained": false
+  },
+  "corrupted_weights": {
+   "refused": true,
+   "units_flagged": [
+    "lerobot_diffusion/s1"
+   ]
+  },
+  "lerobot_pin": {
+   "refused": true,
+   "trained": false
+  },
+  "overlapping_roles": {
+   "refused": true,
+   "trained": false
+  }
+ },
+ "reuse": {
+  "rerun": {
+   "audit": "resumed",
+   "evaluate": "resumed",
+   "evaluation_audit": "resumed",
+   "preflight": "resumed",
+   "report": "resumed",
+   "train": "resumed"
+  },
+  "same_report": true,
+  "second_root": {
+   "audit": "pass",
+   "evaluate": "pass",
+   "evaluation_audit": "pass",
+   "preflight": "pass",
+   "report": "pass",
+   "train": "pass"
+  },
+  "second_root_evaluated": 0,
+  "second_root_trained": 0
+ },
+ "spec": {
+  "acceptance": {
+   "metric": "avg_max_reward",
+   "min_mean": 0.85
+  },
+  "compute": {
+   "device": "cpu",
+   "learner_device": "cpu",
+   "stall_minutes": 15
+  },
+  "data": {
+   "files": {
+    "data/chunk-000/file-000.parquet": "8b4d978eeeb99254ddead01e79ee70d95a0416e27438ca9438c89a1682598ae0",
+    "meta/episodes/chunk-000/file-000.parquet": "cdeb650a03b1a0e321469bbdc6749c8d9749bac2657a7bf64466e21ed40792e1",
+    "meta/info.json": "3a6d3d438106d5771b811802a51f9ceeba8b13e83297b01bc467456e2fcdc2e3",
+    "meta/stats.json": "ecc50b78e9e10b7ad1ff1f5a131bf379395144f861902a5d802b7d25667760dd",
+    "meta/tasks.parquet": "5bca7125a8c9e40408f3177487abfc1120dbf535ed61268613627c0311c2404c"
+   },
+   "repo_id": "lerobot/pusht_keypoints",
+   "revision": "ace8c161a68bc025c21a5f29f85b86a9a2c5e64b"
+  },
+  "evaluation": {
+   "batch_size": 2,
+   "device": "cpu",
+   "n_episodes": 2,
+   "start_seed": 1000
+  },
+  "expected": {
+   "held_out_episodes": 2,
+   "held_out_frames": 303,
+   "held_out_windows": 289,
+   "train_episodes": 6,
+   "train_frames": 895,
+   "train_windows": 853,
+   "units": 2
+  },
+  "learner": {
+   "batch_size": 8,
+   "kind": "lerobot_diffusion",
+   "lerobot": "0.6.1",
+   "log_freq": 50,
+   "num_workers": 0,
+   "policy": {
+    "diffusion_step_embed_dim": 16,
+    "do_mask_loss_for_padding": false,
+    "down_dims": [
+     16,
+     32
+    ],
+    "drop_n_last_frames": 7,
+    "horizon": 16,
+    "n_action_steps": 8,
+    "n_obs_steps": 2,
+    "normalization_mapping": {
+     "ACTION": "MIN_MAX",
+     "ENV": "MIN_MAX",
+     "STATE": "MIN_MAX",
+     "VISUAL": "MEAN_STD"
+    },
+    "num_inference_steps": 4
+   },
+   "save_freq": 100,
+   "selection": {
+    "batch_size": 64,
+    "rule": "min_held_out_loss",
+    "seed": 0
+   },
+   "steps": 200
+  },
+  "roles": {
+   "held_out": [
+    7,
+    9
+   ],
+   "train": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+   ]
+  },
+  "seeds": [
+   1,
+   2
+  ],
+  "study": "pusht-diffusion-fixture",
+  "task": {
+   "env": {
+    "episode_length": 24,
+    "obs_type": "environment_state_agent_pos",
+    "type": "pusht"
+   },
+   "kind": "lerobot"
+  }
+ },
+ "study": {
+  "acceptance_reported": true,
+  "counts": {
+   "held_out": {
+    "episodes": 2,
+    "frames": 303
+   },
+   "train": {
+    "episodes": 6,
+    "frames": 895
+   }
+  },
+  "evaluated_episodes": {
+   "lerobot_diffusion/s1": 2,
+   "lerobot_diffusion/s2": 2
+  },
+  "evaluation_repeat_identical": true,
+  "pass": true,
+  "stages": {
+   "audit": "pass",
+   "evaluate": "pass",
+   "evaluation_audit": "pass",
+   "preflight": "pass",
+   "report": "pass",
+   "train": "pass"
+  },
+  "units": {
+   "lerobot_diffusion/s1": {
+    "checkpoints": [
+     100,
+     200
+    ],
+    "model_sha256": [
+     "b281a746c7dea9ebfe3d37b3c30fbd48f9e62c26f609b5b753c6a2d6e5df399c",
+     "89ecebca78d6e63ca5b21b2093ff8214b4ea76acf28e41360689720c92da4b55"
+    ],
+    "resumed_from": [],
+    "selected_step": 200
+   },
+   "lerobot_diffusion/s2": {
+    "checkpoints": [
+     100,
+     200
+    ],
+    "model_sha256": [
+     "61b21bb48385ae4dda68d1508f96d0c68f4f2472222fe068c016d47dddf88603",
+     "406503d13fad3b8dc9d0872e11cb303a2e51d2d02a02aaea732bf09ca015e75f"
+    ],
+    "resumed_from": [],
+    "selected_step": 200
+   }
+  },
+  "window_spec": {
+   "action_offsets": [
+    -1,
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "drop_n_last_frames": 7,
+   "horizon": 16,
+   "n_action_steps": 8,
+   "n_obs_steps": 2,
+   "obs_offsets": [
+    -1,
+    0
+   ],
+   "supervise_padding": true
+  },
+  "windows": {
+   "held_out": {
+    "action_padded_slots": 58,
+    "episodes": 2,
+    "obs_padded_slots": 2,
+    "sha256": "28fd1fb7bece7640cc3108b53e169de34b9df6294d955eaad5a69230824139d2",
+    "supervised_action_slots": 4624,
+    "windows": 289
+   },
+   "train": {
+    "action_padded_slots": 174,
+    "episodes": 6,
+    "obs_padded_slots": 6,
+    "sha256": "a24c8c2dd749cb113a4ada13cfe994363ece77bd25d3a0c3bfd144cf2ea66362",
+    "supervised_action_slots": 13648,
+    "windows": 853
+   }
+  }
+ }
+}
