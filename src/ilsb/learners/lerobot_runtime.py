@@ -126,8 +126,11 @@ def checkpoints(out: Path) -> list:
 
 
 def gpu_memory_mib(pid: int) -> int:
-    r = subprocess.run(["nvidia-smi", "--query-compute-apps=pid,used_memory", "--format=csv,noheader,nounits"],
-                       capture_output=True, text=True)
+    try:
+        r = subprocess.run(["nvidia-smi", "--query-compute-apps=pid,used_memory", "--format=csv,noheader,nounits"],
+                           capture_output=True, text=True)
+    except FileNotFoundError:  # no NVIDIA driver: a CPU unit
+        return 0
     if r.returncode:
         return 0
     return sum(int(m) for p, m in (line.split(", ") for line in r.stdout.strip().splitlines() if ", " in line)

@@ -655,8 +655,11 @@ def _heartbeat(work: Path) -> float:
 
 
 def _gpu_memory() -> str:
-    r = subprocess.run(["nvidia-smi", "--query-gpu=index,memory.used", "--format=csv,noheader"], capture_output=True,
-                       text=True)
+    try:
+        r = subprocess.run(["nvidia-smi", "--query-gpu=index,memory.used", "--format=csv,noheader"],
+                           capture_output=True, text=True)
+    except FileNotFoundError:  # a host without the NVIDIA driver (a CPU study)
+        return "n/a"
     return r.stdout.strip().replace("\n", "; ") if r.returncode == 0 else "n/a"
 
 
