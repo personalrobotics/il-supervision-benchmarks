@@ -103,6 +103,30 @@ supervised mass to the recovery windows' exactly.
   re-solve rejected proposals; the byte-identical second run covers them.
 - **Reproduction:** two clean runs of Stage A must write a byte-identical record.
 
+## Stage A result
+
+**Stage A passed: 1,865 windows from distinct source anchors in 37 of the 41 episodes, against the required 1,598
+from 30.** Stage B may be proposed in its own protocol PR. The record is
+[`evidence/pusht-recovery/stage-a.json`](evidence/pusht-recovery/stage-a.json), from commit `4696cb0` on siddh.
+
+| proposals | count |
+|---|---|
+| oracle-accepted population | 12,743 |
+| accepted as windows | 2,751 |
+| short continuation (slots 1–8 not all within 1 px) | 4,777 |
+| solve did not converge | 4,424 |
+| anchor in LeRobot's dropped frames | 709 |
+| speed / action bounds / b change / penetration / extent | 42 / 25 / 7 / 6 / 2 |
+
+- **Windows.** 1,689 of the 1,865 selected windows supervise all 16 slots; the rest supervise 9–15. They carry 58,286
+  supervised action values, against 32 per real window.
+- **Physical consistency.** The history and rejoin residuals are at most 0.0498 and 0.0499 px (medians below 1e-9 px), and
+  the supervised continuation stays within 1.0 px of the recording (median maximum 0.66 px).
+- **Novelty.** The predecessor's observation is a median 5.2 px from the source frame t − 1 (90th percentile 7.6 px)
+  and 5.4 px from the nearest real history, and a median 0.36 px from the oracle's first-order decoded slot.
+- **Audit and reproduction.** The fresh-process audit found no problems. A second clean clone wrote a byte-identical
+  record (sha256 `c06c6387…`) and `windows.npz` (sha256 `559ade49…`, content `0778c3c2…`), kept on siddh.
+
 ## Smoke
 
 [`tools/pusht_recovery/smoke.py`](../../tools/pusht_recovery/smoke.py) runs the construction on the first two training
