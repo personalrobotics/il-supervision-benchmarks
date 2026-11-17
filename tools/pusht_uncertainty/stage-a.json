@@ -32,11 +32,11 @@
    1,
    2
   ],
-  "episode": "env.reset(seed = start), gym_pusht as lerobot-eval makes it (environment_state_agent_pos, 300 steps), ending at success or step 300",
+  "episode": "env.reset(seed = start), gym_pusht as lerobot-eval makes it (environment_state_agent_pos, 300 steps); it runs at least 80 steps, even past success, and then ends at success or step 300",
   "driving": "stage_b2.Policy: the checkpoint and its own processors, as lerobot-eval drives it",
   "driver_chunk_seed": "SeedSequence([62, driver, start, chunk]); torch is seeded before each 16-action chunk",
   "recorded": "every step's observation, full simulator state, action and coverage; every chunk's 16 outputs",
-  "reconciliation": "each driver's rerun average maximum coverage and success against B1's are reported as a measurement, not a gate (#53); failure labels come from the rerun alone"
+  "reconciliation": "each driver's rerun average maximum coverage and success against B1's are reported as a measurement, not a gate (#53); failure labels come from the rerun alone; both score each episode up to its first success, as lerobot-eval ends it, so steps run past success only supply decision points"
  },
  "uncertainty": {
   "decision_points": "every chunk boundary of the driver's rollout (steps 0, 8, 16, ...), at the driver's two-frame observation",
@@ -55,17 +55,18 @@
   "success": "it does"
  },
  "aggregation": {
-  "early_window": "the decision points before step 80 (the first 10 chunks); a successful episode contributes those before its success",
+  "early_window": "the decision points at steps 0, 8, ..., 72: exactly 10 per episode, since every episode runs at least 80 steps",
   "episode_score": "mean U_epi over the early window",
   "state_score": "U_epi at each early-window decision point, labelled with its episode's outcome",
-  "why_early": "a failed episode runs all 300 steps and a successful one stops early, so whole-episode means confound disagreement with duration and stalled states"
+  "why_early": "a failed episode runs all 300 steps and a successful one stops early, so whole-episode means confound disagreement with duration and stalled states; a fixed window of 10 points per episode removes the confound"
  },
  "discrimination": {
   "statistic": "rank AUC (Mann-Whitney, ties counted half) of failed over successful episodes",
   "per_driver": true
  },
  "decision": {
-  "pass": "on each driver separately: the episode-level AUC of U_epi is at least 0.70, and it exceeds the AUC of U_ale under the same aggregation",
+  "pass": "on each driver separately: the episode-level AUC of U_epi is at least 0.70, and it exceeds the AUC of U_ale under the same aggregation by at least 0.05",
+  "margin_why": "0.05 is about the sampling standard error of an AUC near 0.70 with 100 episodes, so a nominal advantage does not pass",
   "minimum_classes": "at least 10 failed and 10 successful episodes per driver, or Stage A refuses as uninformative",
   "fail": "publish and stop; no other formula, noise schedule, window, horizon or threshold is tried"
  },
@@ -88,6 +89,7 @@
    "note": "no study or earlier smoke uses them"
   },
   "identity_control": "a member probed against itself with the shared noise gives U_epi = 0 exactly",
+  "probe_invariance": "with the probe enabled and disabled, the driver's executed chunks and saved trajectory are byte-identical",
   "checks": "byte-identical rerun, the fresh-process audit, and injected faults (a changed probe output, a changed label, a moved decision point)"
  },
  "reserved_for_stage_b": {

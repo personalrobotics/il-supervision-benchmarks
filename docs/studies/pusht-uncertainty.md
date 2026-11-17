@@ -40,13 +40,15 @@ evaluation rerun** from the pinned checkpoints. Nothing is reconstructed from su
 ### The rerun
 
 Each member drives its own rollouts on the development starts 1000–1099. An episode starts at
-`env.reset(seed = start)`, as lerobot-eval seeds it, and ends at success or after 300 steps. The policy is driven as
+`env.reset(seed = start)`, as lerobot-eval seeds it. It runs at least 80 steps, even past success, and then ends at
+success or after 300 steps. The policy is driven as
 lerobot-eval drives it, through B2's driver ([`stage_b2.py`](../../tools/pusht_recovery/stage_b2.py)). Torch is seeded
 with `SeedSequence([62, driver, start, chunk])` before each 16-action chunk, so any chunk can be regenerated on its
 own. Every step's observation, simulator state, action and coverage, and every chunk's outputs, are saved.
 
 Each driver's average maximum coverage and success are reported next to B1's, as a measurement of the simulator's
-cross-process variability (#53), not a gate. Failure labels come from the rerun alone.
+cross-process variability (#53), not a gate. Failure labels come from the rerun alone. Both score an episode up to its
+first success, where lerobot-eval ends it; steps run past success only supply decision points.
 
 ### Uncertainty
 
@@ -66,15 +68,17 @@ Each is averaged over the 8 slots and 2 dimensions. Every decision point's U_epi
 ### Labels, aggregation and decision
 
 - **Failure:** the driver's rerun episode does not reach gym_pusht success (coverage > 0.95) within 300 steps.
-- **Early window:** the decision points before step 80, the first 10 chunks. A failed episode runs all 300 steps and a
-  successful one stops early, so a whole-episode mean would confound disagreement with duration and with stalled
-  states. The window also asks whether disagreement is high before a failure is settled.
+- **Early window:** the decision points at steps 0, 8, …, 72: exactly 10 per episode, since every episode runs at least
+  80 steps. A failed episode runs all 300 steps and a successful one stops early, so a whole-episode mean would
+  confound disagreement with duration and with stalled states. The window also asks whether disagreement is high
+  before a failure is settled.
 - **Episode score:** the mean U_epi over the early window.
 - **Discrimination:** the rank AUC of failed over successful episodes (Mann–Whitney, ties counted half), per driver.
 
-**Pass:** on each driver separately, the episode-level AUC of U_epi is at least 0.70 and exceeds the AUC of U_ale under
-the same aggregation. The second condition requires the signal to come from disagreement between members, not from
-ordinary sampling spread. Stage A refuses as uninformative if a driver has fewer than 10 failed or 10 successful
+**Pass:** on each driver separately, the episode-level AUC of U_epi is at least 0.70, and it exceeds the AUC of U_ale
+under the same aggregation by at least 0.05. The margin requires the signal to come from disagreement between members,
+not from ordinary sampling spread. It is about the sampling standard error of an AUC near 0.70 with 100 episodes, so a
+nominal advantage does not pass. Stage A refuses as uninformative if a driver has fewer than 10 failed or 10 successful
 episodes. **If Stage A fails, it is published and the study stops.** No other formula, noise schedule, window, horizon or
 threshold is tried.
 
@@ -92,6 +96,7 @@ Reported descriptively, not as gates:
   An independent replay of the saved actions is reported as a measurement, not an equality gate (#50).
 - **Smoke:** before the run, on starts 3401–3410, which no study uses:
   - a member probed against itself with the shared noise gives U_epi = 0 exactly;
+  - with the probe enabled and disabled, the driver's executed chunks and saved trajectory are byte-identical;
   - a rerun is byte-identical;
   - the audit passes;
   - injected faults are refused: a changed probe output, a changed label, a moved decision point.
