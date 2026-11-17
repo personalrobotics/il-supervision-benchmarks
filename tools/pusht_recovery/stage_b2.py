@@ -10,7 +10,8 @@ recorded frames, so its first chunk sees a real history. Its observations pass t
 (preprocess_observation, the checkpoint's processors). Each 16-action chunk is generated after seeding torch with
 SeedSequence([52, seed, episode, anchor row, chunk]), so every chunk can be regenerated on its own.
 
-Per rollout it records c_0, c_D and c_pi (gym_pusht coverage) and the first k >= 1 at which the rollout's state is
+Per rollout it records c_0, c_D and c_pi (gym_pusht coverage, kept to 1e-9: shapely's coverage can differ in its last
+digits between processes, which would otherwise break the byte-identical rerun) and the first k >= 1 at which the rollout's state is
 farther than tau from every state of the same episode's continuation. A rollout yields a state only when it misses the
 demonstrated progress (c_pi < c_D), deviates, and the matched row j* has j* + 8 inside the episode. RUN_DIR holds
 trajectories.npz (every rollout, padded, with lengths) and selection.npz (the frozen states with their full simulator
@@ -42,6 +43,7 @@ D_ = SPEC["discovery"]
 TAU = D_["tau_px"]
 CHUNK, SLACK, REJOIN = 8, 50, 8
 COV_TOL = 1e-9
+COV_DIGITS = 9  # gym_pusht's shapely coverage can differ in its last digits between processes (support.py)
 
 
 def git(*a):
@@ -69,7 +71,7 @@ def anchors(src: dict, eps: list) -> tuple:
     for e in eps:
         rows = np.flatnonzero(src["episode"] == e)
         _, err, states = A.replay(A.make_env(), cur[rows], act[rows])
-        cov = S.coverages(cur[rows])
+        cov = np.round(S.coverages(cur[rows]), COV_DIGITS)
         data[e] = {"rows": rows, "states": states, "cov": cov,
                    "pts": S.points(src["state"][rows], src["env"][rows])}
         n = len(rows)
@@ -153,7 +155,7 @@ def rollout(pol: Policy, env, seed: int, e: int, k0: int, d: dict, row_obs: tupl
         a = pol.act(agent, kp, s)
         _, _, _, _, info = env.step(a)
         acts.append(a)
-        cov.append(float(info["coverage"]))
+        cov.append(round(float(info["coverage"]), COV_DIGITS))
         pos.append(A.positions(env))
         full.append(flat(A.full_state(env)))
         agent, kp = obs_of(env)
@@ -315,7 +317,7 @@ def audit(args, run=None, only=None, pol=None) -> dict:
                 got.append(pol.act(t["obs_agent"][step + m], t["obs_kp"][step + m], None))
             if not np.array_equal(np.array(got), t["action"][step:step + len(got)]):
                 chunk_mismatch += 1
-        r = select(t, d, k0, cov)
+        r = select(t, d, k0, np.round(cov, COV_DIGITS))
         if r["selected"]:
             sel_rows.append((i, r["k"], r["j_star"]))
         # an independent replay of the saved actions: a measurement
