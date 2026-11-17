@@ -1,0 +1,83 @@
+{
+ "byte_identical_rerun": true,
+ "code": {
+  "commit": "0e757e62c12325e71510f849aa314bdac0c5870b",
+  "dirty": false
+ },
+ "decision_points": 326,
+ "driver": 1,
+ "environment": {
+  "cuda": "13.0",
+  "cudnn": 91900,
+  "cudnn_allow_tf32": true,
+  "deterministic_algorithms": true,
+  "driver": "595.99.02",
+  "gpu": "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition",
+  "lerobot": "0.6.1",
+  "matmul_allow_tf32": false,
+  "numpy": "2.2.6",
+  "torch": "2.11.0+cu130"
+ },
+ "episodes_steps": [
+  116,
+  165,
+  300,
+  300,
+  260,
+  300,
+  227,
+  300,
+  300,
+  300
+ ],
+ "faults": {
+  "changed_probe_output": {
+   "named": true,
+   "refused": true
+  },
+  "flipped_label": {
+   "named": true,
+   "refused": true
+  },
+  "moved_decision_point": {
+   "named": true,
+   "refused": true
+  }
+ },
+ "fresh_process_audit": {
+  "chunks_mismatched": 0,
+  "coverage_max_abs_diff": 4.968420119766392e-10,
+  "exit": 0,
+  "probes_mismatched": 0,
+  "problems": [],
+  "simulator_replay_max_px": 0.0
+ },
+ "identity_control_max_u_epi": 0.0,
+ "members_model_sha256": [
+  "b4e025aa2cd2225a7b5308cbf6934d8c7210f7a94ed9f16f4d193af18cef71f0",
+  "fdc8cf40a5a761b5a1c694ec704e331a8a84262e48765954c82ea8e95f2d36ad"
+ ],
+ "pass": true,
+ "probe_cannot_alter_rollout": true,
+ "probes_content_sha256": "e9cd73873d3e8cbedd4108fa0a7f22202cb56e810962583fd46bf87687b708d4",
+ "schema": "ilsb.pusht_uncertainty.smoke 1",
+ "seconds": {
+  "a": 390.7,
+  "audit": 391.5,
+  "b": 390.7,
+  "off": 123.7
+ },
+ "starts": [
+  3401,
+  3402,
+  3403,
+  3404,
+  3405,
+  3406,
+  3407,
+  3408,
+  3409,
+  3410
+ ],
+ "trajectories_content_sha256": "177bed7cd37578c314c4e159df072da0598606c61660b0617048496c65b08752"
+}

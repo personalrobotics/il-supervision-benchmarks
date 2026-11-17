@@ -119,6 +119,30 @@ Reported descriptively, not as gates:
   - the audit passes;
   - injected faults are refused: a changed probe output, a changed label, a moved decision point.
 
+### Implementation
+
+[`tools/pusht_uncertainty/probe.py`](../../tools/pusht_uncertainty/probe.py) reruns one driver with the probe and writes
+its trajectories, probe outputs and statistics. Its `audit` mode is the fresh-process audit, and `report` combines the
+two drivers' runs into the decision.
+- LeRobot's sampler returns only the executed slots (horizon indices 1–8), so those are what the probe saves.
+- Each member's 16 samples are one batch.
+- Recorded reward is rounded to 1e-9 like coverage, since it is coverage / 0.95 and inherits shapely's last-digit drift.
+
+[`tools/pusht_uncertainty/smoke_probe.py`](../../tools/pusht_uncertainty/smoke_probe.py) ran on starts 3401–3410 from a
+clean clone of `0e757e6`, with driver 1 and both members. Its record is
+[`evidence/pusht-uncertainty/smoke.json`](evidence/pusht-uncertainty/smoke.json).
+- **Rerun:** two runs wrote byte-identical records.
+- **Probe invariance:** with the probe disabled, the trajectories were identical.
+- **Identity control:** member 1 against a separately loaded copy of itself gave U_epi = 0 exactly at all 326 decision
+  points.
+- **Audit:** every chunk and probe batch regenerated bit for bit; the recomputed coverage agreed within 5e-10; the
+  simulator replay matched exactly.
+- **Faults:** each was refused for the right reason: a changed probe output, a flipped label, a moved decision point.
+
 **Compute:** siddh's two GPUs, one driver each, unpaid. The ceiling is 6 GPU-hours.
+- **Measured:** the smoke's probe run took 390.7 s for 326 decision points (1.2 s each), and its audit as long.
+- **Projected:** about 4.4 GPU-hours for both drivers' runs and audits at B1's failure rates, and 5.1 if every episode
+  fails.
+- **Strict FP32:** the same probe run took 1,466 s, 3.7 times as long.
 
 Starts 2000–2199, which no earlier stage uses, are reserved for Stage B.

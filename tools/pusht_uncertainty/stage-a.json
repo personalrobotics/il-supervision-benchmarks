@@ -103,7 +103,14 @@
   "host": "siddh",
   "gpus": 2,
   "paid": false,
-  "ceiling_gpu_hours": 6
+  "ceiling_gpu_hours": 6,
+  "measured": "TF32 smoke (0e757e6): a probe run of 10 starts, 326 decision points, took 390.7 s (1.2 s per point); its fresh-process audit 391.5 s",
+  "projection_gpu_hours": {
+   "expected": 4.4,
+   "all_episodes_fail": 5.1,
+   "basis": "B1's failure rates (66% and 75%): about 3,200-3,350 decision points per driver; the audit costs as much as the run"
+  },
+  "strict_fp32_measured": "the same 10 starts' probe run took 1,466 s in strict FP32 convolutions, 3.7 times TF32's"
  },
  "precision": {
   "amended": "before any development outcome: in review of the Stage A code PR, after the protocol merged (07b54ea)",
