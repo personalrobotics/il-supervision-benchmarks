@@ -13,9 +13,11 @@ Two things are recorded.
 - The adopted rule: paired-prefix deviation. A rollout restored at a demonstration's recorded state is compared with
   the same episode's continuation. The deviation threshold tau is the 99th percentile of one demonstration step (the
   distance between consecutive states of an episode) plus the largest replay error over the replay-verified states.
-  The anchors are the replay-verified rows at every eighth row of each episode, from row 8 to row n - 25, that are
-  not yet a success and whose recorded continuation (the later rows) reaches success. Success is gym_pusht's own:
-  the T's coverage of the goal above 0.95, computed from each row's recorded T pose by the environment's coverage.
+  The anchors are the replay-verified rows at every eighth row of each episode, from row 8 to row n - 25, whose
+  recorded continuation makes progress: c_D, the highest coverage over the rows from the anchor on, exceeds c_0, the
+  anchor's own. Coverage is gym_pusht's, the T's coverage of the goal, computed from each row's recorded T pose by the
+  environment itself. The demonstrations need not reach gym_pusht's success threshold (0.95), and none in the subset
+  does.
 
 No policy, rollout, held-out row or evaluation start is read. Distances are float64 on the CPU, and the replay
 is gym_pusht's deterministic simulator, so a rerun on the same host is byte-identical.
@@ -125,18 +127,19 @@ def main():
     err = np.concatenate(errs)
     verified = err <= A.REPLAY_TOL
     tau = float(np.percentile(step, STEP_QUANTILE) + err[verified].max())
-    grid = [(e, k, errs_e[k] <= A.REPLAY_TOL, cov_e[k] <= SUCCESS, bool((cov_e[k + 1:] > SUCCESS).any()))
+    grid = [(e, k, bool(errs_e[k] <= A.REPLAY_TOL), float(cov_e[k]), float(cov_e[k:].max()))
             for e, errs_e, cov_e in zip(eps, errs, covs)
             for k in range(ANCHOR["first_row"], n_of[e] - ANCHOR["rows_before_end"] + 1, ANCHOR["stride"])]
-    anchors = [(int(e), int(k)) for e, k, ok, before, reached in grid if ok and before and reached]
+    kept = [g for g in grid if g[2] and g[4] > g[3]]
+    anchors = [(int(e), int(k)) for e, k, *_ in kept]
     anchor_arr = np.array(anchors, np.int64).reshape(-1, 2)
-    filters = {"grid": len(grid), "replay_verified": int(sum(bool(g[2]) for g in grid)),
-               "and_not_yet_success": int(sum(bool(g[2] and g[3]) for g in grid)),
-               "and_continuation_succeeds": len(anchors)}
-    succeeding = [int(e) for e, cov_e in zip(eps, covs) if (cov_e > SUCCESS).any()]
+    filters = {"grid": len(grid), "replay_verified": int(sum(g[2] for g in grid)),
+               "and_continuation_progresses": len(anchors)}
+    progress = np.array([g[4] - g[3] for g in kept])
+    episode_max = np.array([c.max() for c in covs])
 
     out = {
-        "schema": "ilsb.pusht_recovery.support 3",
+        "schema": "ilsb.pusht_recovery.support 4",
         "code": {"commit": git("rev-parse", "HEAD"), "dirty": bool(git("status", "--porcelain")),
                  "files_sha256": {f: A.sha(ROOT / f) for f in (
                      "tools/pusht_recovery/support.py", "tools/pusht_recovery/stage_a.py",
@@ -160,10 +163,13 @@ def main():
             "tau_px": tau,
             "tau_rule": f"the {STEP_QUANTILE}th percentile of one demonstration step plus the largest replay error over "
                         "the replay-verified states",
-            "anchor_rule": {**ANCHOR, "replay_verified": True, "anchor_not_success": True,
-                            "continuation_succeeds": True, "success": f"coverage > {SUCCESS} (gym_pusht)"},
+            "anchor_rule": {**ANCHOR, "replay_verified": True,
+                            "continuation_progresses": "c_D > c_0: the highest coverage of the recorded rows from the "
+                                                       "anchor on exceeds the anchor's (gym_pusht coverage)"},
             "anchor_filters": filters,
-            "episodes_whose_recording_succeeds": len(succeeding),
+            "demonstrated_progress_c_D_minus_c_0": quantiles(progress),
+            "episode_max_recorded_coverage": quantiles(episode_max),
+            "episodes_reaching_gym_pusht_success": int((episode_max > SUCCESS).sum()),
             "anchors": len(anchors),
             "anchor_episodes": int(len(np.unique(anchor_arr[:, 0]))),
             "anchors_sha256": hashlib.sha256(anchor_arr.tobytes()).hexdigest(),
