@@ -1,0 +1,106 @@
+{
+ "study": "pusht-uncertainty-stage-a",
+ "issue": 62,
+ "status": "protocol: frozen before any uncertainty score is computed; the Stage A code lands in its own PR, implementing these rules",
+ "exploratory": "the development starts' outcomes were seen in B1 (#59); Stage A decides only whether a third member is trained",
+ "members": {
+  "source": "docs/studies/evidence/pusht-recovery/stage-b-base.json",
+  "1": {
+   "entry": "f4d32f60a6f78f7ef4e660e381d7f0247992625cb8cb858db3216c287b5789d0",
+   "model_sha256": "b4e025aa2cd2225a7b5308cbf6934d8c7210f7a94ed9f16f4d193af18cef71f0"
+  },
+  "2": {
+   "entry": "ae54e35cac7dabd7676c23082c47d902d47ed2dea82d45cbce8c69a5588b0f5c",
+   "model_sha256": "fdc8cf40a5a761b5a1c694ec704e331a8a84262e48765954c82ea8e95f2d36ad"
+  },
+  "normalizer": "both checkpoints' preprocessor and postprocessor stats are byte-identical (asserted), so actions compare in one normalized space",
+  "unchanged": true
+ },
+ "inventory": {
+  "b1_kept": "per-episode sum and max reward, success and start seed; videos of the first 10 episodes per seed",
+  "b1_missing": "observations, simulator states, actions and policy outputs",
+  "consequence": "one read-only evaluation rerun from the pinned checkpoints; nothing is reconstructed from summaries or videos"
+ },
+ "rerun": {
+  "starts": {
+   "start_seed": 1000,
+   "n_episodes": 100,
+   "set": "development"
+  },
+  "final_test_read": false,
+  "drivers": [
+   1,
+   2
+  ],
+  "episode": "env.reset(seed = start), gym_pusht as lerobot-eval makes it (environment_state_agent_pos, 300 steps), ending at success or step 300",
+  "driving": "stage_b2.Policy: the checkpoint and its own processors, as lerobot-eval drives it",
+  "driver_chunk_seed": "SeedSequence([62, driver, start, chunk]); torch is seeded before each 16-action chunk",
+  "recorded": "every step's observation, full simulator state, action and coverage; every chunk's 16 outputs",
+  "reconciliation": "each driver's rerun average maximum coverage and success against B1's are reported as a measurement, not a gate (#53); failure labels come from the rerun alone"
+ },
+ "uncertainty": {
+  "decision_points": "every chunk boundary of the driver's rollout (steps 0, 8, 16, ...), at the driver's two-frame observation",
+  "samples": 16,
+  "shared_noise": "at a decision point, torch is seeded with SeedSequence([62, 0, driver, start, chunk]) before each member generates one batch of 16 chunks, so every member denoises the same 16 noise draws",
+  "probe_does_not_act": true,
+  "coordinates": "the policy's normalized action space (min/max to [-1, 1])",
+  "slots": "the executed slots, horizon indices 1-8 (n_obs_steps - 1 onward)",
+  "variance": "population variance (ddof 0)",
+  "U_epi": "mean over the 16 samples of the variance across members, averaged over slots 1-8 and both action dimensions",
+  "U_ale": "mean over members of the variance across the 16 samples, averaged over slots 1-8 and both action dimensions",
+  "reported": "U_epi, U_ale and U_epi / U_ale at every decision point"
+ },
+ "labels": {
+  "failure": "the driver's rerun episode does not reach gym_pusht success (coverage > 0.95) within 300 steps",
+  "success": "it does"
+ },
+ "aggregation": {
+  "early_window": "the decision points before step 80 (the first 10 chunks); a successful episode contributes those before its success",
+  "episode_score": "mean U_epi over the early window",
+  "state_score": "U_epi at each early-window decision point, labelled with its episode's outcome",
+  "why_early": "a failed episode runs all 300 steps and a successful one stops early, so whole-episode means confound disagreement with duration and stalled states"
+ },
+ "discrimination": {
+  "statistic": "rank AUC (Mann-Whitney, ties counted half) of failed over successful episodes",
+  "per_driver": true
+ },
+ "decision": {
+  "pass": "on each driver separately: the episode-level AUC of U_epi is at least 0.70, and it exceeds the AUC of U_ale under the same aggregation",
+  "minimum_classes": "at least 10 failed and 10 successful episodes per driver, or Stage A refuses as uninformative",
+  "fail": "publish and stop; no other formula, noise schedule, window, horizon or threshold is tried"
+ },
+ "descriptive": [
+  "U_epi and U_ale distributions, by outcome",
+  "state-level AUC in the early window",
+  "U_epi by chunk index, failed against successful, over the whole episode",
+  "U_epi for successful episodes by steps before success",
+  "whole-episode mean U_epi AUC (not a gate)"
+ ],
+ "audit": {
+  "policy": "every driver chunk and probe batch is regenerated bit for bit from the saved observations and seeds in a fresh process",
+  "recomputed": "U_epi, U_ale, labels, aggregation and every AUC are recomputed from the saved outputs and must be identical",
+  "simulator_replay": "an independent replay of the saved actions is a measurement, not an equality gate (#50)"
+ },
+ "smoke": {
+  "starts": {
+   "start_seed": 3401,
+   "n_episodes": 10,
+   "note": "no study or earlier smoke uses them"
+  },
+  "identity_control": "a member probed against itself with the shared noise gives U_epi = 0 exactly",
+  "checks": "byte-identical rerun, the fresh-process audit, and injected faults (a changed probe output, a changed label, a moved decision point)"
+ },
+ "reserved_for_stage_b": {
+  "starts": {
+   "start_seed": 2000,
+   "n_episodes": 200
+  },
+  "note": "unused by any earlier stage; Stage B freezes its own rule in its own protocol PR, only if Stage A passes"
+ },
+ "compute": {
+  "host": "siddh",
+  "gpus": 2,
+  "paid": false,
+  "ceiling_gpu_hours": 6
+ }
+}
