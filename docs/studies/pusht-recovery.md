@@ -165,7 +165,7 @@ its own PRs, implementing these rules with a smoke on non-study data, before eac
 ### B0: the deviation geometry
 
 [`tools/pusht_recovery/support.py`](../../tools/pusht_recovery/support.py) reads only the subset's demonstrations. Its
-record is [`evidence/pusht-recovery/support.json`](evidence/pusht-recovery/support.json); two clean clones of `f9caa6c`
+record is [`evidence/pusht-recovery/support.json`](evidence/pusht-recovery/support.json); two clean clones of `5cea5e9`
 wrote it byte for byte. A state is Diffusion Policy's two-step observation as 18 points. The distance is the largest
 per-point distance, in px.
 
@@ -185,8 +185,16 @@ so a recovery target taken from another episode would be arbitrary. A support th
 with the same episode's continuation, which is unambiguous.
 - **Threshold:** τ = 29.76 px, the 99th percentile of one demonstration step (median 8.6 px) plus the largest replay
   error (0.001 px) over the 4,071 replay-verified states.
-- **Anchors:** every eighth row of each episode, from row 8 to 25 rows before its end, where the replay is verified.
-  That gives 398 anchors in 37 episodes.
+- **Anchors:** every eighth row of each episode, from row 8 to 25 rows before its end, where the replay is verified and
+  the recorded continuation makes progress. Progress means c_D > c_0: c_0 is the anchor's coverage of the goal, and
+  c_D the highest coverage over the episode's rows from the anchor on, both by gym_pusht's coverage of the recorded T
+  pose. That gives 398 anchors in 37 episodes; every replay-verified anchor makes progress, by a median 0.70.
+- **Demonstrated progress, not success.** No subset demonstration reaches gym_pusht's success threshold: their highest
+  recorded coverage runs from 0.79 to 0.90 (median 0.857). The target is therefore the progress the demonstration
+  made, not the environment's 0.95 criterion.
+
+The study targets learner rollouts that depart materially from a demonstration and fail to realize the progress that
+demonstration achieved.
 
 ### B1: a competent base
 
@@ -197,7 +205,8 @@ diagnostic only. The harness preflight asserts these counts. Everything else is 
 final checkpoint, seeds 1 and 2, `lerobot-eval` on starts 1000–1099.
 
 **Competence:** each seed's average maximum coverage is at least 0.504, half the hold-still (0.062) to
-demonstration-replay (0.946) gap. If either seed misses it, the study stops and the result is published. No recovery
+demonstration-replay (0.946) gap. The specification enforces it per seed (`acceptance.min_per_seed`), so a strong seed
+cannot cover a weak one. If either seed misses it, the study stops and the result is published. No recovery
 label is built for an incompetent learner.
 
 ### B2: discover deviations
@@ -207,14 +216,23 @@ For each seed and each of the 398 anchors:
    recorded frames.
 2. **Roll out** the frozen base for the episode's remaining rows plus 50 steps, with its sampling seeded by
    `SeedSequence([52, seed, episode, row])`.
-3. **Failure:** the rollout's maximum coverage stays below 0.95. Only failed rollouts contribute.
+3. **Missed progress:** c_π, the rollout's highest coverage, is below c_D. Only such rollouts contribute.
 4. **Deviation:** D(k) is the distance from the rollout's state k steps on to the nearest state of the same episode's
    continuation. The selected state is the first k ≥ 1 with D(k) > τ, at most one per rollout. The continuation row
-   attaining D(k) is j*, and j* + 8 must be a row of the episode.
+   attaining D(k) is j*, and j* + 8 must be a row of the episode. A rollout that tracks the demonstration but falls
+   just short never crosses τ, and so gives no state.
 
-No expert or oracle action takes part. The selected states' identities and full simulator states are written and
-hashed before any recovery target is built. The rollout loop's rewards must reproduce `lerobot-eval`'s on the same
-restored rollouts.
+Every rollout's c_0, c_D, c_π and shortfall c_D − c_π are recorded, with its selected state if any. No expert or oracle
+action takes part. The selected states' identities and full simulator states are written and hashed before any
+recovery target is built.
+
+**Audit.** Every rollout's states, full simulator states, observations, actions and policy outputs are saved and
+hashed.
+- The base's outputs are reproduced exactly on the saved observations, with the saved sampling seeds.
+- Coverage (within 1e-9), D(k), missed progress and the selection are recomputed from the saved states in a fresh
+  process. The selection must be identical.
+- An independent simulator replay of the saved actions is reported as a measurement of variability, not an equality
+  gate: PushT contact trajectories need not repeat across processes (#50).
 
 ### B3: oracle recovery windows
 
@@ -228,8 +246,8 @@ Each window is built with Stage A's machinery:
 - **Checks:** Stage A's, unchanged: action bounds, finiteness, the speed and contact envelopes, provenance, an
   independent rebuild audit, a byte-identical rerun.
 
-**Yield:** at least 100 accepted windows per seed, from at least 20 episodes, or the study stops. Above 400, a seeded
-draw keeps 400. A rejected state is never replaced.
+**Yield:** at least 100 accepted windows per seed, from at least 20 episodes, or the study stops. There is at most one
+window per anchor, so at most 398 per seed. A rejected state is never replaced.
 
 ### B4: matched comparison
 
