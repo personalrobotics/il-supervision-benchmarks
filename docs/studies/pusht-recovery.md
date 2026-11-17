@@ -254,6 +254,25 @@ hashed.
 - An independent simulator replay of the saved actions is reported as a measurement of variability, not an equality
   gate: PushT contact trajectories need not repeat across processes (#50).
 
+**Implementation.** [`tools/pusht_recovery/stage_b2.py`](../../tools/pusht_recovery/stage_b2.py) runs discovery for
+one seed, and its `audit` mode is the fresh-process audit.
+- **Driving the policy.** The policy is driven as `lerobot-eval` drives it: `preprocess_observation`, then the
+  checkpoint's own processors. The previous recorded frame is queued first, so the first chunk sees a real history.
+- **Seeding.** Each 16-action chunk is generated after seeding torch with `SeedSequence([52, seed, episode, row,
+  chunk])`, so any chunk can be regenerated on its own.
+- **Coverage.** Coverage is kept to 1e-9, because shapely's coverage can differ in its last digits between processes.
+
+[`tools/pusht_recovery/smoke_b2.py`](../../tools/pusht_recovery/smoke_b2.py) runs it on the first two training
+episodes outside the subset, so it says nothing about B2's yield. Its record is
+[`evidence/pusht-recovery/smoke-b2.json`](evidence/pusht-recovery/smoke-b2.json), from a clean clone of `dbdb046` with
+B1's seed-1 base.
+- **Rerun:** two runs wrote byte-identical records.
+- **Audit:** every chunk regenerated bit for bit; the recomputed coverage agreed within 5e-10; the simulator replay
+  matched exactly.
+- **Faults:** each was refused for the right reason: a changed action, a changed coverage, a moved selection and
+  altered trajectories.
+- **Selection:** 10 of the 25 smoke rollouts yielded a state.
+
 ### B3: oracle recovery windows
 
 Each window is built with Stage A's machinery:

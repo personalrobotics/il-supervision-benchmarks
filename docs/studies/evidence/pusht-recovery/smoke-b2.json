@@ -1,0 +1,48 @@
+{
+ "by_reason": {
+  "no_missed_progress": 15,
+  "selected": 10
+ },
+ "byte_identical_rerun": true,
+ "checkpoint_model_sha256": "b4e025aa2cd2225a7b5308cbf6934d8c7210f7a94ed9f16f4d193af18cef71f0",
+ "code": {
+  "commit": "dbdb046b3f77e8a1e93d922d5d202204eda2fb6a",
+  "dirty": false
+ },
+ "episodes": [
+  0,
+  1
+ ],
+ "faults": {
+  "altered_trajectories": {
+   "named": true,
+   "refused": true
+  },
+  "changed_action": {
+   "named": true,
+   "refused": true
+  },
+  "changed_coverage": {
+   "named": true,
+   "refused": true
+  },
+  "moved_selection": {
+   "named": true,
+   "refused": true
+  }
+ },
+ "fresh_process_audit": {
+  "chunks_mismatched": 0,
+  "coverage_max_abs_diff": 4.989777480091107e-10,
+  "exit": 0,
+  "problems": [],
+  "simulator_replay_max_px": 0.0
+ },
+ "pass": true,
+ "rollouts": 25,
+ "schema": "ilsb.pusht_recovery.smoke_b2 1",
+ "seed": 1,
+ "selected": 10,
+ "selection_content_sha256": "d274f18e465a190cfae4f9100c38f0b16bb8fc7bc506babfbec088a0512255f8",
+ "trajectories_content_sha256": "aa1a01e9ed84baaa02f89c20e689ba92b4642e1260c0b1f8fda0bcd7152df19c"
+}
