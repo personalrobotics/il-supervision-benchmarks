@@ -209,6 +209,26 @@ demonstration-replay (0.946) gap. The specification enforces it per seed (`accep
 cannot cover a weak one. If either seed misses it, the study stops and the result is published. No recovery
 label is built for an incompetent learner.
 
+### B1 result
+
+**B1 passed: both seeds are competent.** The run is from commit `836e9ac`, with a clean tree, on siddh. Every
+harness stage passed, the audits included. The record is
+[`evidence/pusht-recovery/stage-b-base.json`](evidence/pusht-recovery/stage-b-base.json), written by
+[`reference_record.py`](../../tools/lerobot_diffusion/reference_record.py) from the run root.
+
+| Seed | Average max coverage | Success | Selected checkpoint |
+|---|---|---|---|
+| 1 | 0.661 | 34% | 100k |
+| 2 | 0.654 | 25% | 100k |
+
+Both clear the 0.504 per-seed threshold, and both leave room below the full-data reference's 0.955.
+- **Held-out loss:** as in the reference, it rose from 0.081 at 10k to 0.314 (seed 1) and 0.309 (seed 2) at 100k. The
+  final checkpoint is selected by the frozen rule.
+- **Repeat evaluation:** seed 1's repeat scored 0.660 against 0.661 and changed 9 episodes' success; the largest
+  per-episode change in maximum reward was 0.067. This is a measurement of the simulator's cross-process variability,
+  not a gate.
+- **Compute:** each unit trained 100k steps with a peak of 5.8 GB of GPU memory.
+
 ### B2: discover deviations
 
 For each seed and each of the 398 anchors:

@@ -1,12 +1,14 @@
 """The PushT Diffusion Policy reference's compact record (ilsb#50), from a finished run root.
 
-    python tools/lerobot_diffusion/reference_record.py ROOT [--out docs/studies/evidence/pusht-diffusion/reference.json]
+    python tools/lerobot_diffusion/reference_record.py ROOT [--spec SPEC] \
+        [--out docs/studies/evidence/pusht-diffusion/reference.json]
 
-ROOT is a finished `ilsb run tools/lerobot_diffusion/pusht-reference.json --root ROOT`. The record holds each stage's
-verdict, the commit and its cleanliness, the data and window counts, each unit's checkpoint history (held-out loss and
-weights' hash), selection, peak memory and stored entry, each unit's evaluation (average maximum coverage, success,
-and the start seed of every episode that did not succeed), the repeat evaluation's measured deviation, and the
-learner environment's identity. Every value is copied from the run's stage reports and store entries.
+ROOT is a finished `ilsb run SPEC --root ROOT`; SPEC defaults to tools/lerobot_diffusion/pusht-reference.json.
+The record holds each stage's verdict, the commit and its cleanliness, the data and window counts, each unit's
+checkpoint history (held-out loss and weights' hash), selection, peak memory and stored entry, each unit's evaluation
+(average maximum coverage, success, and the start seed of every episode that did not succeed), the repeat evaluation's
+measured deviation, and the learner environment's identity. Every value is copied from the run's stage reports and store
+entries.
 """
 import argparse
 import json
@@ -19,6 +21,7 @@ STAGES = ("preflight", "train", "audit", "evaluate", "evaluation_audit", "report
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("root", type=Path)
+    p.add_argument("--spec", default="tools/lerobot_diffusion/pusht-reference.json")
     p.add_argument("--out", type=Path,
                    default=HERE.parents[1] / "docs/studies/evidence/pusht-diffusion/reference.json")
     a = p.parse_args()
@@ -35,7 +38,7 @@ def main():
                       "peak_mib": res["peak"],
                       "evaluation": {k: rep["per_seed"][key][k] for k in ("avg_max_reward", "pc_success")},
                       "unsuccessful_start_seeds": [e["start_seed"] for e in rep["failed_episodes"][key]]}
-    out = {"schema": "ilsb.pusht_diffusion.reference 1", "spec": "tools/lerobot_diffusion/pusht-reference.json",
+    out = {"schema": "ilsb.pusht_diffusion.reference 1", "spec": a.spec,
            "code": pre["code"]["harness_commit"], "dirty": bool(pre["code"]["dirty"]),
            "stages": {s: v["all_pass"] for s, v in st.items()},
            "counts": pre["counts"], "windows": pre["windows"], "window_spec": pre["window_spec"],
