@@ -130,8 +130,9 @@ def main():
             for k in range(ANCHOR["first_row"], n_of[e] - ANCHOR["rows_before_end"] + 1, ANCHOR["stride"])]
     anchors = [(int(e), int(k)) for e, k, ok, before, reached in grid if ok and before and reached]
     anchor_arr = np.array(anchors, np.int64).reshape(-1, 2)
-    filters = {"grid": len(grid), "replay_verified": sum(g[2] for g in grid),
-               "and_not_yet_success": sum(g[2] and g[3] for g in grid), "and_continuation_succeeds": len(anchors)}
+    filters = {"grid": len(grid), "replay_verified": int(sum(bool(g[2]) for g in grid)),
+               "and_not_yet_success": int(sum(bool(g[2] and g[3]) for g in grid)),
+               "and_continuation_succeeds": len(anchors)}
     succeeding = [int(e) for e, cov_e in zip(eps, covs) if (cov_e > SUCCESS).any()]
 
     out = {
