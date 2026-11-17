@@ -50,6 +50,24 @@ Each driver's average maximum coverage and success are reported next to B1's, as
 cross-process variability (#53), not a gate. Failure labels come from the rerun alone. Both score an episode up to its
 first success, where lerobot-eval ends it; steps run past success only supply decision points.
 
+### Precision
+
+*Amended before any development outcome, in review of the Stage A code.* The policies run in LeRobot's numerical
+mode: TF32 cuDNN convolutions and strict FP32 matmuls. These are PyTorch's defaults, which lerobot-train and
+lerobot-eval leave unchanged, so B1's checkpoints were trained and evaluated this way. B2's driver forced strict FP32
+convolutions instead; that mode is atypical for these checkpoints, and it projected about 15 GPU-hours for Stage A.
+Deterministic algorithms, the shared noise, the 16 samples and the full audit are unchanged.
+
+Before the amendment, member 1's sampling was compared in both modes, at the reset observations of starts 3401 and
+3402, with batches of 1 and 16:
+- **Action difference:** at most 2.5e-4 in normalized actions (range [-1, 1]); median 4.3e-5.
+- **Speed:** 0.35 s against 1.15 s per call at batch 1, and 0.40 s against 1.51 s at batch 16.
+- **Repeatability:** both modes repeated bit for bit across processes.
+
+**Bitwise reproducibility is required within the pinned environment, not across hardware.** The environment is siddh's
+NVIDIA RTX PRO 6000 Blackwell Max-Q, driver 595.99.02, CUDA 13.0, PyTorch 2.11.0+cu130, cuDNN 9.19.0 and LeRobot 0.6.1.
+Each run records its environment, and the audit refuses to compare across another.
+
 ### Uncertainty
 
 Diffusion Policy is stochastic by design, so variation among one model's samples is not epistemic uncertainty. At each
@@ -101,6 +119,30 @@ Reported descriptively, not as gates:
   - the audit passes;
   - injected faults are refused: a changed probe output, a changed label, a moved decision point.
 
+### Implementation
+
+[`tools/pusht_uncertainty/probe.py`](../../tools/pusht_uncertainty/probe.py) reruns one driver with the probe and writes
+its trajectories, probe outputs and statistics. Its `audit` mode is the fresh-process audit, and `report` combines the
+two drivers' runs into the decision.
+- LeRobot's sampler returns only the executed slots (horizon indices 1–8), so those are what the probe saves.
+- Each member's 16 samples are one batch.
+- Recorded reward is rounded to 1e-9 like coverage, since it is coverage / 0.95 and inherits shapely's last-digit drift.
+
+[`tools/pusht_uncertainty/smoke_probe.py`](../../tools/pusht_uncertainty/smoke_probe.py) ran on starts 3401–3410 from a
+clean clone of `0e757e6`, with driver 1 and both members. Its record is
+[`evidence/pusht-uncertainty/smoke.json`](evidence/pusht-uncertainty/smoke.json).
+- **Rerun:** two runs wrote byte-identical records.
+- **Probe invariance:** with the probe disabled, the trajectories were identical.
+- **Identity control:** member 1 against a separately loaded copy of itself gave U_epi = 0 exactly at all 326 decision
+  points.
+- **Audit:** every chunk and probe batch regenerated bit for bit; the recomputed coverage agreed within 5e-10; the
+  simulator replay matched exactly.
+- **Faults:** each was refused for the right reason: a changed probe output, a flipped label, a moved decision point.
+
 **Compute:** siddh's two GPUs, one driver each, unpaid. The ceiling is 6 GPU-hours.
+- **Measured:** the smoke's probe run took 390.7 s for 326 decision points (1.2 s each), and its audit as long.
+- **Projected:** about 4.4 GPU-hours for both drivers' runs and audits at B1's failure rates, and 5.1 if every episode
+  fails.
+- **Strict FP32:** the same probe run took 1,466 s, 3.7 times as long.
 
 Starts 2000–2199, which no earlier stage uses, are reserved for Stage B.
