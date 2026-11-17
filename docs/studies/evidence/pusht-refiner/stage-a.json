@@ -1,0 +1,153 @@
+{
+ "code": {
+  "commit": "75d372dd7a20702ea239f64d5c530fa5aaf76e67",
+  "dirty": false,
+  "files_sha256": {
+   "tools/pusht_refiner/stage_a.py": "1df61e3376e828ad302d9b284172d11128a766fae2e114c1946452727bb42da5",
+   "tools/pusht_v2/oracle_probe.py": "3ae3e960533c5c974039fbe4d66ef231e7871739e2471f4bfd1d1fc921b7a58f",
+   "tools/pusht_v2/source.py": "70f3fed087209e767f1ba2140bc50d2bce0a03a2e7704d4f92efbbac62c7af1e",
+   "tools/pusht_v2/surface.json": "b90f67084e91481a9b50899df5ad7c64e1d4c6ad642e90617aa7dad85c2fb0b5"
+  }
+ },
+ "counts": {
+  "candidates": 19996,
+  "labels": 19982,
+  "subset_episodes": 41,
+  "subset_rows": 5040
+ },
+ "decision": "refused: on held-out episodes the relative gate scores demonstration states nearly as high as CCIL labels, so this state representation does not define a correction-specific domain; no refiner is trained",
+ "decision_basis": "the stop rule set in #55's review before any refiner trained: stop if the relative gate cannot distinguish the two populations; no numeric threshold was pre-registered",
+ "evidence": {
+  "candidate_fields": [
+   "accepted",
+   "actions",
+   "meas/generator.action_noise_norm",
+   "meas/generator.draw_index",
+   "meas/generator.solver_residual",
+   "meas/generator.state_displacement_norm",
+   "meas/quality.d_source",
+   "meas/residual",
+   "obs/state",
+   "obs/state.pose",
+   "reasons",
+   "source_episode_id",
+   "source_frame",
+   "target/state",
+   "target/state.pose",
+   "weight"
+  ],
+  "certificates": "none: the selection is acceptance only (data_only, uncertified)",
+  "finite_error_rows": 0,
+  "mask_rows": 19982,
+  "selection_fields": [
+   "error",
+   "mask",
+   "rank",
+   "ratio",
+   "reasons",
+   "source_episode_id",
+   "source_frame",
+   "weight"
+  ],
+  "weight_values_on_mask": [
+   1.0
+  ]
+ },
+ "geometry_px": {
+  "label_to_nearest_real": {
+   "10": 10.430322067786571,
+   "100": 207.6297820577017,
+   "50": 20.552969715346414,
+   "90": 48.34040192914625,
+   "99": 96.02739177073502
+  },
+  "label_to_source": {
+   "10": 12.171779740326068,
+   "100": 352.4865649490341,
+   "50": 25.369876776887843,
+   "90": 59.25114586762914,
+   "99": 133.68532359941767
+  },
+  "label_to_source_current_frame": {
+   "10": 0.0,
+   "100": 0.0,
+   "50": 0.0,
+   "90": 0.0,
+   "99": 0.0
+  },
+  "label_to_source_previous_frame": {
+   "10": 12.171779740326068,
+   "100": 352.4865649490341,
+   "50": 25.369876776887843,
+   "90": 59.25114586762914,
+   "99": 133.68532359941767
+  },
+  "real_to_nearest_label": {
+   "10": 6.7250457901943665,
+   "100": 71.38377090179245,
+   "50": 12.417227035368674,
+   "90": 25.10356733334147,
+   "99": 47.784205097555926
+  }
+ },
+ "inputs": {
+  "bases": {
+   "seed_1": {
+    "entry": "78a06a4cc266edd75f3a37881c29fe062a9efdd7b0ddfb45dfac694d2189a4dc",
+    "model_sha256": "1c44a71ac60ff26a5492a6f2020fb782fc5cc9d39b79c4d8b3ac24d9181cda4e",
+    "unit": "bc/r0.25/a0/s1"
+   },
+   "seed_2": {
+    "entry": "77b8234f73055190efd16391d7051b8bcbb178efaf152815b110c53e1a0960eb",
+    "model_sha256": "8e098a53fc319f4d523f08ddac0e27bf2de36fc2f9d7b0eedb53a06591133f85",
+    "unit": "bc/r0.25/a0/s2"
+   }
+  },
+  "candidates_sha256": "6f8c9c97f85d08e775430f67284b964ebe3b68572c06ae8db8dd8f915202747f",
+  "labels_sha256": "6024b739dff0551221d13c670a2153087006a0c83ee664221e713e1cc55cbf25",
+  "pool_entry": "c30c0f98b1741162feda2165c83f47bd000ba81aabe22e003eef2702e5e65691",
+  "selection_sha256": "ed5beb46e6aa29326b27faccd44683989a314f3ad1b936fa48ba8fd50db3e1d0",
+  "source_content_sha256": "333a9b17ebfc6657591eb2b14a7f314200dd2ae1c743691802a319c1746e561d"
+ },
+ "relative_gate": {
+  "definition": "g = d_real^2 / (d_real^2 + d_CCIL^2 + 1e-6 px^2); d to the nearest subset real row / label",
+  "duplication_targets": {
+   "gate_zero": 4999,
+   "rows": 4999
+  },
+  "held_out_episode": {
+   "auc_labels_over_real": 0.7919938261896023,
+   "labels": {
+    "10": 0.45702431888605494,
+    "100": 0.9831348289360067,
+    "50": 0.5356357100051263,
+    "90": 0.7090127063323002,
+    "99": 0.84614489344035
+   },
+   "real_rows": {
+    "10": 0.32603612030939055,
+    "100": 0.7519594990664864,
+    "50": 0.4883020550089987,
+    "90": 0.5241357878215246,
+    "99": 0.6104832774045434
+   }
+  },
+  "in_sample": {
+   "labels": {
+    "10": 0.9999999908081155,
+    "100": 0.9999999999768036,
+    "50": 0.9999999976327134,
+    "90": 0.9999999995720634,
+    "99": 0.9999999998915544
+   },
+   "real_rows": {
+    "10": 0.0,
+    "100": 0.0,
+    "50": 0.0,
+    "90": 0.0,
+    "99": 0.0
+   }
+  }
+ },
+ "schema": "ilsb.pusht_refiner.stage_a 1"
+}
