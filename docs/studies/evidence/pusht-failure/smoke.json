@@ -1,0 +1,91 @@
+{
+ "attempted_windows": {
+  "action_out_of_bounds": 2,
+  "beyond_extent_envelope": 0,
+  "beyond_penetration_envelope": 0,
+  "non_finite": 0,
+  "ok": 0,
+  "singular_jacobian": 0,
+  "solve_failed": 10,
+  "speed_beyond_envelope": 0
+ },
+ "base": 1,
+ "byte_identical_rerun": true,
+ "code": {
+  "commit": "c3bdd87ee30b86e451e4534218830f4ea5378e83",
+  "dirty": false
+ },
+ "environment": {
+  "cuda": "13.0",
+  "cudnn": 91900,
+  "cudnn_allow_tf32": true,
+  "deterministic_algorithms": true,
+  "driver": "595.99.02",
+  "gpu": "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition",
+  "lerobot": "0.6.1",
+  "matmul_allow_tf32": false,
+  "numpy": "2.2.6",
+  "torch": "2.11.0+cu130"
+ },
+ "faults": {
+  "changed_action": {
+   "named": true,
+   "refused": true
+  },
+  "flipped_label": {
+   "named": true,
+   "refused": true
+  },
+  "forged_window": {
+   "named": true,
+   "refused": true
+  },
+  "moved_departure": {
+   "named": true,
+   "refused": true
+  }
+ },
+ "fresh_process_audit": {
+  "chunks_mismatched": 0,
+  "coverage_max_abs_diff": 4.99993074720706e-10,
+  "exit": 0,
+  "problems": [],
+  "simulator_replay_max_px": 0.0,
+  "windows_max_landing_px": 0.0
+ },
+ "model_sha256": "b4e025aa2cd2225a7b5308cbf6934d8c7210f7a94ed9f16f4d193af18cef71f0",
+ "pass": true,
+ "projection": {
+  "ceiling_gpu_hours": 6.0,
+  "gpu_hours_both_bases": 3.85,
+  "gpu_hours_per_base": 1.92,
+  "within_ceiling": true
+ },
+ "rollouts": 40,
+ "rollouts_by_class": {
+  "departs_eligible": 12,
+  "departs_ineligible": 5,
+  "never_in_support": 9,
+  "no_departure": 14
+ },
+ "schema": "ilsb.pusht_failure.smoke 1",
+ "seconds": {
+  "a": 172.5,
+  "audit": 173.7,
+  "b": 172.5
+ },
+ "starts": [
+  3411,
+  3412,
+  3413,
+  3414,
+  3415,
+  3416,
+  3417,
+  3418,
+  3419,
+  3420
+ ],
+ "trajectories_content_sha256": "265a1411619a7db43603d5d14c3ef2c27d3b1b1d63e5671ec2ccb2e0ee806240",
+ "windows_content_sha256": "f8bdec57c6c1d398a1454656f7e4849d74b8e3c3be6ea8dc51c11ca3ea7ce38d"
+}

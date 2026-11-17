@@ -152,3 +152,34 @@ breakdown by class and by rejection reason.
   - A2 and A3 run on the CPU.
   - **Ceiling: 6 GPU-hours.** The code PR's smoke measures the cost, and the run starts only if its projection is
     within the ceiling.
+
+### Implementation
+
+[`tools/pusht_failure/failures.py`](../../tools/pusht_failure/failures.py) runs one base's discovery, then its reach
+and windows, and writes its trajectories, windows and per-rollout table. Its `audit` mode is the fresh-process audit,
+and `report` combines the two bases into the decision.
+- **Driver:** #62's TF32 driver on a batch of 4 environments.
+- **Durable trajectories:** they are written before labelling, and the record is written last.
+- **Checks:** #52's checks, as they apply to a window that starts at a realized rollout state rather than a solved
+  predecessor:
+  - the speed envelope is checked at every chain state the recovery and the supervised continuation produce;
+  - the contact envelope is checked at x_{t_e} and at those states;
+  - #52's preceding-action check has no counterpart, since slot 0 is the realized action and is not solved;
+  - slots 1–8 are supervised by construction.
+
+[`tools/pusht_failure/smoke.py`](../../tools/pusht_failure/smoke.py) ran on starts 3411–3420 from a clean clone of
+`c3bdd87`, with base 1. Its record is [`evidence/pusht-failure/smoke.json`](evidence/pusht-failure/smoke.json).
+- **Rerun:** two runs wrote byte-identical records, trajectories and windows.
+- **Audit:** every chunk regenerated bit for bit; the recomputed coverage agreed within 5e-10; the simulator replay
+  matched exactly.
+- **Faults:** each was refused for the right reason: a changed action, a flipped label, a moved departure and a forged
+  window.
+- **Construction:** on the smoke starts, windows are attempted at every eligible departure. Of the 40 rollouts, 12
+  departed eligibly, and none of their windows was accepted: 10 solves failed and 2 had an action outside [0, 512].
+  - Where the solve fails, the T must move 24–30 px while the agent is not in contact with it. The T's residual then
+    has no gradient with respect to the actions, so the local solve cannot reduce it.
+  - The 4 converging solves started with the agent already pushing the T.
+  - This is a property of #52's frozen local solve and is not changed. If Stage A stops on it, the result will say so.
+
+**Compute:** each smoke run took 173 s for 10 starts, and its audit as long. That projects to 1.9 GPU-hours per base,
+3.9 for both, within the 6 GPU-hour ceiling. The projection counts the CPU labelling as GPU time.
