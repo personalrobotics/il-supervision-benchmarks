@@ -141,7 +141,7 @@ def rollout(pol, probe, env, driver: int, start: int) -> tuple:
         a = pol.act(agent, kp, s)
         _, reward, _, _, info = env.step(a)
         agent, kp = B.obs_of(env)
-        t["action"].append(a), t["reward"].append(float(reward))
+        t["action"].append(a), t["reward"].append(round(float(reward), COV_DIGITS))  # coverage / 0.95: same drift
         t["coverage"].append(round(float(info["coverage"]), COV_DIGITS))
         t["obs_agent"].append(agent), t["obs_kp"].append(kp)
         t["full"].append(B.flat(A.full_state(env))), t["pos"].append(A.positions(env))
