@@ -1,0 +1,126 @@
+{
+ "study": "pusht-failure-stage-a",
+ "issue": 66,
+ "status": "protocol: frozen before any rollout from its starts; the code lands in its own PR with a smoke",
+ "evidence": "exploratory: the failure definition was chosen after #62's development rollouts were seen",
+ "members": {
+  "source": "docs/studies/evidence/pusht-recovery/stage-b-base.json",
+  "1": {
+   "entry": "f4d32f60a6f78f7ef4e660e381d7f0247992625cb8cb858db3216c287b5789d0",
+   "model_sha256": "b4e025aa2cd2225a7b5308cbf6934d8c7210f7a94ed9f16f4d193af18cef71f0"
+  },
+  "2": {
+   "entry": "ae54e35cac7dabd7676c23082c47d902d47ed2dea82d45cbce8c69a5588b0f5c",
+   "model_sha256": "fdc8cf40a5a761b5a1c694ec704e331a8a84262e48765954c82ea8e95f2d36ad"
+  },
+  "normalizer": "both checkpoints' preprocessor and postprocessor stats are byte-identical (asserted), so actions compare in one normalized space",
+  "unchanged": true,
+  "precision": "LeRobot default: TF32 cuDNN convolutions, strict FP32 matmuls (#62 amendment)",
+  "reproducibility": "bitwise within siddh's pinned environment, not across hardware",
+  "environment": {
+   "host": "siddh",
+   "gpu": "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition",
+   "driver": "595.99.02",
+   "cuda": "13.0",
+   "torch": "2.11.0+cu130",
+   "cudnn": 91900,
+   "lerobot": "0.6.1"
+  }
+ },
+ "starts": {
+  "discovery": {
+   "start_seed": 2000,
+   "n_episodes": 200
+  },
+  "stage_b_evaluation": {
+   "start_seed": 6000,
+   "n_episodes": 100,
+   "read": "not before Stage B's arms are frozen"
+  },
+  "smoke": {
+   "start_seed": 3411,
+   "n_episodes": 10
+  },
+  "final_test": {
+   "start_seed": 5000,
+   "n_episodes": 100,
+   "read": false
+  },
+  "not_used_for_evaluation": "1000-1099: inspected repeatedly; they motivated this study"
+ },
+ "discovery": {
+  "driver": "tools/pusht_recovery/stage_b2.py's Policy, as lerobot-eval drives it; no probe",
+  "repeats": 4,
+  "episode": "env.reset(seed=start); to success or 300 steps; scored up to the first success",
+  "seeding": "the 4 repeats run in lockstep as one batch; torch seeded with SeedSequence([66, base, start, chunk]) before each chunk; batch row r is repeat r",
+  "lockstep": "each row's episode is recorded up to its own end; the batch steps until all four rows end, and every row's inputs are saved so any chunk regenerates",
+  "saved": "every step's observation, full simulator state, action and coverage (1e-9); every chunk's seed",
+  "consequential_failure": {
+   "max_coverage_below": 0.504,
+   "why": "B1's competence line: half the hold-still (0.062) to demonstration-replay (0.946) gap"
+  },
+  "failure_start": "at least 3 of the base's 4 repeats fail consequentially",
+  "units": "the consequentially failing rollouts of failure starts",
+  "near_miss": "no success and max coverage >= 0.504: descriptive only"
+ },
+ "reach": {
+  "state": "18 points: agent and 8 T keypoints, previous and current frame",
+  "distance": "largest per-point Euclidean distance, px",
+  "support": "the 5,040 states of the r = 0.25 subset's 41 demonstrations (subset seed 0)",
+  "support_record": "docs/studies/evidence/pusht-recovery/support.json",
+  "support_record_sha256": "be8136ac5782652188585e17bd50165f31b0e1a094ec3393451169ed724e02a6",
+  "tau_px": 29.764080044321236,
+  "tau_rule": "the 99th percentile of one demonstration step plus the largest replay error (support.json)",
+  "departure": "t_e: the first t >= 1 with d_sup(x_{t-1}) <= tau and d_sup(x_t) > tau",
+  "matched_row": "j*: the support state nearest x_{t_e - 1}; j* + 8 must be a row of its episode",
+  "classes": [
+   "never_in_support",
+   "no_departure",
+   "departs_ineligible",
+   "departs_eligible"
+  ],
+  "descriptive": "the same classes and d_sup quantiles for successful and near-miss rollouts"
+ },
+ "recovery": {
+  "indexing": "LeRobot 0.6.1 Diffusion Policy: slot k is the action at time t_e + k - 1; slots 1-8 are executed from the observation",
+  "observations": "[x_{t_e - 1}, x_{t_e}], the rollout's own states",
+  "slot_0": "the action that produced x_{t_e}: history, masked from the loss, never a target",
+  "slots_1_8": "the first 8 actions applied from x_{t_e}: Gauss-Newton with minimum-norm steps over the 16 values, from the demonstrated actions of rows j* .. j* + 7, from the saved full state at t_e; residual: the chain's agent position and T pose after slot 8 against row j* + 8",
+  "solve": {
+   "tolerance_px": 0.05,
+   "max_iterations": 20,
+   "fd_step": 0.001,
+   "line_search": 8,
+   "rcond": 1e-10
+  },
+  "slots_9_15": "the demonstrated actions of rows j* + 8 onward",
+  "mask": "slot 0 masked; slots 1-8 supervised; slot k >= 9 supervised while every chain state from slot 9 on is within 1.0 px of its row and the row exists (a prefix)",
+  "checks": "Stage A's: action bounds [0, 512], every chain state finite, the speed envelope, the penetration and extent envelope, provenance, an independent rebuild audit and a byte-identical rerun",
+  "per_rollout": "one window, at the departure; a rejected window is never replaced"
+ },
+ "decision": {
+  "per_base": true,
+  "refuse": "fewer than 20 failure starts",
+  "pass": "at least 100 valid windows from at least 20 distinct failure starts (#52's B3 yield)",
+  "min_windows": 100,
+  "min_failure_starts": 20,
+  "stage": "passes only if both bases pass; otherwise it stops, is published, and the study ends",
+  "no_search": "no threshold, horizon, window or tau is changed after outcomes"
+ },
+ "audit": "fresh process per base: chunks regenerate bit for bit; coverage within 1e-9; labels, failure starts, d_sup, departures, matched rows and classes identical; accepted windows rebuilt independently and rejections reproduce with their reason; simulator replay a measurement, not a gate (#53)",
+ "smoke": {
+  "starts": "3411-3420",
+  "checks": [
+   "byte-identical rerun",
+   "fresh audit passes",
+   "faults refused: changed action, flipped label, moved departure step, forged recovery chunk"
+  ]
+ },
+ "compute": {
+  "host": "siddh, one base per GPU, unpaid",
+  "estimate": "about 200 starts x 30 chunks x 0.36 s per batch of 4: about 0.6 GPU-h per base for discovery, as long again for its audit; A2 and A3 on the CPU",
+  "ceiling_gpu_hours": 6,
+  "gate": "the code PR's smoke measures the cost; the run starts only if its projection is within the ceiling"
+ },
+ "stage_b": "only if Stage A passes on both bases, under its own protocol PR: #52's B4 comparison (base, self-distillation, oracle recovery; slot 0 masked in both fine-tuned arms), evaluated on starts 6000-6099"
+}
