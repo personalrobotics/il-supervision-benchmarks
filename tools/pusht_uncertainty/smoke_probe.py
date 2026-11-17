@@ -72,8 +72,8 @@ def main():
 
     rec, arrs, probes = P.load_run(args.work / "a")
     ns = argparse.Namespace(members=args.members)
-    pols = [P.B.Policy(m) for m in args.members]
-    twin = P.Probe([pols[0], P.B.Policy(args.members[0])])
+    pols = [P.Policy(m) for m in args.members]
+    twin = P.Probe([pols[0], P.Policy(args.members[0])])
     worst = 0.0
     for k in range(len(probes["step"])):
         t = P.unpack(arrs, int(probes["episode"][k]))
@@ -85,7 +85,7 @@ def main():
     ok = (identical and invariant and fresh.returncode == 0 and worst == 0.0
           and all(f["refused"] and f["named"] for f in found.values()))
     out = {"schema": "ilsb.pusht_uncertainty.smoke 1", "code": rec["code"], "starts": P.starts_of("smoke"),
-           "members_model_sha256": rec["members_model_sha256"], "driver": 1,
+           "members_model_sha256": rec["members_model_sha256"], "environment": rec["environment"], "driver": 1,
            "decision_points": int(len(probes["step"])), "episodes_steps": [e["steps"] for e in rec["episodes"]],
            "trajectories_content_sha256": rec["trajectories_content_sha256"],
            "probes_content_sha256": rec["probes_content_sha256"],

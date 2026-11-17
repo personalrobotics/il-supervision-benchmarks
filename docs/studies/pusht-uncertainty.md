@@ -50,6 +50,24 @@ Each driver's average maximum coverage and success are reported next to B1's, as
 cross-process variability (#53), not a gate. Failure labels come from the rerun alone. Both score an episode up to its
 first success, where lerobot-eval ends it; steps run past success only supply decision points.
 
+### Precision
+
+*Amended before any development outcome, in review of the Stage A code.* The policies run in LeRobot's numerical
+mode: TF32 cuDNN convolutions and strict FP32 matmuls. These are PyTorch's defaults, which lerobot-train and
+lerobot-eval leave unchanged, so B1's checkpoints were trained and evaluated this way. B2's driver forced strict FP32
+convolutions instead; that mode is atypical for these checkpoints, and it projected about 15 GPU-hours for Stage A.
+Deterministic algorithms, the shared noise, the 16 samples and the full audit are unchanged.
+
+Before the amendment, member 1's sampling was compared in both modes, at the reset observations of starts 3401 and
+3402, with batches of 1 and 16:
+- **Action difference:** at most 2.5e-4 in normalized actions (range [-1, 1]); median 4.3e-5.
+- **Speed:** 0.35 s against 1.15 s per call at batch 1, and 0.40 s against 1.51 s at batch 16.
+- **Repeatability:** both modes repeated bit for bit across processes.
+
+**Bitwise reproducibility is required within the pinned environment, not across hardware.** The environment is siddh's
+NVIDIA RTX PRO 6000 Blackwell Max-Q, driver 595.99.02, CUDA 13.0, PyTorch 2.11.0+cu130, cuDNN 9.19.0 and LeRobot 0.6.1.
+Each run records its environment, and the audit refuses to compare across another.
+
 ### Uncertainty
 
 Diffusion Policy is stochastic by design, so variation among one model's samples is not epistemic uncertainty. At each

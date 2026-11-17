@@ -6,7 +6,9 @@
     LEROBOT_PYTHON tools/pusht_uncertainty/probe.py report --runs RUN_1 RUN_2 [--out RECORD.json]
 
 The rerun. Member D drives every start: env.reset(seed = start), driven as lerobot-eval drives it (B2's driver), each
-16-action chunk generated after seeding torch with SeedSequence([62, D, start, chunk]). An episode runs at least 80
+16-action chunk generated after seeding torch with SeedSequence([62, D, start, chunk]). Convolutions run in TF32, as
+LeRobot trains and evaluates (PyTorch's cuDNN default; B2's driver forces strict FP32); every other setting stays
+deterministic. Bitwise reproducibility is required within the pinned environment the record names, not across hardware. An episode runs at least 80
 steps, even past success, then ends at success or step 300. Every step's observation, full simulator state, action,
 reward and coverage is saved. An episode is scored up to its first success, where lerobot-eval ends it; the steps run
 past success only supply decision points.
@@ -70,6 +72,26 @@ def check_members(paths: list) -> list:
         if A.sha(paths[0] / f) != A.sha(paths[1] / f):
             sys.exit(f"refused: the members' {f} differ")
     return got
+
+
+class Policy(B.Policy):
+    """B2's driver with LeRobot's default numerical mode: TF32 cuDNN convolutions, strict FP32 matmuls."""
+
+    def __init__(self, ckpt: Path, device: str = "cuda"):
+        super().__init__(ckpt, device)
+        self.torch.backends.cudnn.allow_tf32 = True
+
+
+def environment(torch) -> dict:
+    """What bitwise reproducibility is pinned to."""
+    import importlib.metadata as md
+    smi = subprocess.run(["nvidia-smi", "--query-gpu=driver_version", "--format=csv,noheader"], capture_output=True,
+                         text=True)  # host-wide; nvidia-smi's indices ignore CUDA_VISIBLE_DEVICES
+    return {"gpu": torch.cuda.get_device_name(), "driver": smi.stdout.split()[0], "cuda": torch.version.cuda,
+            "torch": torch.__version__, "cudnn": torch.backends.cudnn.version(), "lerobot": md.version("lerobot"),
+            "numpy": np.__version__, "cudnn_allow_tf32": torch.backends.cudnn.allow_tf32,
+            "matmul_allow_tf32": torch.backends.cuda.matmul.allow_tf32,
+            "deterministic_algorithms": torch.are_deterministic_algorithms_enabled()}
 
 
 class Probe:
@@ -219,7 +241,7 @@ def starts_of(which: str) -> list:
 
 def discover(args) -> dict:
     members = check_members(args.members)
-    pols = [B.Policy(p) for p in args.members]
+    pols = [Policy(p) for p in args.members]
     pol, probe, env = pols[args.driver - 1], (None if args.no_probe else Probe(pols)), A.make_env()
     starts = starts_of(args.starts)
     trajs, pts, t0 = [], [], time.time()
@@ -236,7 +258,8 @@ def discover(args) -> dict:
     rec = {"schema": "ilsb.pusht_uncertainty.stage_a_run 1",
            "code": {"commit": git("rev-parse", "HEAD"), "dirty": bool(git("status", "--porcelain"))},
            "driver": args.driver, "starts": args.starts, "probe": not args.no_probe,
-           "members_model_sha256": members, "trajectories_content_sha256": A.content_sha(arrs)}
+           "members_model_sha256": members, "environment": environment(pol.torch),
+           "trajectories_content_sha256": A.content_sha(arrs)}
     if not args.no_probe:
         probes = {"episode": np.array([x[0] for x in pts], np.int64), "step": np.array([x[1] for x in pts], np.int64),
                   "seed": np.array([x[2] for x in pts], np.int64), "output": np.stack([x[3] for x in pts])}
@@ -271,7 +294,9 @@ def audit(args, run=None, only=None, pols=None) -> dict:
         problems.append("the probes are not the record's")
     if rec["members_model_sha256"] != check_members(args.members):
         problems.append("the members are not the record's")
-    pols = pols or [B.Policy(p) for p in args.members]
+    pols = pols or [Policy(p) for p in args.members]
+    if rec["environment"] != environment(pols[0].torch):
+        problems.append("the environment is not the record's: bitwise reproducibility holds only within it")
     pol, probe, env = pols[rec["driver"] - 1], Probe(pols), A.make_env()
     starts = [int(s) for s in arrs["start"]]
     worst_cov, worst_replay, chunk_bad, probe_bad, point_bad = 0.0, 0.0, 0, 0, 0

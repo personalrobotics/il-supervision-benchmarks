@@ -33,7 +33,7 @@
    2
   ],
   "episode": "env.reset(seed = start), gym_pusht as lerobot-eval makes it (environment_state_agent_pos, 300 steps); it runs at least 80 steps, even past success, and then ends at success or step 300",
-  "driving": "stage_b2.Policy: the checkpoint and its own processors, as lerobot-eval drives it",
+  "driving": "stage_b2.Policy: the checkpoint and its own processors, as lerobot-eval drives it, with LeRobot's numerical mode (precision below)",
   "driver_chunk_seed": "SeedSequence([62, driver, start, chunk]); torch is seeded before each 16-action chunk",
   "recorded": "every step's observation, full simulator state, action and coverage; every chunk's 16 outputs",
   "reconciliation": "each driver's rerun average maximum coverage and success against B1's are reported as a measurement, not a gate (#53); failure labels come from the rerun alone; both score each episode up to its first success, as lerobot-eval ends it, so steps run past success only supply decision points"
@@ -104,5 +104,40 @@
   "gpus": 2,
   "paid": false,
   "ceiling_gpu_hours": 6
+ },
+ "precision": {
+  "amended": "before any development outcome: in review of the Stage A code PR, after the protocol merged (07b54ea)",
+  "convolutions": "TF32 (torch.backends.cudnn.allow_tf32 = True): PyTorch's default, which lerobot-train and lerobot-eval leave unchanged, so B1's checkpoints were trained and evaluated this way",
+  "matmuls": "strict FP32 (torch.backends.cuda.matmul.allow_tf32 = False, PyTorch's default)",
+  "unchanged": "deterministic algorithms and cuDNN, shared noise, 16 samples, the full audit",
+  "replaces": "B2's driver forces strict FP32 convolutions; that mode is atypical for these checkpoints and projected about 15 GPU-hours for Stage A",
+  "pre_amendment_comparison": {
+   "what": "member 1's generate_actions at the reset observations of starts 3401 and 3402, torch seed 11, batches of 1 and 16, TF32 against strict FP32 convolutions",
+   "max_abs_action_difference": 0.0002478957176208496,
+   "median_abs_action_difference": 4.3042004108428955e-05,
+   "units": "normalized actions, range [-1, 1]",
+   "seconds_per_call": {
+    "strict_fp32": {
+     "batch_1": 1.15,
+     "batch_16": 1.51
+    },
+    "tf32": {
+     "batch_1": 0.35,
+     "batch_16": 0.4
+    }
+   },
+   "both_modes_repeat_bit_for_bit_across_processes": true
+  },
+  "reproducibility": "bitwise reproducibility is required within the pinned environment, not across hardware; each run records its environment and the audit refuses another",
+  "environment": {
+   "host": "siddh",
+   "gpu": "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition",
+   "driver": "595.99.02",
+   "cuda": "13.0",
+   "torch": "2.11.0+cu130",
+   "cudnn": 91900,
+   "lerobot": "0.6.1"
+  },
+  "not_pursued": "a channels-last convolution layout (about 40% of TF32 GPU time is layout conversion): it would patch LeRobot's modules"
  }
 }
