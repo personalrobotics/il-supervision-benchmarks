@@ -21,7 +21,8 @@ confirmatory evidence for CCIL.
 - **Stage B**, as first planned, would have trained on Stage A's windows. It was superseded before its protocol was
   frozen: Stage A's sources were not chosen from where a learner deviates. The revised Stage B builds oracle recovery
   windows at a competent policy's own deviation states, and compares them with self-distillation at the same states.
-  Stage A's 1,865 windows are the construction's feasibility evidence, not a training pool.
+  Stage A's 1,865 windows are the construction's feasibility evidence, not a training pool. The revised Stage B
+  stopped at B2 ([result](#b2-result)): too few deviation states for the B3 yield.
 - **Stage C**, learned-dynamics recovery at the same states, runs only if Stage B passes.
 
 D_test (seeds 5000–5099) is not read by any stage before the last.
@@ -272,6 +273,33 @@ B1's seed-1 base.
 - **Faults:** each was refused for the right reason: a changed action, a changed coverage, a moved selection and
   altered trajectories.
 - **Selection:** 10 of the 25 smoke rollouts yielded a state.
+
+### B2 result
+
+**B2 stops: both seeds select far fewer states than the B3 yield, so no recovery window is built, and B3 and B4 do
+not run.** The run is from a clean clone of `6a64b6b` on siddh, with B1's checkpoints (seed 1 `b4e025aa…`, seed 2
+`fdc8cf40…`). Each seed's discovery and fresh-process audit took about 3.7 hours on one GPU. The record is
+[`evidence/pusht-recovery/stage-b2.json`](evidence/pusht-recovery/stage-b2.json); it pins the full run records by
+sha256.
+
+| Seed | Rollouts | c_π ≥ c_D | Missed progress | Selected | Episodes | Yield (100 from 20) |
+|---|---|---|---|---|---|---|
+| 1 | 398 | 390 | 8 | 8 | 1 | not met |
+| 2 | 398 | 395 | 3 | 2 | 2 | not met |
+
+- **Restored at a demonstration state, the base nearly always matches or beats the demonstration.** The median
+  shortfall c_D − c_π is −0.087 (seed 1) and −0.075 (seed 2). The base's median c_π is 0.944 and 0.933, against a
+  median c_D of 0.859, and 167 and 109 of its rollouts pass gym_pusht's 0.95 success threshold, which no
+  demonstration in the subset reaches.
+- **Where it misses.** Seed 1's 8 misses all come from episode 36 (anchor rows 16–96). Every one crosses τ and is
+  selected, with shortfalls of 0.023–0.081. Seed 2's 3 misses are in episodes 36, 39 and 78. Two are selected; the
+  third (episode 36, row 104) is not eligible, because j* + 8 lies past the episode's last row.
+- **Audit:** both seeds passed. Every chunk regenerated exactly, the recomputed coverage agreed within 5e-10, the
+  selection was identical, and the simulator replay of the saved actions matched to 0.0 px.
+
+This does not show that the base is robust: it succeeds on only 34% and 25% of the development starts (B1). It shows
+that the subset's demonstration prefixes are not where the base fails, so paired-prefix discovery from these anchors
+cannot supply recovery states at the protocol's yield. The stop rule was frozen before B2 ran and is not relaxed.
 
 ### B3: oracle recovery windows
 

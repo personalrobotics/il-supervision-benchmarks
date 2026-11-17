@@ -1,0 +1,269 @@
+{
+ "anchors": 398,
+ "code": {
+  "commit": "6a64b6b7ba8459dc0f14de4e8669539d6e6eb5e9",
+  "dirty": false
+ },
+ "decision": "stop: B2 selects fewer states than the B3 yield on both seeds; no recovery window is built",
+ "run": {
+  "elapsed_h_discovery_and_audit": {
+   "1": 3.68,
+   "2": 3.81
+  },
+  "gpus": 2,
+  "host": "siddh",
+  "started": "2026-11-17T06:31:01Z"
+ },
+ "schema": "ilsb.pusht_recovery.stage_b2_result 1",
+ "seeds": {
+  "1": {
+   "audit": {
+    "chunks_mismatched": 0,
+    "coverage_max_abs_diff": 4.999955588447236e-10,
+    "pass": true,
+    "problems": [],
+    "simulator_replay_max_px": 0.0
+   },
+   "by_reason": {
+    "no_missed_progress": 390,
+    "selected": 8
+   },
+   "checkpoint_model_sha256": "b4e025aa2cd2225a7b5308cbf6934d8c7210f7a94ed9f16f4d193af18cef71f0",
+   "coverage": {
+    "c_0": {
+     "10": 0.0,
+     "100": 0.851551579,
+     "50": 0.148778226,
+     "90": 0.486618039
+    },
+    "c_D": {
+     "10": 0.79911287,
+     "100": 0.901435313,
+     "50": 0.858998912,
+     "90": 0.8723107
+    },
+    "c_pi": {
+     "10": 0.897867923,
+     "100": 0.98420908,
+     "50": 0.94443966,
+     "90": 0.966846941
+    },
+    "shortfall_c_D_minus_c_pi": {
+     "10": -0.137183564,
+     "100": 0.08079458,
+     "50": -0.087414211,
+     "90": -0.04241835
+    }
+   },
+   "files_sha256": {
+    "record.json": "408ee85de380972526081639220770b3bb403a9c7873831f5cda100be02bd7c8",
+    "selection.npz": "ca1f3e13fa04dfa1ab975d1678a151f10879e97a9091e7771b6c71ed16f1f17f",
+    "trajectories.npz": "63dfd90ce9f9c74e7b670bc090e8686cdb9796a41bfcff3ebc6c7608fd774983"
+   },
+   "meets_yield": false,
+   "missed_progress": [
+    {
+     "anchor_row": 16,
+     "c_0": 0.0,
+     "c_D": 0.861292859,
+     "c_pi": 0.780498279,
+     "d_px": 32.62335613599682,
+     "episode": 36,
+     "j_star": 131,
+     "k": 125,
+     "reason": "selected",
+     "shortfall": 0.08079458
+    },
+    {
+     "anchor_row": 32,
+     "c_0": 0.0,
+     "c_D": 0.861292859,
+     "c_pi": 0.81382055,
+     "d_px": 39.541968746104196,
+     "episode": 36,
+     "j_star": 132,
+     "k": 110,
+     "reason": "selected",
+     "shortfall": 0.047472309
+    },
+    {
+     "anchor_row": 40,
+     "c_0": 0.0,
+     "c_D": 0.861292859,
+     "c_pi": 0.792219325,
+     "d_px": 33.6832545893216,
+     "episode": 36,
+     "j_star": 127,
+     "k": 101,
+     "reason": "selected",
+     "shortfall": 0.069073534
+    },
+    {
+     "anchor_row": 48,
+     "c_0": 0.40765766,
+     "c_D": 0.861292859,
+     "c_pi": 0.834982036,
+     "d_px": 32.6400479118274,
+     "episode": 36,
+     "j_star": 131,
+     "k": 93,
+     "reason": "selected",
+     "shortfall": 0.026310823
+    },
+    {
+     "anchor_row": 64,
+     "c_0": 0.419519814,
+     "c_D": 0.861292859,
+     "c_pi": 0.803477855,
+     "d_px": 35.064740976495585,
+     "episode": 36,
+     "j_star": 126,
+     "k": 77,
+     "reason": "selected",
+     "shortfall": 0.057815004
+    },
+    {
+     "anchor_row": 80,
+     "c_0": 0.464794294,
+     "c_D": 0.861292859,
+     "c_pi": 0.838418427,
+     "d_px": 31.441006733608653,
+     "episode": 36,
+     "j_star": 131,
+     "k": 61,
+     "reason": "selected",
+     "shortfall": 0.022874432
+    },
+    {
+     "anchor_row": 88,
+     "c_0": 0.396849982,
+     "c_D": 0.861292859,
+     "c_pi": 0.815818943,
+     "d_px": 33.745274436649716,
+     "episode": 36,
+     "j_star": 131,
+     "k": 53,
+     "reason": "selected",
+     "shortfall": 0.045473916
+    },
+    {
+     "anchor_row": 96,
+     "c_0": 0.396849982,
+     "c_D": 0.861292859,
+     "c_pi": 0.819866301,
+     "d_px": 34.67947788940446,
+     "episode": 36,
+     "j_star": 126,
+     "k": 45,
+     "reason": "selected",
+     "shortfall": 0.041426558
+    }
+   ],
+   "rollouts": 398,
+   "rollouts_c_pi_above_0.95": 167,
+   "rollouts_c_pi_at_least_c_D": 390,
+   "selected": 8,
+   "selected_episodes": 1,
+   "selection_content_sha256": "a1c55e224851445a001c2cc0cff4b9056e2d8ab54abd69bf430169c3174a3ba6",
+   "trajectories_content_sha256": "eb0620d0d8060615896a2732ba1fbe90752c5190a2dc5ed753a89a65f669d18e"
+  },
+  "2": {
+   "audit": {
+    "chunks_mismatched": 0,
+    "coverage_max_abs_diff": 4.999851643816555e-10,
+    "pass": true,
+    "problems": [],
+    "simulator_replay_max_px": 0.0
+   },
+   "by_reason": {
+    "no_missed_progress": 395,
+    "rejoin_beyond_episode": 1,
+    "selected": 2
+   },
+   "checkpoint_model_sha256": "fdc8cf40a5a761b5a1c694ec704e331a8a84262e48765954c82ea8e95f2d36ad",
+   "coverage": {
+    "c_0": {
+     "10": 0.0,
+     "100": 0.851551579,
+     "50": 0.148778226,
+     "90": 0.486618039
+    },
+    "c_D": {
+     "10": 0.79911287,
+     "100": 0.901435313,
+     "50": 0.858998912,
+     "90": 0.8723107
+    },
+    "c_pi": {
+     "10": 0.890388439,
+     "100": 0.986365479,
+     "50": 0.933094664,
+     "90": 0.962285677
+    },
+    "shortfall_c_D_minus_c_pi": {
+     "10": -0.134647311,
+     "100": 0.19804131,
+     "50": -0.075289222,
+     "90": -0.02984825
+    }
+   },
+   "files_sha256": {
+    "record.json": "90f0555e9848ce816410d288a4066eb983140bb0cb5c3cf75a68a36c783aa51c",
+    "selection.npz": "17ccc9154159cc404c09f6da85ae46bfd910175d0545b06b5f7ce0f4b62b70d0",
+    "trajectories.npz": "a7bd1aca803159173dbf0cb243c70227b67f4eaa43857566f78ce2e495eab139"
+   },
+   "meets_yield": false,
+   "missed_progress": [
+    {
+     "anchor_row": 104,
+     "c_0": 0.396849982,
+     "c_D": 0.861292859,
+     "c_pi": 0.860162554,
+     "d_px": 35.26557446837747,
+     "episode": 36,
+     "j_star": 138,
+     "k": 39,
+     "reason": "rejoin_beyond_episode",
+     "shortfall": 0.001130305
+    },
+    {
+     "anchor_row": 72,
+     "c_0": 0.368059801,
+     "c_D": 0.838339797,
+     "c_pi": 0.832382208,
+     "d_px": 31.389625377062703,
+     "episode": 39,
+     "j_star": 84,
+     "k": 32,
+     "reason": "selected",
+     "shortfall": 0.005957589
+    },
+    {
+     "anchor_row": 16,
+     "c_0": 0.31880829,
+     "c_D": 0.870429353,
+     "c_pi": 0.672388043,
+     "d_px": 34.25423086688101,
+     "episode": 78,
+     "j_star": 63,
+     "k": 50,
+     "reason": "selected",
+     "shortfall": 0.19804131
+    }
+   ],
+   "rollouts": 398,
+   "rollouts_c_pi_above_0.95": 109,
+   "rollouts_c_pi_at_least_c_D": 395,
+   "selected": 2,
+   "selected_episodes": 2,
+   "selection_content_sha256": "15007a881ccdff3e380b4f2cde0d297c5452f078d77c1b4ed03a2e2957669e7d",
+   "trajectories_content_sha256": "a113090c4547639f0c5625cc0fa9ee8af188d02fe31ac679968d3f83322f8c4f"
+  }
+ },
+ "tau_px": 29.764080044321236,
+ "yield": {
+  "min_episodes_per_seed": 20,
+  "min_windows_per_seed": 100,
+  "note": "at most 398 per seed, one per anchor; no cap is needed"
+ }
+}
