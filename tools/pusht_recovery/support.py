@@ -20,7 +20,8 @@ Two things are recorded.
   does.
 
 No policy, rollout, held-out row or evaluation start is read. Distances are float64 on the CPU, and the replay
-is gym_pusht's deterministic simulator, so a rerun on the same host is byte-identical.
+is gym_pusht's deterministic simulator, so a rerun on the same host is byte-identical. Coverage (shapely) can differ
+in its last digits between processes, so coverage statistics are recorded to 1e-9.
 """
 import argparse
 import hashlib
@@ -41,6 +42,7 @@ import stage_a as A  # noqa: E402
 SOURCE_CONTENT = A.SPEC["inputs"]["source_content_sha256"]
 R, SUBSET_SEED = 0.25, 0
 CHUNK, STEP_QUANTILE, SUCCESS = 8, 99, 0.95
+COVERAGE_DIGITS = 9  # gym_pusht's shapely coverage can differ in its last digits between processes
 ANCHOR = {"stride": 8, "first_row": 8, "rows_before_end": 25}
 EXPECTED = {"subset_episodes": 41, "subset_states": 5040}
 QS = (10, 50, 90, 99, 100)
@@ -59,8 +61,8 @@ def dist(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     return np.sqrt(((a - b) ** 2).sum(-1)).max(-1)
 
 
-def quantiles(x: np.ndarray) -> dict:
-    return {str(q): float(v) for q, v in zip(QS, np.percentile(x, QS))}
+def quantiles(x: np.ndarray, digits: int | None = None) -> dict:
+    return {str(q): float(v if digits is None else round(v, digits)) for q, v in zip(QS, np.percentile(x, QS))}
 
 
 def cross_episode(job):
@@ -167,8 +169,8 @@ def main():
                             "continuation_progresses": "c_D > c_0: the highest coverage of the recorded rows from the "
                                                        "anchor on exceeds the anchor's (gym_pusht coverage)"},
             "anchor_filters": filters,
-            "demonstrated_progress_c_D_minus_c_0": quantiles(progress),
-            "episode_max_recorded_coverage": quantiles(episode_max),
+            "demonstrated_progress_c_D_minus_c_0": quantiles(progress, COVERAGE_DIGITS),
+            "episode_max_recorded_coverage": quantiles(episode_max, COVERAGE_DIGITS),
             "episodes_reaching_gym_pusht_success": int((episode_max > SUCCESS).sum()),
             "anchors": len(anchors),
             "anchor_episodes": int(len(np.unique(anchor_arr[:, 0]))),
