@@ -13,9 +13,11 @@ Two things are recorded.
 - The adopted rule: paired-prefix deviation. A rollout restored at a demonstration's recorded state is compared with
   the same episode's continuation. The deviation threshold tau is the 99th percentile of one demonstration step (the
   distance between consecutive states of an episode) plus the largest replay error over the replay-verified states.
-  The anchors are the replay-verified rows at every eighth row of each episode, from row 8 to row n - 25.
+  The anchors are the replay-verified rows at every eighth row of each episode, from row 8 to row n - 25, that are
+  not yet a success and whose recorded continuation (the later rows) reaches success. Success is gym_pusht's own:
+  the T's coverage of the goal above 0.95, computed from each row's recorded T pose by the environment's coverage.
 
-No policy, rollout, reward, held-out row or evaluation start is read. Distances are float64 on the CPU, and the replay
+No policy, rollout, held-out row or evaluation start is read. Distances are float64 on the CPU, and the replay
 is gym_pusht's deterministic simulator, so a rerun on the same host is byte-identical.
 """
 import argparse
@@ -36,7 +38,7 @@ import stage_a as A  # noqa: E402
 
 SOURCE_CONTENT = A.SPEC["inputs"]["source_content_sha256"]
 R, SUBSET_SEED = 0.25, 0
-CHUNK, STEP_QUANTILE = 8, 99
+CHUNK, STEP_QUANTILE, SUCCESS = 8, 99, 0.95
 ANCHOR = {"stride": 8, "first_row": 8, "rows_before_end": 25}
 EXPECTED = {"subset_episodes": 41, "subset_states": 5040}
 QS = (10, 50, 90, 99, 100)
@@ -78,6 +80,15 @@ def replay_errors(job):
     return A.replay(A.make_env(), cur, act)[1]
 
 
+def coverages(job):
+    """gym_pusht's coverage of each recorded row's T pose (the agent does not enter it)."""
+    env, out = A.make_env(), []
+    for x in job:
+        A.load_fresh(env, ((x[0], x[1]), (0.0, 0.0), (x[2], x[3]), float(x[4]), (0.0, 0.0), 0.0))
+        out.append(env._get_coverage())
+    return np.array(out)
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--source", type=Path, required=True)
@@ -107,19 +118,24 @@ def main():
     with ProcessPoolExecutor(args.workers) as ex:
         cross = list(ex.map(cross_episode, [(e, pts, ep, pos, n_of) for e in eps]))
         errs = list(ex.map(replay_errors, [(cur[rows[ep == e]], act[rows[ep == e]]) for e in eps]))
+        covs = list(ex.map(coverages, [cur[rows[ep == e]] for e in eps]))
     d0, d8 = np.concatenate([a for a, _ in cross]), np.concatenate([b for _, b in cross])
 
     step = np.concatenate([dist(pts[ep == e][1:], pts[ep == e][:-1]) for e in eps])
     err = np.concatenate(errs)
     verified = err <= A.REPLAY_TOL
     tau = float(np.percentile(step, STEP_QUANTILE) + err[verified].max())
-    anchors = [(int(e), int(k)) for e, errs_e in zip(eps, errs) for k in
-               range(ANCHOR["first_row"], n_of[e] - ANCHOR["rows_before_end"] + 1, ANCHOR["stride"])
-               if errs_e[k] <= A.REPLAY_TOL]
-    anchor_arr = np.array(anchors, np.int64)
+    grid = [(e, k, errs_e[k] <= A.REPLAY_TOL, cov_e[k] <= SUCCESS, bool((cov_e[k + 1:] > SUCCESS).any()))
+            for e, errs_e, cov_e in zip(eps, errs, covs)
+            for k in range(ANCHOR["first_row"], n_of[e] - ANCHOR["rows_before_end"] + 1, ANCHOR["stride"])]
+    anchors = [(int(e), int(k)) for e, k, ok, before, reached in grid if ok and before and reached]
+    anchor_arr = np.array(anchors, np.int64).reshape(-1, 2)
+    filters = {"grid": len(grid), "replay_verified": sum(g[2] for g in grid),
+               "and_not_yet_success": sum(g[2] and g[3] for g in grid), "and_continuation_succeeds": len(anchors)}
+    succeeding = [int(e) for e, cov_e in zip(eps, covs) if (cov_e > SUCCESS).any()]
 
     out = {
-        "schema": "ilsb.pusht_recovery.support 2",
+        "schema": "ilsb.pusht_recovery.support 3",
         "code": {"commit": git("rev-parse", "HEAD"), "dirty": bool(git("status", "--porcelain")),
                  "files_sha256": {f: A.sha(ROOT / f) for f in (
                      "tools/pusht_recovery/support.py", "tools/pusht_recovery/stage_a.py",
@@ -143,7 +159,10 @@ def main():
             "tau_px": tau,
             "tau_rule": f"the {STEP_QUANTILE}th percentile of one demonstration step plus the largest replay error over "
                         "the replay-verified states",
-            "anchor_rule": ANCHOR,
+            "anchor_rule": {**ANCHOR, "replay_verified": True, "anchor_not_success": True,
+                            "continuation_succeeds": True, "success": f"coverage > {SUCCESS} (gym_pusht)"},
+            "anchor_filters": filters,
+            "episodes_whose_recording_succeeds": len(succeeding),
             "anchors": len(anchors),
             "anchor_episodes": int(len(np.unique(anchor_arr[:, 0]))),
             "anchors_sha256": hashlib.sha256(anchor_arr.tobytes()).hexdigest(),
