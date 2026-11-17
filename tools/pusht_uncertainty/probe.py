@@ -300,6 +300,7 @@ def audit(args, run=None, only=None, pols=None) -> dict:
     pol, probe, env = pols[rec["driver"] - 1], Probe(pols), A.make_env()
     starts = [int(s) for s in arrs["start"]]
     worst_cov, worst_replay, chunk_bad, probe_bad, point_bad = 0.0, 0.0, 0, 0, 0
+    t0 = time.time()
     for i, start in enumerate(starts):
         if only is not None and i not in only:
             continue
@@ -340,6 +341,8 @@ def audit(args, run=None, only=None, pols=None) -> dict:
             env.step(a)
             rep.append(A.positions(env))
         worst_replay = max(worst_replay, float(A.distance(np.array(rep), t["pos"]).max()))
+        if only is None and ((i + 1) % 5 == 0 or i + 1 == len(starts)):
+            log(f"audit driver {rec['driver']}: {i + 1}/{len(starts)} episodes, {time.time() - t0:.0f} s")
     if worst_cov > B.COV_TOL:
         problems.append(f"coverage recomputed from the saved states differs by {worst_cov:.3g}")
     if point_bad:

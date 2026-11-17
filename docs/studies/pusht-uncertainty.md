@@ -14,7 +14,7 @@ rollouts from demonstration prefixes almost never reproduced the policy's failur
 ## Stages
 
 - **Stage A** (this protocol): the two existing r = 0.25 policies, no training. It decides only whether a third member
-  is trained.
+  is trained. **It failed, and the study stopped** ([result](#stage-a-result)).
 - **Stage B**: a third member, and the Stage A rule verified on fresh starts.
 - **Stage C**: uncertainty-selected oracle recovery against the base, matched self-distillation and uniform selection.
 
@@ -146,3 +146,47 @@ clean clone of `0e757e6`, with driver 1 and both members. Its record is
 - **Strict FP32:** the same probe run took 1,466 s, 3.7 times as long.
 
 Starts 2000–2199, which no earlier stage uses, are reserved for Stage B.
+
+### Stage A result
+
+**Stop: the frozen separation rule fails on both drivers.** Ran 2026-11-17 from a clean clone of `5432f8e`. Record:
+[`evidence/pusht-uncertainty/stage-a.json`](evidence/pusht-uncertainty/stage-a.json).
+
+| Driver | Failed / successful | AUC U_epi | AUC U_ale | Margin | Pass |
+|---|---|---|---|---|---|
+| 1 | 76 / 24 | 0.48 | 0.44 | 0.05 | no |
+| 2 | 75 / 25 | 0.58 | 0.45 | 0.12 | no |
+
+- **The failure is not caused by imbalance or an uninformative set.** Both drivers have far more than 10 episodes of
+  each class.
+- **Two-policy disagreement does not reliably identify consequential failures.** Driver 1 is at chance and driver 2 is
+  well below 0.70.
+- **The members disagree, but not about failure.** In the early window, U_epi is a median of 19 and 17 times U_ale.
+  Its median is the same for failed and successful episodes on driver 1 (3.5e-4 each), and 3.9e-4 against 2.3e-4 on
+  driver 2. The policies can agree while both are wrong, and disagree during benign variation.
+- **Some information is transient.** The state-level AUC in the early window is 0.60 and 0.64. That is not enough to
+  select labels without a post-hoc redesign, which the protocol forbids.
+- **The whole-episode AUC (0.62 and 0.68) does not count.** It is confounded with duration, which is why the early
+  window was frozen.
+
+**Audit:** in a fresh process for each driver, every chunk and probe batch regenerated bit for bit, and the statistics
+reproduced. Coverage recomputed from the saved states agreed within 5e-10, and the simulator replay matched exactly
+([driver 1](evidence/pusht-uncertainty/stage-a-audit-d1.json), [driver 2](evidence/pusht-uncertainty/stage-a-audit-d2.json)).
+
+**Against B1 (a measurement, not a gate):**
+
+| Driver | Rerun coverage / success | B1 coverage / success | Episodes with the other outcome |
+|---|---|---|---|
+| 1 | 0.669 / 24% | 0.661 / 34% | 30 |
+| 2 | 0.638 / 25% | 0.654 / 25% | 20 |
+
+Average coverage agrees, but the success of individual episodes often differs between processes. B1's own repeat
+differed on 9 episodes (#53). Labels at the success threshold are therefore partly noise, which limits any predictor's
+AUC. It does not explain driver 1's AUC at chance.
+
+**Compute:** 4.5 GPU-hours on siddh's two GPUs, within the 6 GPU-hour ceiling. Each probe run took about 68
+minutes, and each audit about 67.
+
+**Next.** No third member is trained, and no other uncertainty summary is tried. The next method observes learner
+failure directly: roll the deployed learner out from environment starts, find the states or short windows that precede
+actual failure, and ask whether CCIL can provide valid recovery supervision there.
