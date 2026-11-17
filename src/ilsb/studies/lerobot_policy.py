@@ -77,8 +77,9 @@ def load_spec(spec: dict) -> dict:
     if set(ev) != {"start_seed", "n_episodes", "batch_size", "device"} or ev["n_episodes"] % ev["batch_size"]:
         raise Refused("refused: evaluation is {start_seed, n_episodes, batch_size (dividing n_episodes), device}")
     a = spec["acceptance"]
-    if set(a) != {"metric", "min_mean"} or a["metric"] != "avg_max_reward":
-        raise Refused("refused: acceptance is {metric: avg_max_reward, min_mean}")
+    if a.get("metric") != "avg_max_reward" or not set(a) - {"metric"} \
+            or not set(a) <= {"metric", "min_mean", "min_per_seed"}:
+        raise Refused("refused: acceptance is {metric: avg_max_reward, min_mean and/or min_per_seed}")
     exp = {"train_episodes", "held_out_episodes", "train_frames", "held_out_frames", "train_windows",
            "held_out_windows", "units"}
     if set(spec["expected"]) != exp:
@@ -560,6 +561,17 @@ def evaluation_audit(ctx) -> dict:
             "repeat": repeat}
 
 
+def acceptance(a: dict, mean: float, per_seed: dict) -> dict:
+    """The declared thresholds and whether they are met: the seeds' mean, and every seed on its own."""
+    out, met = {}, True
+    if "min_mean" in a:
+        out["min_mean"], met = a["min_mean"], met and mean >= a["min_mean"]
+    if "min_per_seed" in a:
+        out["min_per_seed"] = a["min_per_seed"]
+        met = met and all(v[a["metric"]] >= a["min_per_seed"] for v in per_seed.values())
+    return {**out, "met": met}
+
+
 def report(ctx) -> dict:
     from ..run import require
     prior = require(ctx, "report")
@@ -576,7 +588,7 @@ def report(ctx) -> dict:
     root = json.loads((ctx.root / "root.json").read_text())
     return {"all_pass": True, "metric": a["metric"], "per_seed": per_seed,
             "mean": mean, "mean_pc_success": float(np.mean([v["pc_success"] for v in per_seed.values()])),
-            "acceptance": {"min_mean": a["min_mean"], "met": mean >= a["min_mean"]},
+            "acceptance": acceptance(a, mean, per_seed),
             "failed_episodes": failed, "learner": ctx.spec["learner"],
             "upstream": {k: root["scope"]["lerobot_env"][k] for k in ("lerobot", "torch", "cuda", "gpu",
                                                                       "distributions_sha256")}}

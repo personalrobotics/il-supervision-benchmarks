@@ -1,8 +1,10 @@
 # PushT recovery windows for Diffusion Policy (protocol)
 
-This is the protocol of [#52](https://github.com/personalrobotics/il-supervision-benchmarks/issues/52), Stage A. It is
-frozen before any recovery window is built from the study's proposals. The machine-readable form is
-[`tools/pusht_recovery/stage-a.json`](../../tools/pusht_recovery/stage-a.json).
+This is the protocol of [#52](https://github.com/personalrobotics/il-supervision-benchmarks/issues/52). Stage A was
+frozen before any recovery window was built from the study's proposals; its machine-readable form is
+[`tools/pusht_recovery/stage-a.json`](../../tools/pusht_recovery/stage-a.json). The revised Stage B
+([below](#stage-b-revised-protocol)) was frozen before its base policy trained; its machine-readable form is
+[`tools/pusht_recovery/stage-b.json`](../../tools/pusht_recovery/stage-b.json).
 
 **Question.** Does a one-step CCIL correction help a competent temporal learner when it is written as a physically
 consistent recovery window, a history and an action sequence, rather than as an isolated state-action row?
@@ -16,9 +18,11 @@ confirmatory evidence for CCIL.
 - **Stage A** (this protocol) builds the windows and audits them. No policy is trained. If the yield below is not
   met, Stage A refuses, the refusal is published, and the study stops. The window and replay rules are not relaxed
   after the result.
-- **Stage B** runs only if Stage A passes, under its own protocol PR. It trains BC, source duplication and oracle
-  CCIL with LeRobot's Diffusion Policy ([pusht-diffusion.md](pusht-diffusion.md)) on two development seeds.
-- **Stage C**, learned-dynamics windows, runs only if Stage B passes.
+- **Stage B**, as first planned, would have trained on Stage A's windows. It was superseded before its protocol was
+  frozen: Stage A's sources were not chosen from where a learner deviates. The revised Stage B builds oracle recovery
+  windows at a competent policy's own deviation states, and compares them with self-distillation at the same states.
+  Stage A's 1,865 windows are the construction's feasibility evidence, not a training pool.
+- **Stage C**, learned-dynamics recovery at the same states, runs only if Stage B passes.
 
 D_test (seeds 5000–5099) is not read by any stage before the last.
 
@@ -147,3 +151,130 @@ $L -I tools/pusht_recovery/audit.py --source SOURCE.npz --candidates CANDIDATES.
 
 SOURCE.npz is built by [`tools/pusht_v2/source.py`](../../tools/pusht_v2/source.py); CANDIDATES.npz and PROPOSALS.npz
 are #43's, identified by the digests above.
+
+## Stage B (revised protocol)
+
+**Question.** At the r = 0.25 coordinate, do oracle recovery windows built at a competent Diffusion Policy's own
+deviation states improve closed-loop coverage over the frozen base, and over self-distillation at the same states? The
+oracle isolates whether the state is relevant and the window representation from learned-dynamics error. Stage C
+replaces the oracle with CCIL only if this passes.
+
+This protocol was frozen before the base trained. Nothing in it was chosen from a policy return. B2–B4's code lands in
+its own PRs, implementing these rules with a smoke on non-study data, before each stage runs.
+
+### B0: the deviation geometry
+
+[`tools/pusht_recovery/support.py`](../../tools/pusht_recovery/support.py) reads only the subset's demonstrations. Its
+record is [`evidence/pusht-recovery/support.json`](evidence/pusht-recovery/support.json); two clean clones of `5cea5e9`
+wrote it byte for byte. A state is Diffusion Policy's two-step observation as 18 points. The distance is the largest
+per-point distance, in px.
+
+**Rejected: cross-episode proximity.**
+
+| px | 10% | 50% | 90% | 99% |
+|---|---|---|---|---|
+| a demonstration state to the nearest state of another episode | 11.3 | 32.6 | 81.6 | 137.2 |
+| that pair, one executed chunk (8 steps) later | 18.4 | 55.1 | 135.6 | 229.9 |
+
+With 41 episodes, the nearest other episode measures ordinary trajectory diversity. It identifies neither phase nor
+failure. A correct demonstration diverges from its nearest-neighbour "continuation" by a median 55 px within one chunk,
+so a recovery target taken from another episode would be arbitrary. A support threshold at the 99th percentile would be
+137 px.
+
+**Adopted: paired-prefix deviation.** The policy is rolled out from a demonstration's own recorded state and compared
+with the same episode's continuation, which is unambiguous.
+- **Threshold:** τ = 29.76 px, the 99th percentile of one demonstration step (median 8.6 px) plus the largest replay
+  error (0.001 px) over the 4,071 replay-verified states.
+- **Anchors:** every eighth row of each episode, from row 8 to 25 rows before its end, where the replay is verified and
+  the recorded continuation makes progress. Progress means c_D > c_0: c_0 is the anchor's coverage of the goal, and
+  c_D the highest coverage over the episode's rows from the anchor on, both by gym_pusht's coverage of the recorded T
+  pose. That gives 398 anchors in 37 episodes; every replay-verified anchor makes progress, by a median 0.70.
+- **Demonstrated progress, not success.** No subset demonstration reaches gym_pusht's success threshold: their highest
+  recorded coverage runs from 0.79 to 0.90 (median 0.857). The target is therefore the progress the demonstration
+  made, not the environment's 0.95 criterion.
+
+The study targets learner rollouts that depart materially from a demonstration and fail to realize the progress that
+demonstration achieved.
+
+### B1: a competent base
+
+The specification is [`tools/pusht_recovery/stage-b-base.json`](../../tools/pusht_recovery/stage-b-base.json), run by
+the #50 harness. It is the Diffusion Policy reference ([pusht-diffusion.md](pusht-diffusion.md)) with its training
+roles cut to the subset: 41 episodes, 5,081 frames and 4,794 windows; the 41 held-out episodes are for the loss
+diagnostic only. The harness preflight asserts these counts. Everything else is inherited: 100k steps at batch 64, the
+final checkpoint, seeds 1 and 2, `lerobot-eval` on starts 1000–1099.
+
+**Competence:** each seed's average maximum coverage is at least 0.504, half the hold-still (0.062) to
+demonstration-replay (0.946) gap. The specification enforces it per seed (`acceptance.min_per_seed`), so a strong seed
+cannot cover a weak one. If either seed misses it, the study stops and the result is published. No recovery
+label is built for an incompetent learner.
+
+### B2: discover deviations
+
+For each seed and each of the 398 anchors:
+1. **Restore** the anchor row's replayed full state, fresh. The policy's observation queue holds the row's two
+   recorded frames.
+2. **Roll out** the frozen base for the episode's remaining rows plus 50 steps, with its sampling seeded by
+   `SeedSequence([52, seed, episode, row])`.
+3. **Missed progress:** c_π, the rollout's highest coverage, is below c_D. Only such rollouts contribute.
+4. **Deviation:** D(k) is the distance from the rollout's state k steps on to the nearest state of the same episode's
+   continuation. The selected state is the first k ≥ 1 with D(k) > τ, at most one per rollout. The continuation row
+   attaining D(k) is j*, and j* + 8 must be a row of the episode. A rollout that tracks the demonstration but falls
+   just short never crosses τ, and so gives no state.
+
+Every rollout's c_0, c_D, c_π and shortfall c_D − c_π are recorded, with its selected state if any. No expert or oracle
+action takes part. The selected states' identities and full simulator states are written and hashed before any
+recovery target is built.
+
+**Audit.** Every rollout's states, full simulator states, observations, actions and policy outputs are saved and
+hashed.
+- The base's outputs are reproduced exactly on the saved observations, with the saved sampling seeds.
+- Coverage (within 1e-9), D(k), missed progress and the selection are recomputed from the saved states in a fresh
+  process. The selection must be identical.
+- An independent simulator replay of the saved actions is reported as a measurement of variability, not an equality
+  gate: PushT contact trajectories need not repeat across processes (#50).
+
+### B3: oracle recovery windows
+
+Each window is built with Stage A's machinery:
+- **Observations:** the rollout's states at k − 1 and k. Both are physically realized.
+- **Slot 0:** the action the policy applied at k − 1.
+- **Slots 1–8:** recovery actions solved with Stage A's solve settings (Gauss–Newton with minimum-norm steps; 0.05 px,
+  20 iterations, finite-difference step 1e-3, 8 halvings). They start from the demonstrated actions of rows
+  j* … j* + 7, and must bring the agent and the T onto row j* + 8.
+- **Slots 9–15:** the demonstrated actions from row j* + 8 on, supervised while the chain stays within 1.0 px.
+- **Checks:** Stage A's, unchanged: action bounds, finiteness, the speed and contact envelopes, provenance, an
+  independent rebuild audit, a byte-identical rerun.
+
+**Yield:** at least 100 accepted windows per seed, from at least 20 episodes, or the study stops. There is at most one
+window per anchor, so at most 398 per seed. A rejected state is never replaced.
+
+### B4: matched comparison
+
+All three arms start from each seed's byte-identical base checkpoint:
+1. **Base:** the checkpoint itself.
+2. **Self-distillation:** the windows' observations, with the base's own sampled chunk as the target (seed
+   `SeedSequence([52, seed, state])`).
+3. **Oracle recovery:** the same observations, with the B3 recovery chunk as the target.
+
+The two fine-tuned arms share the state identities, row order, slot 0, mask, batches, optimizer, schedule, checkpoint
+and evaluation starts. They differ only in the values of slots 1–15.
+
+**Fine-tuning:**
+- 10,000 steps at batch 64: 48 real subset windows and 16 synthetic, each stream drawn without replacement per epoch;
+- a fresh AdamW with LeRobot's defaults, peak lr 1e-5, 100 warmup steps, cosine to 0;
+- real windows supervise every slot, as the base trained; synthetic windows supervise their mask
+  (`do_mask_loss_for_padding: true`);
+- the final checkpoint.
+
+**Decision:** pass only if, on both seeds, oracle recovery's average maximum coverage on starts 1000–1099 exceeds both
+the base's and self-distillation's. All raw values, paired differences and success are reported. With two seeds this
+is a directional development gate. If it fails, the study stops, and no deviation threshold, horizon, exposure or
+schedule is searched.
+
+**Compute:** siddh's two GPUs, at no cost.
+- B1: about an hour per seed, at the 0.037 s/step measured in #50.
+- B4: about 10 minutes per unit.
+- Ceiling: 12 GPU-hours.
+
+The final-test starts (5000–5099) are not read.
