@@ -1,0 +1,179 @@
+{
+ "code": {
+  "commit": "4696cb034da681748700de28a8c36b1f0d5dfdad",
+  "dirty": false,
+  "files_sha256": {
+   "src/ilsb/temporal.py": "b6054b14690a5260e093b39a2646336123561eb160d0552043b0a5f9e1b5f81c",
+   "tools/pusht_recovery/stage-a.json": "5365afc4d27aa9f138457b88863a49817c73880bd9763868930f4ecbcabbed50",
+   "tools/pusht_recovery/stage_a.py": "7bb22943deecf1d1e4cfc8f59a6e99a20cfecb01057d7cfc4cdc99a545ce6a85",
+   "tools/pusht_v2/oracle.json": "074017e0c13fb1e5011e3123b3f347507619759fda0bc8d137ea610e0129d559",
+   "tools/pusht_v2/oracle_probe.py": "3ae3e960533c5c974039fbe4d66ef231e7871739e2471f4bfd1d1fc921b7a58f",
+   "tools/pusht_v2/oracle_stage_a.py": "efda5989b705754da43387659884e0f11bb0bbf752b46b85fb1a1de0285f7572",
+   "tools/pusht_v2/pose.py": "0d7b14f0d09fdb0dbe9911fccd6db13e71c5b00f89c5e9bfd05a68ae462976f0",
+   "tools/pusht_v2/source.py": "70f3fed087209e767f1ba2140bc50d2bce0a03a2e7704d4f92efbbac62c7af1e",
+   "tools/pusht_v2/surface.json": "b90f67084e91481a9b50899df5ad7c64e1d4c6ad642e90617aa7dad85c2fb0b5"
+  }
+ },
+ "decision": "pass: Stage B may be proposed in its own protocol PR",
+ "diagnostics": {
+  "action_change_px": {
+   "10": 3.478277560856487,
+   "100": 15.298376278291684,
+   "50": 9.406640960024466,
+   "90": 13.88397736684379,
+   "99": 14.941342481092937
+  },
+  "continuation_max_px": {
+   "10": 0.24670812351491805,
+   "100": 0.9998430881329974,
+   "50": 0.6564650172592855,
+   "90": 0.9303964138841864,
+   "99": 0.9941852427344939
+  },
+  "history_from_oracle_decode_px": {
+   "10": 0.1493158849612242,
+   "100": 17.470220241033317,
+   "50": 0.36041615618489614,
+   "90": 1.7466386679406352,
+   "99": 5.135162828390254
+  },
+  "history_from_source_px": {
+   "10": 1.889969829012752,
+   "100": 12.913055286969414,
+   "50": 5.189561344278489,
+   "90": 7.592836119777742,
+   "99": 8.160353848295623
+  },
+  "history_residual_px": {
+   "10": 4.602572685182346e-11,
+   "100": 0.049771861839935476,
+   "50": 2.36918823181187e-10,
+   "90": 0.027704386611870836,
+   "99": 0.04603710822588561
+  },
+  "iterations": {
+   "10": 1.0,
+   "100": 8.0,
+   "50": 1.0,
+   "90": 2.0,
+   "99": 5.0
+  },
+  "nearest_real_history_px": {
+   "10": 2.0820689696406407,
+   "100": 19.193421715400977,
+   "50": 5.434391065213761,
+   "90": 7.8938854500779705,
+   "99": 12.979796809364773
+  },
+  "rejoin_residual_px": {
+   "10": 5.447743812098593e-11,
+   "100": 0.04992777614235597,
+   "50": 3.222752120108841e-10,
+   "90": 0.03816338933569187,
+   "99": 0.04901316607046881
+  },
+  "supervised_slots": {
+   "10": 25,
+   "11": 26,
+   "12": 26,
+   "13": 21,
+   "14": 28,
+   "15": 26,
+   "16": 1689,
+   "9": 24
+  }
+ },
+ "identities": {
+  "candidates_sha256": "6f8c9c97f85d08e775430f67284b964ebe3b68572c06ae8db8dd8f915202747f",
+  "oracle_proposals_content_sha256": "b31c22018bf582b7687220ce05cb49372679a9b31bb1c7e891ab589ad8646adf",
+  "population": "the oracle Stage A proposals with status ok (#43): their action and decoded previous slot",
+  "source_content_sha256": "333a9b17ebfc6657591eb2b14a7f314200dd2ae1c743691802a319c1746e561d",
+  "stage_a_json_sha256": "5365afc4d27aa9f138457b88863a49817c73880bd9763868930f4ecbcabbed50"
+ },
+ "limits": {
+  "action_change_px": 66.40081054108563,
+  "speed": [
+   603.5285276289572,
+   131.31266440724673,
+   215.32650843959127
+  ]
+ },
+ "mass": {
+  "n_real": 4794,
+  "n_synthetic": 1598,
+  "real_supervised_values_per_window": 32,
+  "selected_supervised_values": 58286,
+  "selected_windows": 1865
+ },
+ "proposals": {
+  "accepted": 2751,
+  "anchors": 1865,
+  "attempted": 12743,
+  "counts": {
+   "action_out_of_bounds": 25,
+   "anchor_in_dropped_frames": 709,
+   "b_beyond_action_change": 7,
+   "beyond_extent_envelope": 2,
+   "beyond_penetration_envelope": 6,
+   "no_predecessor": 0,
+   "non_finite": 0,
+   "ok": 2751,
+   "short_continuation": 4777,
+   "singular_jacobian": 0,
+   "solve_failed": 4424,
+   "speed_beyond_envelope": 42
+  },
+  "episodes_with_anchors": 37,
+  "per_episode": {
+   "102": 47,
+   "105": 23,
+   "110": 62,
+   "113": 67,
+   "117": 55,
+   "121": 56,
+   "13": 48,
+   "133": 59,
+   "136": 52,
+   "141": 86,
+   "143": 0,
+   "161": 2,
+   "163": 34,
+   "165": 90,
+   "172": 40,
+   "177": 59,
+   "18": 0,
+   "181": 0,
+   "182": 0,
+   "185": 26,
+   "188": 40,
+   "193": 51,
+   "2": 49,
+   "200": 87,
+   "30": 33,
+   "32": 60,
+   "33": 56,
+   "34": 68,
+   "35": 52,
+   "36": 63,
+   "39": 31,
+   "52": 47,
+   "54": 114,
+   "55": 37,
+   "59": 32,
+   "78": 39,
+   "82": 29,
+   "83": 59,
+   "88": 25,
+   "89": 42,
+   "90": 45
+  },
+  "population": 12743
+ },
+ "schema": "ilsb.pusht_recovery.stage_a 1",
+ "simulator": {
+  "gym_pusht": "0.1.8",
+  "pymunk": "6.11.1"
+ },
+ "windows_content_sha256": "0e650eb1363d2d0d79cf65800c4f7d66a0c8c3ee83e3d21d1294f7163a85b1f4",
+ "windows_npz_content_sha256": "0778c3c2b580e8ea62c2f25106cc6ab0f7ef13f7a929c68c2f2b20eebec72d49"
+}
