@@ -189,4 +189,5 @@ minutes, and each audit about 67.
 
 **Next.** No third member is trained, and no other uncertainty summary is tried. The next method observes learner
 failure directly: roll the deployed learner out from environment starts, find the states or short windows that precede
-actual failure, and ask whether CCIL can provide valid recovery supervision there.
+actual failure, and ask whether CCIL can provide valid recovery supervision there. That is
+[#66](https://github.com/personalrobotics/il-supervision-benchmarks/issues/66) ([pusht-failure.md](pusht-failure.md)).
