@@ -1,0 +1,385 @@
+{
+ "acceptance": {
+  "met": true,
+  "min_per_seed": 0.504
+ },
+ "code": "836e9ac0f2a8b434532c8fb43a237a9a45f1f5be",
+ "counts": {
+  "held_out": {
+   "episodes": 41,
+   "frames": 5150
+  },
+  "train": {
+   "episodes": 41,
+   "frames": 5081
+  }
+ },
+ "dirty": false,
+ "mean_avg_max_reward": 0.6577611697625892,
+ "mean_pc_success": 29.5,
+ "repeat": {
+  "avg_max_reward": {
+   "first": 0.6611606442437987,
+   "repeat": 0.6596917523923765
+  },
+  "episodes_with_other_success": 9,
+  "identical": false,
+  "max_episode_deviation": {
+   "max_reward": 0.06652400516512957,
+   "sum_reward": 177.09988963621208
+  },
+  "pc_success": {
+   "first": 34.0,
+   "repeat": 35.0
+  },
+  "unit": "lerobot_diffusion/s1"
+ },
+ "schema": "ilsb.pusht_diffusion.reference 1",
+ "spec": "tools/pusht_recovery/stage-b-base.json",
+ "split_entry": "6315ba073a8defab22ac773c583c5e137e80608a76aec5ebc62b67d702159188",
+ "stages": {
+  "audit": true,
+  "evaluate": true,
+  "evaluation_audit": true,
+  "preflight": true,
+  "report": true,
+  "train": true
+ },
+ "units": {
+  "lerobot_diffusion/s1": {
+   "checkpoints": [
+    {
+     "held_out_loss": 0.08129115230337769,
+     "model_sha256": "68d019c512176db2c32c501455b9008b090b89927ecb07f75900909c30296e8a",
+     "step": 10000
+    },
+    {
+     "held_out_loss": 0.11742715084354205,
+     "model_sha256": "8007b82d9873d6d0e5f67d28cdf25fbebd3698af109b60b21f41cff50261bf7c",
+     "step": 20000
+    },
+    {
+     "held_out_loss": 0.14761154734497572,
+     "model_sha256": "8f54d2f974443e43070d4fadc8a6f15497c4009d359a5b244fc64137fe7ad516",
+     "step": 30000
+    },
+    {
+     "held_out_loss": 0.1838779599332476,
+     "model_sha256": "31b373c547ae2c496baf708aacb0b9ecb8f7a14757a3f7417121e91dff5c2bd0",
+     "step": 40000
+    },
+    {
+     "held_out_loss": 0.18856332325626493,
+     "model_sha256": "1ce33b0d15c1a8f2d71c799f52d6ac8a22c7c757d5e46cce7b46b2b65b0887c4",
+     "step": 50000
+    },
+    {
+     "held_out_loss": 0.20758358893964654,
+     "model_sha256": "fe801adee81c4eedae7ea5cbe255d5e96f4fc6fc98a9b626eda6a573768071c7",
+     "step": 60000
+    },
+    {
+     "held_out_loss": 0.24599840699609063,
+     "model_sha256": "fd62a7d87f4880da367fd4b005a90817a80f0909f409d99c62ad753083d2a0ba",
+     "step": 70000
+    },
+    {
+     "held_out_loss": 0.27906894064871296,
+     "model_sha256": "bc0fce99930739a93318fe18e550d6223b4da56074de5787f9312c186965f3fc",
+     "step": 80000
+    },
+    {
+     "held_out_loss": 0.3093289625196086,
+     "model_sha256": "bf060b0a947019886b62a53b215fd83822693db59b29ca716c8ca26f61d903e3",
+     "step": 90000
+    },
+    {
+     "held_out_loss": 0.3142597753092656,
+     "model_sha256": "b4e025aa2cd2225a7b5308cbf6934d8c7210f7a94ed9f16f4d193af18cef71f0",
+     "step": 100000
+    }
+   ],
+   "entry": "f4d32f60a6f78f7ef4e660e381d7f0247992625cb8cb858db3216c287b5789d0",
+   "evaluation": {
+    "avg_max_reward": 0.6611606442437987,
+    "pc_success": 34.0
+   },
+   "peak_mib": {
+    "gpu_mib": 5764,
+    "rss_mib": 3864
+   },
+   "restarted_from": [],
+   "resumed_from": [],
+   "seed": 1,
+   "selected_model_sha256": "b4e025aa2cd2225a7b5308cbf6934d8c7210f7a94ed9f16f4d193af18cef71f0",
+   "selected_step": 100000,
+   "unsuccessful_start_seeds": [
+    1001,
+    1003,
+    1004,
+    1005,
+    1006,
+    1007,
+    1009,
+    1010,
+    1011,
+    1013,
+    1016,
+    1019,
+    1020,
+    1021,
+    1022,
+    1023,
+    1024,
+    1025,
+    1029,
+    1030,
+    1032,
+    1033,
+    1034,
+    1035,
+    1036,
+    1038,
+    1040,
+    1041,
+    1042,
+    1044,
+    1045,
+    1046,
+    1048,
+    1050,
+    1051,
+    1052,
+    1053,
+    1055,
+    1056,
+    1058,
+    1059,
+    1061,
+    1062,
+    1064,
+    1066,
+    1068,
+    1070,
+    1071,
+    1072,
+    1073,
+    1076,
+    1077,
+    1078,
+    1080,
+    1081,
+    1083,
+    1084,
+    1086,
+    1087,
+    1088,
+    1092,
+    1093,
+    1094,
+    1096,
+    1097,
+    1098
+   ]
+  },
+  "lerobot_diffusion/s2": {
+   "checkpoints": [
+    {
+     "held_out_loss": 0.08133033583518681,
+     "model_sha256": "c0a97b7363b00580bee450ac39b4198a00da4ebe77dfbc211c34f42b5e8c6ef1",
+     "step": 10000
+    },
+    {
+     "held_out_loss": 0.12097739314753504,
+     "model_sha256": "d05f256677941ef99d7ad803beb91776addaa007c10a15b6b7c82356a7bb1cc8",
+     "step": 20000
+    },
+    {
+     "held_out_loss": 0.14214721809266012,
+     "model_sha256": "7441d40f0b90fb2609b4f1152c9b5c80b850364af4e8ca7049f49b594f723611",
+     "step": 30000
+    },
+    {
+     "held_out_loss": 0.16068135990040944,
+     "model_sha256": "3c3dda04d167e63694888ffe567c2b6e12e330835fe4967d98e1c24b56f77b7b",
+     "step": 40000
+    },
+    {
+     "held_out_loss": 0.17173373274797768,
+     "model_sha256": "8801e743e6e78657e003ba1175ec3326305a64c409fbac9073929003193be969",
+     "step": 50000
+    },
+    {
+     "held_out_loss": 0.2021720259186664,
+     "model_sha256": "6b0598d10ce79609a37fa798766a8341e89ddb8b8a561c490121c73d9dffcbee",
+     "step": 60000
+    },
+    {
+     "held_out_loss": 0.2372544661743416,
+     "model_sha256": "d5f8dbc91d4b2776ab9fe50224b92cbf33756626478321631f6c9adae63e799b",
+     "step": 70000
+    },
+    {
+     "held_out_loss": 0.2748320701189451,
+     "model_sha256": "aa99bd319bede87533c7c6cdfb77e322b0e203fdfab9261505bdad1a9a541c90",
+     "step": 80000
+    },
+    {
+     "held_out_loss": 0.3015330373051969,
+     "model_sha256": "646cbbc98981c6ed3ead98c4d1b7eb4d4d4d76bd00d8a5d0efe11a4b844c7536",
+     "step": 90000
+    },
+    {
+     "held_out_loss": 0.3088786418352651,
+     "model_sha256": "fdc8cf40a5a761b5a1c694ec704e331a8a84262e48765954c82ea8e95f2d36ad",
+     "step": 100000
+    }
+   ],
+   "entry": "ae54e35cac7dabd7676c23082c47d902d47ed2dea82d45cbce8c69a5588b0f5c",
+   "evaluation": {
+    "avg_max_reward": 0.6543616952813798,
+    "pc_success": 25.0
+   },
+   "peak_mib": {
+    "gpu_mib": 5764,
+    "rss_mib": 3853
+   },
+   "restarted_from": [],
+   "resumed_from": [],
+   "seed": 2,
+   "selected_model_sha256": "fdc8cf40a5a761b5a1c694ec704e331a8a84262e48765954c82ea8e95f2d36ad",
+   "selected_step": 100000,
+   "unsuccessful_start_seeds": [
+    1001,
+    1002,
+    1003,
+    1004,
+    1005,
+    1008,
+    1009,
+    1010,
+    1011,
+    1012,
+    1013,
+    1014,
+    1015,
+    1016,
+    1017,
+    1019,
+    1020,
+    1021,
+    1022,
+    1023,
+    1024,
+    1025,
+    1026,
+    1027,
+    1029,
+    1030,
+    1032,
+    1033,
+    1034,
+    1035,
+    1036,
+    1037,
+    1038,
+    1041,
+    1042,
+    1044,
+    1046,
+    1048,
+    1050,
+    1051,
+    1052,
+    1053,
+    1054,
+    1055,
+    1057,
+    1059,
+    1060,
+    1061,
+    1062,
+    1064,
+    1066,
+    1067,
+    1068,
+    1071,
+    1073,
+    1074,
+    1075,
+    1076,
+    1077,
+    1078,
+    1079,
+    1081,
+    1082,
+    1083,
+    1084,
+    1085,
+    1086,
+    1087,
+    1088,
+    1090,
+    1091,
+    1093,
+    1094,
+    1095,
+    1098
+   ]
+  }
+ },
+ "upstream": {
+  "cuda": "13.0",
+  "distributions_sha256": "680cfe2986296154fb94845271ae43d30d350939992f11bd84170f03fb0236a1",
+  "gpu": "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition",
+  "lerobot": "0.6.1",
+  "torch": "2.11.0+cu130"
+ },
+ "window_spec": {
+  "action_offsets": [
+   -1,
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9,
+   10,
+   11,
+   12,
+   13,
+   14
+  ],
+  "drop_n_last_frames": 7,
+  "horizon": 16,
+  "n_action_steps": 8,
+  "n_obs_steps": 2,
+  "obs_offsets": [
+   -1,
+   0
+  ],
+  "supervise_padding": true
+ },
+ "windows": {
+  "held_out": {
+   "action_padded_slots": 1189,
+   "episodes": 41,
+   "obs_padded_slots": 41,
+   "sha256": "b4814a4b336a0ee5bec4469c788953c9597da9d53b492b239547056e4755258a",
+   "supervised_action_slots": 77808,
+   "windows": 4863
+  },
+  "train": {
+   "action_padded_slots": 1189,
+   "episodes": 41,
+   "obs_padded_slots": 41,
+   "sha256": "846e4d97d96fd4e86952701c6be33dd4934095017f672ab92282170de4d0529e",
+   "supervised_action_slots": 76704,
+   "windows": 4794
+  }
+ }
+}
