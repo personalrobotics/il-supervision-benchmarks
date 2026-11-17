@@ -1,0 +1,114 @@
+{
+ "code": {
+  "commit": "f9caa6c76ba09d9f46ae2cfe9ea454c591c09942",
+  "dirty": false,
+  "files_sha256": {
+   "tools/pusht_recovery/stage-a.json": "5365afc4d27aa9f138457b88863a49817c73880bd9763868930f4ecbcabbed50",
+   "tools/pusht_recovery/stage_a.py": "7bb22943deecf1d1e4cfc8f59a6e99a20cfecb01057d7cfc4cdc99a545ce6a85",
+   "tools/pusht_recovery/support.py": "3a8f2e0e623d2705d0bda818c58c3df9e6344e9c016dfdc88e1eb76e6273baa3",
+   "tools/pusht_v2/oracle_probe.py": "3ae3e960533c5c974039fbe4d66ef231e7871739e2471f4bfd1d1fc921b7a58f",
+   "tools/pusht_v2/oracle_stage_a.py": "efda5989b705754da43387659884e0f11bb0bbf752b46b85fb1a1de0285f7572",
+   "tools/pusht_v2/source.py": "70f3fed087209e767f1ba2140bc50d2bce0a03a2e7704d4f92efbbac62c7af1e",
+   "tools/pusht_v2/surface.json": "b90f67084e91481a9b50899df5ad7c64e1d4c6ad642e90617aa7dad85c2fb0b5"
+  }
+ },
+ "counts": {
+  "subset_episodes": 41,
+  "subset_states": 5040
+ },
+ "distance": "largest per-point Euclidean distance, px",
+ "inputs": {
+  "r": 0.25,
+  "source_content_sha256": "333a9b17ebfc6657591eb2b14a7f314200dd2ae1c743691802a319c1746e561d",
+  "subset_episodes": [
+   2,
+   13,
+   18,
+   30,
+   32,
+   33,
+   34,
+   35,
+   36,
+   39,
+   52,
+   54,
+   55,
+   59,
+   78,
+   82,
+   83,
+   88,
+   89,
+   90,
+   102,
+   105,
+   110,
+   113,
+   117,
+   121,
+   133,
+   136,
+   141,
+   143,
+   161,
+   163,
+   165,
+   172,
+   177,
+   181,
+   182,
+   185,
+   188,
+   193,
+   200
+  ],
+  "subset_seed": 0
+ },
+ "paired_prefix": {
+  "anchor_episodes": 37,
+  "anchor_rule": {
+   "first_row": 8,
+   "rows_before_end": 25,
+   "stride": 8
+  },
+  "anchors": 398,
+  "anchors_sha256": "c7a48c690e6a257c1f122d1a3793f3fea7cf452fc584a00c036cd92adfb08496",
+  "demonstration_step_px": {
+   "10": 3.4452492273991013,
+   "100": 58.04388145882132,
+   "50": 8.602794961266053,
+   "90": 19.373445325579173,
+   "99": 29.763088238879227
+  },
+  "replay_error_max_px": 0.0009918054420089107,
+  "replay_verified_states": 4071,
+  "tau_px": 29.764080044321236,
+  "tau_rule": "the 99th percentile of one demonstration step plus the largest replay error over the replay-verified states"
+ },
+ "rejected_cross_episode": {
+  "nearest_other_episode_px": {
+   "10": 11.345125449870345,
+   "100": 210.39463921183793,
+   "50": 32.629496932684056,
+   "90": 81.6150962035764,
+   "99": 137.19286547037265
+  },
+  "same_pair_after_one_chunk_px": {
+   "10": 18.387406499360473,
+   "100": 304.2039133159987,
+   "50": 55.105127394872994,
+   "90": 135.61373591423174,
+   "99": 229.89079803721523
+  },
+  "states": 4712,
+  "tau_if_99th_percentile_px": 137.19286547037265
+ },
+ "schema": "ilsb.pusht_recovery.support 2",
+ "simulator": {
+  "env": "gym_pusht/PushT-v0",
+  "gym_pusht": "0.1.8",
+  "pymunk": "6.11.1"
+ },
+ "state": "18 points: agent and 8 T keypoints, frames k and k + 1 (one source row)"
+}

@@ -1,0 +1,67 @@
+{
+ "study": "pusht-recovery-stage-b",
+ "issue": 52,
+ "status": "protocol: frozen before the base trains; B2-B4 code lands in its own PRs, implementing these rules",
+ "cell": {"r": 0.25, "subset_seed": 0, "subset_episodes": 41},
+ "base": {
+  "spec": "tools/pusht_recovery/stage-b-base.json",
+  "seeds": [1, 2],
+  "competence": {"metric": "avg_max_reward", "starts": "development", "min_per_seed": 0.504,
+                 "rule": "half the hold-still (0.0620) to demonstration-replay (0.9464) gap on the development starts"}
+ },
+ "starts": {"development": {"start_seed": 1000, "n_episodes": 100},
+            "final_test": {"start_seed": 5000, "n_episodes": 100, "read": false},
+            "discovery": "demonstration prefixes of the subset (anchors below); no environment start seed"},
+ "support": {
+  "record": "docs/studies/evidence/pusht-recovery/support.json",
+  "record_sha256": "45f7d183a3de54600d51ca09b9c5bde405bd25138a6b783d43ba806c420f7341",
+  "state": "18 points: agent and 8 T keypoints, previous and current frame",
+  "distance": "largest per-point Euclidean distance, px",
+  "rejected": "cross-episode nearest neighbour: it measures trajectory diversity, not phase or failure"
+ },
+ "discovery": {
+  "anchors": {"rule": {"stride": 8, "first_row": 8, "rows_before_end": 25, "replay_verified": true},
+              "count": 398, "episodes": 37,
+              "sha256": "c7a48c690e6a257c1f122d1a3793f3fea7cf452fc584a00c036cd92adfb08496"},
+  "restore": "the replayed full state (positions and velocities) of the anchor row, loaded fresh; the policy's observation queue holds the anchor row's recorded two frames",
+  "rollout": {"steps": "the episode's rows after the anchor, plus 50", "policy_sampling_seed": "SeedSequence([52, learner seed, episode, anchor row])"},
+  "failure": "the rollout's maximum coverage stays below 0.95",
+  "deviation_distance": "D(k): the distance from the rollout's state k steps after the anchor to the nearest state of the same episode's continuation (rows from the anchor on)",
+  "tau_px": 29.764080044321236,
+  "tau_rule": "the 99th percentile of one demonstration step plus the largest replay error (support.json)",
+  "selected_state": "on a failed rollout only: the first k >= 1 with D(k) > tau; at most one state per rollout",
+  "matched_row": "j*: the continuation row that attains D(k)",
+  "eligible": "j* + 8 is a row of the episode",
+  "frozen": "state identities (learner seed, episode, anchor row, k, j*) and their full simulator states are written and hashed before any recovery target is built"
+ },
+ "recovery": {
+  "observations": "the rollout's states at k - 1 and k",
+  "slot_0": "the action the policy applied at step k - 1",
+  "slots_1_8": "recovery actions: Gauss-Newton with minimum-norm steps over the 16 values, from the demonstrated actions of rows j* .. j* + 7; residual: the chain's agent position and T pose after slot 8 against row j* + 8",
+  "solve": {"tolerance_px": 0.05, "max_iterations": 20, "fd_step": 0.001, "line_search": 8, "rcond": 1e-10},
+  "slots_9_15": "the demonstrated actions of rows j* + 8 onward (the episode's last action past its end, padded)",
+  "mask": "slots 0-8 supervised; slot k >= 9 supervised while every chain state from slot 9 on is within 1.0 px of its row and the row exists",
+  "checks": "Stage A's: action bounds [0, 512], every chain state finite, the speed envelope, the penetration and extent envelope, provenance, an independent rebuild audit and a byte-identical rerun",
+  "yield": {"min_windows_per_seed": 100, "min_episodes_per_seed": 20},
+  "cap": {"max_windows_per_seed": 400, "selection": "default_rng(SeedSequence([52, learner seed])).choice without replacement"},
+  "rejected_states": "never replaced"
+ },
+ "comparison": {
+  "arms": ["base", "self_distillation", "oracle_recovery"],
+  "start": "each seed's byte-identical base checkpoint",
+  "self_distillation_targets": "the base's own 16-action chunk at the window's observations, sampled with SeedSequence([52, learner seed, state id]); slot 0 the applied action; the oracle window's mask",
+  "matched": ["state identities", "observations", "row order", "masks", "supervised slot mass", "batches", "optimizer", "schedule", "checkpoint", "evaluation starts"],
+  "fine_tune": {"steps": 10000, "batch_size": 64, "synthetic_per_batch": 16, "real_per_batch": 48,
+                "sampler": "two streams, each drawn without replacement within an epoch from SeedSequence([learner seed, stream, epoch])",
+                "optimizer": "AdamW, LeRobot's Diffusion Policy defaults, fresh state", "peak_lr": 1e-5, "warmup_steps": 100,
+                "schedule": "cosine to 0 over the 10,000 steps",
+                "real_windows": "the subset's 4,794 windows, action_is_pad all False (every slot supervised, as the base trained)",
+                "synthetic_windows": "action_is_pad = not mask", "do_mask_loss_for_padding": true,
+                "checkpoint": "the final step"},
+  "evaluation": "lerobot-eval as the base, on the development starts",
+  "decision": "pass only if, on both learner seeds, oracle recovery's average maximum coverage exceeds both the base's and self-distillation's; otherwise stop"
+ },
+ "compute": {"host": "siddh", "gpus": 2, "paid": false, "ceiling_gpu_hours": 12},
+ "stops": ["B1: a seed below the competence threshold", "B2: fewer failed-rollout deviations than the B3 yield",
+           "B3: fewer accepted windows or episodes than the yield", "B4: the decision fails"]
+}
