@@ -73,6 +73,7 @@ A specification with `task.kind: lerobot` selects the study, and its `learner.ki
   - `min_held_out_loss`: the checkpoint with the least held-out loss, with ties going to the earlier step.
 
   The held-out loss of every checkpoint is recorded under either rule.
+- **`acceptance`** declares `min_mean` (the seeds' mean must reach it), `min_per_seed` (every seed must reach it on its own), or both. The report states each threshold and whether all are met.
 - **`expected`** holds every count the protocol implies, asserted exactly in preflight.
 - **`compute.device`** is the harness's device, which is the CPU. `learner_device` is where training, scoring and evaluation run.
 

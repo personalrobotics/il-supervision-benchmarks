@@ -145,7 +145,7 @@
  },
  "acceptance": {
   "metric": "avg_max_reward",
-  "min_mean": 0.504
+  "min_per_seed": 0.504
  },
  "expected": {
   "train_episodes": 41,
