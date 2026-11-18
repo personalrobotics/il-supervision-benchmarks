@@ -1,7 +1,7 @@
 {
  "audit_ok": true,
  "code": {
-  "commit": "3cfb9b767129262cbc605e1bdc8b2b2f3fa580fc",
+  "commit": "0eb22b13998a9452a0b5bf57310fd0f0f9751640",
   "dirty": false
  },
  "faults": {
@@ -10,7 +10,7 @@
    "injected": {
     "M": "2",
     "file": "009.json",
-    "restart": 1,
+    "restart": 0,
     "segment_valid": true,
     "solver": "cem"
    },
@@ -28,7 +28,18 @@
    "injected": {
     "M": "2",
     "file": "009.json",
-    "restart": 1,
+    "restart": 0,
+    "segment_valid": true,
+    "solver": "cem"
+   },
+   "refused_for_the_right_reason": true
+  },
+  "handoff": {
+   "first_refusal": "handoff",
+   "injected": {
+    "M": "2",
+    "file": "009.json",
+    "restart": 0,
     "segment_valid": true,
     "solver": "cem"
    },
@@ -39,7 +50,7 @@
    "injected": {
     "M": "2",
     "file": "009.json",
-    "restart": 1,
+    "restart": 0,
     "segment_valid": true,
     "solver": "cem"
    },
@@ -50,7 +61,7 @@
    "injected": {
     "M": "2",
     "file": "009.json",
-    "restart": 1,
+    "restart": 0,
     "segment_valid": true,
     "solver": "cem"
    },
@@ -63,27 +74,27 @@
  "projection": {
   "measured_with_workers": 32,
   "seconds_per_start": {
-   "max": 98.61953663825989,
-   "mean": 87.49504479169846
+   "max": 128.68319439888,
+   "mean": 115.4854027748108
   },
-  "smoke_core_seconds": 3499.8017916679382,
+  "smoke_core_seconds": 4619.416110992432,
   "smoke_starts": 40,
-  "study_core_hours": 9.72167164352205,
-  "study_wall_hours": 0.3038022388600641,
+  "study_core_hours": 12.83171141942342,
+  "study_wall_hours": 0.4009909818569819,
   "study_workers": 32
  },
- "record_sha256": "aa735fb59bfee008e43ad557a4253ce71a1aab5eb015fb87bbc05c284c6a56b8",
+ "record_sha256": "c97a8a502ddea456ca89b152680c25fc6740fc3df6ba6b062c10d77dc598ddbd",
  "rerun_byte_identical": true,
  "schema": "ilsb.recovery_feasibility.smoke 1",
  "smoke_decision": {
   "fraction_by_radius": {
-   "0.5": 0.0,
+   "0.5": 0.16666666666666666,
    "1.0": 0.0,
-   "2.0": 0.0,
+   "2.0": 0.1,
    "4.0": 0.0
   },
   "passes": false,
-  "valid_starts": 0
+  "valid_starts": 2
  },
  "smoke_summary": {
   "ambiguity": {
@@ -108,9 +119,9 @@
      "distinct_valid": {
       "0": 0.0,
       "10": 0.0,
-      "100": 1.0,
+      "100": 2.0,
       "50": 0.0,
-      "90": 0.0
+      "90": 1.1000000000000014
      },
      "ties_with_best": {
       "0": 1.0,
@@ -140,7 +151,7 @@
      "distinct_valid": {
       "0": 0.0,
       "10": 0.0,
-      "100": 0.0,
+      "100": 2.0,
       "50": 0.0,
       "90": 0.0
      },
@@ -156,9 +167,9 @@
      "distinct_valid": {
       "0": 0.0,
       "10": 0.0,
-      "100": 0.0,
+      "100": 2.0,
       "50": 0.0,
-      "90": 0.0
+      "90": 0.10000000000000142
      },
      "ties_with_best": {
       "0": 1.0,
@@ -171,7 +182,14 @@
    }
   },
   "available": 40,
-  "certified_m1_infeasible": {
+  "ineligible_pairs_by_M": {
+   "1": 0,
+   "16": 0,
+   "2": 0,
+   "4": 0,
+   "8": 0
+  },
+  "m1_ruled_out": {
    "by_radius": {
     "0.5": 6,
     "1.0": 10,
@@ -179,13 +197,6 @@
     "4.0": 10
    },
    "total": 36
-  },
-  "ineligible_pairs_by_M": {
-   "1": 0,
-   "16": 0,
-   "2": 0,
-   "4": 0,
-   "8": 0
   },
   "per_step_defect": 0.0,
   "redraw_reasons": {
@@ -201,60 +212,14 @@
   "refinement_delta": {
    "0": 0.0,
    "10": 0.0,
-   "100": 55.18632992099245,
-   "50": 0.31821112832308657,
-   "90": 2.157529226534191
+   "100": 118.1413661753855,
+   "50": 0.3212397603992798,
+   "90": 2.506202590601169
   },
   "returned_rejected": [
    {
     "M": 8,
     "failed": [
-     "continuation"
-    ],
-    "restart": 0,
-    "solver": "cem",
-    "start": 3
-   },
-   {
-    "M": 16,
-    "failed": [
-     "continuation"
-    ],
-    "restart": 0,
-    "solver": "cem",
-    "start": 3
-   },
-   {
-    "M": 1,
-    "failed": [
-     "continuation"
-    ],
-    "restart": 0,
-    "solver": "cem",
-    "start": 9
-   },
-   {
-    "M": 1,
-    "failed": [
-     "continuation"
-    ],
-    "restart": 1,
-    "solver": "cem",
-    "start": 9
-   },
-   {
-    "M": 2,
-    "failed": [
-     "continuation"
-    ],
-    "restart": 0,
-    "solver": "cem",
-    "start": 9
-   },
-   {
-    "M": 4,
-    "failed": [
-     "continuation",
      "refinement"
     ],
     "restart": 0,
@@ -262,9 +227,8 @@
     "start": 9
    },
    {
-    "M": 4,
+    "M": 16,
     "failed": [
-     "continuation",
      "refinement"
     ],
     "restart": 1,
@@ -274,171 +238,15 @@
    {
     "M": 8,
     "failed": [
-     "continuation"
-    ],
-    "restart": 0,
-    "solver": "cem",
-    "start": 9
-   },
-   {
-    "M": 8,
-    "failed": [
-     "continuation"
-    ],
-    "restart": 1,
-    "solver": "cem",
-    "start": 9
-   },
-   {
-    "M": 16,
-    "failed": [
-     "continuation"
-    ],
-    "restart": 0,
-    "solver": "cem",
-    "start": 9
-   },
-   {
-    "M": 16,
-    "failed": [
-     "continuation"
-    ],
-    "restart": 1,
-    "solver": "cem",
-    "start": 9
-   },
-   {
-    "M": 16,
-    "failed": [
-     "continuation"
-    ],
-    "restart": 0,
-    "solver": "cem",
-    "start": 17
-   },
-   {
-    "M": 2,
-    "failed": [
-     "continuation"
-    ],
-    "restart": 0,
-    "solver": "cem",
-    "start": 24
-   },
-   {
-    "M": 4,
-    "failed": [
-     "continuation"
-    ],
-    "restart": 0,
-    "solver": "cem",
-    "start": 24
-   },
-   {
-    "M": 4,
-    "failed": [
-     "continuation"
-    ],
-    "restart": 1,
-    "solver": "cem",
-    "start": 24
-   },
-   {
-    "M": 8,
-    "failed": [
-     "continuation"
-    ],
-    "restart": 0,
-    "solver": "cem",
-    "start": 24
-   },
-   {
-    "M": 8,
-    "failed": [
-     "continuation"
-    ],
-    "restart": 1,
-    "solver": "cem",
-    "start": 24
-   },
-   {
-    "M": 16,
-    "failed": [
-     "continuation"
-    ],
-    "restart": 0,
-    "solver": "cem",
-    "start": 24
-   },
-   {
-    "M": 16,
-    "failed": [
-     "continuation"
-    ],
-    "restart": 1,
-    "solver": "cem",
-    "start": 24
-   },
-   {
-    "M": 4,
-    "failed": [
-     "continuation",
-     "refinement"
-    ],
-    "restart": 0,
-    "solver": "cem",
-    "start": 25
-   },
-   {
-    "M": 4,
-    "failed": [
-     "continuation",
      "refinement"
     ],
     "restart": 1,
     "solver": "cem",
-    "start": 25
+    "start": 24
    },
    {
     "M": 8,
     "failed": [
-     "continuation"
-    ],
-    "restart": 0,
-    "solver": "cem",
-    "start": 25
-   },
-   {
-    "M": 8,
-    "failed": [
-     "continuation"
-    ],
-    "restart": 1,
-    "solver": "cem",
-    "start": 25
-   },
-   {
-    "M": 16,
-    "failed": [
-     "continuation"
-    ],
-    "restart": 0,
-    "solver": "cem",
-    "start": 25
-   },
-   {
-    "M": 16,
-    "failed": [
-     "continuation"
-    ],
-    "restart": 1,
-    "solver": "cem",
-    "start": 25
-   },
-   {
-    "M": 8,
-    "failed": [
-     "continuation",
      "refinement"
     ],
     "restart": 0,
@@ -448,44 +256,6 @@
    {
     "M": 8,
     "failed": [
-     "continuation",
-     "refinement"
-    ],
-    "restart": 1,
-    "solver": "cem",
-    "start": 30
-   },
-   {
-    "M": 16,
-    "failed": [
-     "continuation"
-    ],
-    "restart": 0,
-    "solver": "cem",
-    "start": 30
-   },
-   {
-    "M": 16,
-    "failed": [
-     "continuation"
-    ],
-    "restart": 0,
-    "solver": "cem",
-    "start": 32
-   },
-   {
-    "M": 16,
-    "failed": [
-     "continuation"
-    ],
-    "restart": 1,
-    "solver": "cem",
-    "start": 32
-   },
-   {
-    "M": 8,
-    "failed": [
-     "continuation",
      "refinement"
     ],
     "restart": 0,
@@ -495,27 +265,6 @@
    {
     "M": 8,
     "failed": [
-     "continuation",
-     "refinement"
-    ],
-    "restart": 1,
-    "solver": "cem",
-    "start": 36
-   },
-   {
-    "M": 16,
-    "failed": [
-     "continuation",
-     "refinement"
-    ],
-    "restart": 0,
-    "solver": "cem",
-    "start": 36
-   },
-   {
-    "M": 16,
-    "failed": [
-     "continuation",
      "refinement"
     ],
     "restart": 1,
@@ -523,48 +272,50 @@
     "start": 36
    }
   ],
-  "returned_segments": 37,
+  "returned_segments": 31,
   "shortest_valid_M": {
-   "16": 1,
+   "16": 2,
    "2": 2,
-   "None": 37
+   "4": 1,
+   "8": 1,
+   "None": 34
   },
   "starts": 40,
   "terminal_miss_over_eps_by_M": {
    "1": {
-    "0": 0.9565754124114679,
+    "0": 1.1732134808749966,
     "10": 3.410272415416419,
     "100": 40.10352527446521,
-    "50": 10.240152681875394,
+    "50": 10.344526274730601,
     "90": 37.49522136818369
    },
    "16": {
-    "0": 0.04812840283969767,
-    "10": 0.34682641429443134,
+    "0": 0.36135539801633854,
+    "10": 0.5907601401223257,
     "100": 60.42830455367582,
-    "50": 6.951387995892457,
-    "90": 22.696633895236438
+    "50": 6.829068450951274,
+    "90": 22.5616722313461
    },
    "2": {
-    "0": 0.7608814621037767,
-    "10": 2.0725750157775744,
-    "100": 40.951429283747686,
-    "50": 9.489707696906315,
-    "90": 25.474691238334447
+    "0": 0.7662900784568847,
+    "10": 2.2559279024697165,
+    "100": 41.20215709935791,
+    "50": 9.572992266897973,
+    "90": 25.955917581697758
    },
    "4": {
-    "0": 0.714624372919743,
-    "10": 1.729468378399756,
-    "100": 43.91254805916518,
-    "50": 8.693471693647862,
-    "90": 24.41318810694626
+    "0": 0.7352947218258192,
+    "10": 1.7882006333321532,
+    "100": 45.1203334911588,
+    "50": 8.726179439932537,
+    "90": 25.185373246343744
    },
    "8": {
-    "0": 0.04968254676669602,
-    "10": 0.50569509798698,
-    "100": 47.28084128176746,
-    "50": 7.521302947842104,
-    "90": 24.366103334201902
+    "0": 0.31414345676333966,
+    "10": 0.6935166748221364,
+    "100": 47.9458520291527,
+    "50": 7.498865237456156,
+    "90": 24.991028286062328
    }
   },
   "unavailable_by_radius": {
@@ -573,19 +324,40 @@
    "2.0": 0,
    "4.0": 0
   },
-  "valid_m_gt_1_among_infeasible": {
+  "unsolved_pairs_by_failure": {
+   "cem": {
+    "1": {
+     "no_returned_endpoint_feasible_candidate": 40
+    },
+    "16": {
+     "no_returned_endpoint_feasible_candidate": 34
+    },
+    "2": {
+     "no_returned_endpoint_feasible_candidate": 38
+    },
+    "4": {
+     "no_returned_endpoint_feasible_candidate": 37
+    },
+    "8": {
+     "constraint_violation": 2,
+     "no_returned_endpoint_feasible_candidate": 34
+    }
+   }
+  },
+  "valid_m_gt_1_among_ruled_out": {
    "by_radius": {
-    "0.5": 0,
+    "0.5": 1,
     "1.0": 0,
-    "2.0": 0,
+    "2.0": 1,
     "4.0": 0
    },
-   "total": 0
+   "total": 2
   },
   "violations": {
-   "continuation": 229,
-   "refinement": 373,
-   "terminal": 363
+   "continuation": 141,
+   "handoff": 369,
+   "refinement": 375,
+   "terminal": 369
   },
   "yield": {
    "cem": {
@@ -595,7 +367,7 @@
       10
      ],
      "16": [
-      1,
+      5,
       10
      ],
      "2": [
@@ -603,11 +375,11 @@
       10
      ],
      "4": [
-      0,
+      3,
       10
      ],
      "8": [
-      0,
+      4,
       10
      ]
     },
@@ -639,7 +411,7 @@
       10
      ],
      "16": [
-      0,
+      1,
       10
      ],
      "2": [

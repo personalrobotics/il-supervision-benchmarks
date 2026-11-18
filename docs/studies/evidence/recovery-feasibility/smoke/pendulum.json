@@ -1,7 +1,7 @@
 {
  "audit_ok": true,
  "code": {
-  "commit": "3cfb9b767129262cbc605e1bdc8b2b2f3fa580fc",
+  "commit": "0eb22b13998a9452a0b5bf57310fd0f0f9751640",
   "dirty": false
  },
  "faults": {
@@ -52,16 +52,16 @@
  "projection": {
   "measured_with_workers": 32,
   "seconds_per_start": {
-   "max": 4.021243333816528,
-   "mean": 3.38734575510025
+   "max": 3.999425172805786,
+   "mean": 3.384818285703659
   },
-  "smoke_core_seconds": 135.49383020401,
+  "smoke_core_seconds": 135.39273142814636,
   "smoke_starts": 40,
-  "study_core_hours": 0.3763717505666945,
-  "study_wall_hours": 0.011761617205209202,
+  "study_core_hours": 0.3760909206337399,
+  "study_wall_hours": 0.011752841269804372,
   "study_workers": 32
  },
- "record_sha256": "fae6cfd992cbb402aaff5b5d369fde061fdd975cf3f401b08ee48716878a0bc6",
+ "record_sha256": "7d4c90c4ee126f7f9b2bd9994f63d98fa94ff35e4dc2949aaa623b622c9b0424",
  "rerun_byte_identical": true,
  "schema": "ilsb.recovery_feasibility.smoke 1",
  "smoke_decision": {
@@ -192,15 +192,6 @@
    }
   },
   "available": 40,
-  "certified_m1_infeasible": {
-   "by_radius": {
-    "0.5": 10,
-    "1.0": 10,
-    "2.0": 10,
-    "4.0": 10
-   },
-   "total": 40
-  },
   "ineligible_pairs_by_M": {
    "1": 0,
    "16": 0,
@@ -209,6 +200,15 @@
    "4": 0,
    "64": 0,
    "8": 0
+  },
+  "m1_ruled_out": {
+   "by_radius": {
+    "0.5": 10,
+    "1.0": 10,
+    "2.0": 10,
+    "4.0": 10
+   },
+   "total": 40
   },
   "per_step_defect": 0.0,
   "redraw_reasons": {},
@@ -293,7 +293,32 @@
    "2.0": 0,
    "4.0": 0
   },
-  "valid_m_gt_1_among_infeasible": {
+  "unsolved_pairs_by_failure": {
+   "lm_shooting": {
+    "1": {
+     "no_returned_endpoint_feasible_candidate": 40
+    },
+    "16": {
+     "no_returned_endpoint_feasible_candidate": 24
+    },
+    "2": {
+     "no_returned_endpoint_feasible_candidate": 40
+    },
+    "32": {
+     "no_returned_endpoint_feasible_candidate": 18
+    },
+    "4": {
+     "no_returned_endpoint_feasible_candidate": 38
+    },
+    "64": {
+     "no_returned_endpoint_feasible_candidate": 18
+    },
+    "8": {
+     "no_returned_endpoint_feasible_candidate": 34
+    }
+   }
+  },
+  "valid_m_gt_1_among_ruled_out": {
    "by_radius": {
     "0.5": 10,
     "1.0": 9,
