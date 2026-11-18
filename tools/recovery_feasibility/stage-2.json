@@ -1,0 +1,263 @@
+{
+ "study": "recovery-segment feasibility under exact dynamics",
+ "issue": 70,
+ "parent": "personalrobotics/CCIL#171 Stage 2",
+ "status": "protocol",
+ "protocol": "docs/studies/recovery-feasibility.md",
+ "contract": {
+  "ccil_commit": "12b2fbf8c336ed55a35e942f471d7c96a0f69005",
+  "doc": "docs/recovery-segments.md"
+ },
+ "problem": {
+  "mode": "forward",
+  "segment": "single-shooting rollout under the reference map",
+  "target": "y_M = x_(t+M) of the anchor's episode",
+  "epsilon_over_tau": 0.1,
+  "valid": [
+   "actions within bounds",
+   "states within envelope",
+   "d(x_M, y_M) <= epsilon",
+   "exact replay",
+   "refined replay within epsilon where applicable"
+  ]
+ },
+ "starts": {
+  "anchors_per_system": 50,
+  "anchor_seed": [
+   171,
+   2,
+   "system"
+  ],
+  "radii_over_tau": [
+   0.5,
+   1,
+   2,
+   4
+  ],
+  "directions_per_radius": 2,
+  "starts_per_system": 400,
+  "smoke": {
+   "anchors_per_system": 5,
+   "seed_key": 99,
+   "disjoint_from_study_anchors": true
+  }
+ },
+ "systems": {
+  "double_integrator": {
+   "role": "solver_calibration",
+   "A": [
+    [
+     1.0,
+     0.1
+    ],
+    [
+     0.0,
+     1.0
+    ]
+   ],
+   "B": [
+    0.0,
+    0.1
+   ],
+   "dt": 0.1,
+   "demonstrations": {
+    "source": "CCIL docs/quickstart.md demos.py block at 12b2fbf",
+    "block_sha256": "72c8cf3a33a4cd5d10b043cfe1cb4f44a9901b815256eb4a7373e61affb577ee",
+    "split": "ccil.data.split.make_split(ids, 0.2, 42)"
+   },
+   "metric": "per-coordinate training-std-scaled Euclidean",
+   "tau": "q95 validation -> nearest training state",
+   "action_bound": "max |u| over training demonstrations",
+   "state_envelope": "training bounding box +/- 50% of range",
+   "ladder": [
+    1,
+    2,
+    4,
+    8,
+    16
+   ],
+   "solvers": [
+    "lm_shooting",
+    "cem"
+   ],
+   "m1_infeasibility": {
+    "kind": "exact",
+    "method": "scipy.optimize.lsq_linear bounded least squares > epsilon"
+   },
+   "oracle": {
+    "kind": "exact",
+    "method": "scipy.optimize.lsq_linear in U; reachable if optimum <= 0.9 epsilon"
+   },
+   "refinement": null
+  },
+  "pendulum": {
+   "role": "treatment",
+   "map": "ilsb.tasks.pendulum Task(variant='continuous') step, dt 0.02",
+   "demonstrations": {
+    "file": "data/pendulum_cont_corrected.npz",
+    "sha256": "59c332bc829db9c9da40d9c1bd9ebbf808965aca6a167be48dc0f2ade52cf43c",
+    "subset": "ilsb.tasks.pendulum.subset(r=0.1, seed=3321)",
+    "split": "ccil.data.split.make_split(ids, 0.2, 3321)"
+   },
+   "metric": "sqrt(wrap(de)^2 + (dw/sqrt(g))^2)",
+   "tau": "q95 validation -> nearest training state",
+   "action_bound": 3.0,
+   "state_envelope": "|omega| <= 1.5 * max |omega| over training demonstrations",
+   "ladder": [
+    1,
+    2,
+    4,
+    8,
+    16,
+    32,
+    64
+   ],
+   "solvers": [
+    "lm_shooting"
+   ],
+   "m1_infeasibility": {
+    "kind": "lipschitz_certified_sweep",
+    "grid_points": 6001,
+    "rule": "min_grid d_refined - L_u*h/2 - 2*delta > epsilon; L_u = dt*exp(sqrt(1+g^2)*dt); delta = max grid |evaluator - refined|"
+   },
+   "oracle": null,
+   "refinement": {
+    "method": "scipy solve_ivp RK45",
+    "rtol": 1e-10,
+    "atol": 1e-12
+   }
+  },
+  "pusht": {
+   "role": "treatment",
+   "map": "gym_pusht (LeRobot 0.6.1 env), action interval 0.1 s, physics dt 0.01",
+   "demonstrations": {
+    "support": "the r = 0.25 subset's 41 episodes (#66)",
+    "support_record": "docs/studies/evidence/pusht-recovery/support.json",
+    "support_record_sha256": "be8136ac5782652188585e17bd50165f31b0e1a094ec3393451169ed724e02a6"
+   },
+   "metric": "largest per-point distance over the current frame's agent and 8 T keypoints, px",
+   "tau_px": 29.764080044321236,
+   "action_bound": [
+    [
+     0,
+     512
+    ],
+    [
+     0,
+     512
+    ]
+   ],
+   "state_envelope": "agent and T center in [0, 512]^2; no penetration (simulator)",
+   "perturbation": "agent (x, y) and T (x, y, theta) along a uniform direction, bisected to the radius; velocities kept; redraw <= 16 times",
+   "ladder": [
+    1,
+    2,
+    4,
+    8,
+    16
+   ],
+   "solvers": [
+    "cem"
+   ],
+   "m1_infeasibility": {
+    "kind": "sweep_certified_empirical",
+    "grid_px": 2,
+    "actions": 66049,
+    "rule": "no grid action within 2 epsilon"
+   },
+   "oracle": null,
+   "refinement": {
+    "physics_dt": 0.0025
+   }
+  }
+ },
+ "solvers": {
+  "lm_shooting": {
+   "parameterization": "u = ubar * tanh(v)",
+   "jacobian": "finite difference, step 1e-6",
+   "iterations": 50,
+   "damping": {
+    "initial": 0.001,
+    "up": 10,
+    "down": 10
+   },
+   "restarts": [
+    "zero",
+    "demonstrated",
+    "random x6"
+   ]
+  },
+  "cem": {
+   "population": 128,
+   "elites": 13,
+   "iterations": 30,
+   "initial_mean": "demonstrated actions",
+   "initial_std": "0.5 * ubar (PushT 64 px)",
+   "clip": "bounds",
+   "restarts": 2
+  },
+  "common": {
+   "seed": [
+    171,
+    2,
+    "system",
+    "start",
+    "M",
+    "restart"
+   ],
+   "every_start_M_attempted": true,
+   "all_restarts_run": true
+  }
+ },
+ "measures": [
+  "valid yield by system x radius x M",
+  "shortest valid M per start",
+  "distance and temporal reach",
+  "terminal residual quantiles",
+  "per-step defect",
+  "constraint violations by type",
+  "ambiguity: distinct valid solutions (RMS action difference > 0.05 ubar) and ties within 1e-9",
+  "DI recall per solver and M, and every rejected returned segment",
+  "refinement deltas"
+ ],
+ "decision": {
+  "double_integrator": {
+   "every_returned_segment_valid": true,
+   "recall_min": 0.95,
+   "recall_population": "M > 1 cases with oracle optimum <= 0.9 epsilon",
+   "lm_fails": "stop: solver inadequate",
+   "cem_fails_only": "PushT verdict: solver inadequate"
+  },
+  "treatment": {
+   "population": "starts certified M = 1-infeasible",
+   "min_valid_starts": 20,
+   "min_fraction_at_some_radius": 0.1
+  },
+  "stage_2_passes": "DI passes and at least one of Pendulum or PushT passes",
+  "after": "Stage 3 only for passing systems; no treatment pass ends #171 before Stage 3",
+  "pusht_certificate": "empirical; if PushT alone passes, the user decides whether it suffices before Stage 3",
+  "no_changes_after_outcomes": true
+ },
+ "smoke": {
+  "rerun_byte_identical": true,
+  "fresh_process_audit": true,
+  "faults": [
+   "action out of bounds",
+   "forged terminal state",
+   "flipped certificate",
+   "refined replay miss"
+  ],
+  "cost_projection_within_ceiling": true
+ },
+ "compute": {
+  "paid": false,
+  "pusht": {
+   "host": "siddh",
+   "workers": 32,
+   "tmux": true,
+   "progress_minutes": 5
+  },
+  "estimate_hours": 1,
+  "ceiling_hours": 3
+ }
+}

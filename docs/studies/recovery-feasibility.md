@@ -1,0 +1,148 @@
+# Recovery-segment feasibility under exact dynamics (protocol)
+
+This is the protocol of [#70](https://github.com/personalrobotics/il-supervision-benchmarks/issues/70), Stage 2 of
+[CCIL #171](https://github.com/personalrobotics/CCIL/issues/171). It was frozen before any start below was solved. Its
+machine-readable form is [`tools/recovery_feasibility/stage-2.json`](../../tools/recovery_feasibility/stage-2.json).
+
+**Question.** Do valid recovery segments of M > 1 recorded action intervals exist from starts where no one-step
+segment can recover? And does a solver declared in advance find them?
+
+**Why.** One-step CCIL can only express corrections that a single action interval can make. #66 found that observed
+PushT failures lay far from demonstrated support, and its local one-step solve could not recover them. That result
+motivates the question but does not answer it. This stage asks it under exact or reference dynamics, before any
+learned model or learner is involved.
+
+**Not a rescue.**
+- #21 asked whether segments help *BC's observed failures* on Pendulum. Those failures lie on the demonstrations' own
+  trajectories, so that study's geometry was inadequate.
+- This stage asks a different question: feasibility from perturbed starts. It never revisits #21's states or its
+  learner, and no learner is trained here.
+
+The segment, its residuals and its views are those of CCIL
+[`docs/recovery-segments.md`](https://github.com/personalrobotics/CCIL/blob/12b2fbf/docs/recovery-segments.md).
+M counts recorded action intervals.
+
+## Problem
+
+- **Forward problem.** A segment starts at a fixed, observed start x_0. It is a single-shooting rollout under the
+  system's reference map, so the per-step dynamics defect is zero.
+- **Target.** The target is the anchor's demonstrated continuation y_M = x_(t+M), in the same episode.
+- **Valid segment.** A segment is valid if every one of these holds:
+  - every action is within the action bounds;
+  - every state is within the state envelope;
+  - the terminal miss d(x_M, y_M) is at most ε = 0.1 τ_demo, in the system's metric;
+  - the replay under the reference map reproduces the stored states exactly;
+  - where it applies, the replay under refined integration also ends within ε.
+
+**Starts.**
+- **Anchors.** Each system has 50 anchors. They are demonstrated training states with t + max(ladder) inside their
+  episode, drawn without replacement by `SeedSequence([171, 2, system])`.
+- **Perturbations.** Each anchor is perturbed to radius r · τ_demo in the system's metric:
+  - radii r ∈ {0.5, 1, 2, 4};
+  - two seeded directions per radius;
+  - so **400 starts per system**.
+- **The smoke.** It uses its own 5 anchors per system, drawn with key 99 from the anchors the study does not use.
+
+## Systems
+
+| | Double integrator (DI) | Pendulum | PushT |
+|---|---|---|---|
+| Role | solver calibration | treatment | treatment |
+| Map | x′ = Ax + Bu, A = [[1, 0.1], [0, 1]], B = [0, 0.1] (CCIL quickstart) | `ilsb.tasks.pendulum` continuous evaluator map, dt 0.02 | gym_pusht 0.1 s action interval, physics dt 0.01 (LeRobot 0.6.1) |
+| Demonstrations | quickstart `demos.py` (seed 0), 6 episodes × 40 steps; split by CCIL `make_split(·, 0.2, 42)` | `pendulum_cont_corrected.npz` (`59c332bc…`), r = 0.1 subset and split of design seed 3321 (#21's rules) | the r = 0.25 subset's 41 episodes (#66's support) |
+| Metric | per-coordinate training-std-scaled Euclidean | √(wrap(Δe)² + (Δω/√g)²) | largest distance among the current frame's 9 points (agent and 8 T keypoints), px |
+| τ_demo | q95 of validation → nearest training state distance | the same rule (pendulum.md) | 29.764 px, frozen (#52 B0, `support.json`) |
+| Actions | \|u\| ≤ max\|u\| over the training demonstrations | \|u\| ≤ 3 (the task's) | agent target in [0, 512]² |
+| State envelope | the training demonstrations' bounding box, widened by 50% of its range on each side | \|ω\| ≤ 1.5 · max\|ω\| over the training demonstrations | agent and T center in [0, 512]², with no agent–T penetration (the simulator's) |
+| Perturbation | uniform direction in metric coordinates | uniform direction in (e, ω/√g) | agent (x, y) and T (x, y, θ) along a uniform direction, scaled by bisection to the radius. Velocities are kept from the anchor's restored state. A penetrating or out-of-workspace draw is redrawn from the same stream, at most 16 times, and counted |
+| Ladder M | {1, 2, 4, 8, 16} | {1, 2, 4, 8, 16, 32, 64} | {1, 2, 4, 8, 16} |
+| Solver | LM shooting **and** CEM | LM shooting (a smooth, closed-form map) | CEM (query-only and nonsmooth; #66's local solve had zero gradient out of contact) |
+| M = 1 infeasibility | **exact**: the bounded least-squares optimum (`scipy.optimize.lsq_linear`) exceeds ε | **Lipschitz-certified sweep** ([below](#pendulum-certificate)) | **sweep-certified, empirical**: no action on the 2 px grid (257² actions) ends within 2ε |
+| Reachability oracle, M > 1 | **exact**: the same bounded least squares in U | none: a valid solver result is a constructive certificate | none |
+| Integration refinement | not applicable (the map is exact) | replay with `solve_ivp` RK45 at rtol 1e-10, atol 1e-12 must end within ε | replay at physics dt 0.0025 (4× substeps) must end within ε |
+
+The ladders come from each system's time scale. DI needs at least 2 intervals to correct both coordinates with one
+input. Pendulum's 64 intervals are 1.28 s, about 4/√g. PushT's 16 intervals are the Diffusion Policy horizon.
+
+### Pendulum certificate
+
+The certificate covers u on a grid of 6,001 points over [−3, 3], so h = 0.001. It uses two bounds:
+- **L_u**, the Lipschitz constant of the exact one-step flow in u. From the sensitivity equation and Grönwall,
+  L_u ≤ dt · e^(L·dt), with L = √(1 + g²), in the metric (whose ω scaling only shrinks it).
+- **δ**, the largest metric distance between the evaluator map and the refined flow over the grid.
+
+A start is **M = 1-infeasible** if min over the grid of d_refined(F(x_0, u), y_1) − L_u · h / 2 − 2δ > ε. The factor
+2 on δ covers the evaluator's adaptive step between grid points. The record states that this is a certificate under
+those bounds, not a symbolic proof.
+
+## Solvers (frozen)
+
+- **LM shooting.**
+  - The actions are parameterized as u = ū · tanh(v), with a finite-difference Jacobian (step 1e-6).
+  - It runs at most 50 iterations, with damping starting at 1e-3, multiplied by 10 on a rejected step and divided by
+    10 on an accepted one.
+  - It makes 8 starts: zero actions, the demonstrated actions a_t … a_(t+M−1), and 6 seeded random ones.
+- **CEM.**
+  - It samples a population of 128 and keeps 13 elites, for 30 iterations.
+  - The initial mean is the demonstrated actions. The initial standard deviation is 0.5 ū; for PushT it is 64 px.
+  - Samples are clipped to bounds, and it makes 2 seeded restarts.
+- **Both.**
+  - Every (start, M) is attempted, and the first valid segment is kept.
+  - All restarts run, so that ambiguity is measured.
+  - Seeds come from `SeedSequence([171, 2, system, start, M, restart])`.
+
+## Measures (all reported)
+
+- The valid yield by system × radius × M, and the shortest valid M per start.
+- Distance reach (radius) and temporal reach (M).
+- Terminal-residual quantiles, the per-step defect (zero by construction, recorded), and constraint violations by
+  type.
+- Ambiguity: the number of distinct valid solutions across restarts (RMS action difference > 0.05 ū), and ties in
+  terminal miss within 1e-9.
+- For DI: each solver's recall against the oracle per M, and every returned segment the oracle or a validity check
+  rejects.
+- Integration-refinement deltas, where applicable.
+
+## Decision
+
+**DI, solver calibration.**
+- Every returned segment must be valid.
+- Each solver must recover ≥ 95% of the analytically reachable (start, M) cases with M > 1. Reachable means an oracle
+  optimum ≤ 0.9 ε; the margin keeps tolerance-boundary cases out of the count.
+- LM below 95%: Stage 2 stops with "solver inadequate".
+- CEM alone below 95%: PushT's verdict is "solver inadequate", and Pendulum still decides.
+
+**Pendulum and PushT, treatment.** Let I be the starts certified M = 1-infeasible, and V ⊆ I those with at least one
+valid M > 1 segment. A system passes if both hold:
+- |V| ≥ 20;
+- |V_r| / |I_r| ≥ 0.10 at at least one radius r ∈ {0.5, 1, 2, 4}.
+
+Every counted segment must replay, satisfy every constraint, and stay valid under refinement.
+
+**Stage 2 passes** only if DI passes **and** at least one of Pendulum and PushT passes.
+- DI alone never unlocks Stage 3.
+- Stage 3 repeats only the systems that passed, with learned dynamics.
+- If no treatment system passes, the refusal is the result, and #171 stops before Stage 3.
+- No ε, radius, ladder, solver setting or threshold is changed after any study start is solved.
+
+**PushT's certificate is empirical.** If PushT alone carries the pass, the result says so. Whether that suffices, or
+a fallback system with a provable certificate is needed, is decided by the user before Stage 3.
+
+## Smoke, then the run
+
+**The smoke.** It runs the full pipeline on the smoke anchors (5 per system), with:
+- a byte-identical rerun;
+- a fresh-process audit that replays every valid segment and recomputes every certificate;
+- injected faults that the audit must refuse for the right reason:
+  - an action out of bounds;
+  - a forged terminal state;
+  - a flipped certificate;
+  - a segment whose refined replay misses;
+- a measured cost projection. It must be within the ceiling before the run.
+
+**Compute.** It is unpaid.
+- DI and Pendulum run locally.
+- PushT runs on siddh's CPU, under tmux, with 32 workers. Each start's results are written atomically and the run is
+  resumable, with progress logged every 5 minutes.
+- The estimate is about 26M sweep steps plus at most about 46M CEM steps, roughly 1 hour of wall time. The ceiling is
+  3 hours.
