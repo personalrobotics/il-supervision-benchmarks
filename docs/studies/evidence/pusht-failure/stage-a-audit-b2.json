@@ -1,0 +1,8 @@
+{
+ "chunks_mismatched": 0,
+ "coverage_max_abs_diff": 4.999817432901205e-10,
+ "pass": true,
+ "problems": [],
+ "simulator_replay_max_px": 0.0,
+ "windows_max_landing_px": 2.0578004303078054e-05
+}

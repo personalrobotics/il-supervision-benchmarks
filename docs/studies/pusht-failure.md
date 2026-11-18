@@ -18,7 +18,8 @@ training.
 
 ## Stages
 
-- **Stage A** (this protocol): discovery, reach and validity, with no training.
+- **Stage A** (this protocol): discovery, reach and validity, with no training. **It stopped, and the study ended**
+  ([result](#stage-a-result)).
 - **Stage B**: only if Stage A passes on both bases, under its own protocol PR. It is
   [#52's matched comparison](pusht-recovery.md#b4-matched-comparison): the frozen base, self-distillation at the same
   states, and oracle recovery. It is evaluated on fresh starts 6000–6099.
@@ -183,3 +184,44 @@ and `report` combines the two bases into the decision.
 
 **Compute:** each smoke run took 173 s for 10 starts, and its audit as long. That projects to 1.9 GPU-hours per base,
 3.9 for both, within the 6 GPU-hour ceiling. The projection counts the CPU labelling as GPU time.
+
+### Stage A result
+
+**Stop: almost no consequential failure comes within reach of demonstrated support, so almost no recovery window
+exists.** Ran 2026-11-17 from a clean clone of `9666dba` on siddh. Record:
+[`evidence/pusht-failure/stage-a.json`](evidence/pusht-failure/stage-a.json).
+
+| Base | Rollouts | Successful | Near miss | Failure starts | Failing rollouts | Never in support | Eligible departures | Valid windows |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 800 | 189 | 334 | 66 | 261 | 247 (95%) | 14 | 0 |
+| 2 | 800 | 215 | 336 | 62 | 238 | 213 (89%) | 19 | 1 |
+
+Both bases are informative: 66 and 62 failure starts, against the 20 required. The yield needs 100 valid windows from 20
+failure starts per base; it got 0 and 1.
+
+- **Consequential failures begin and stay outside demonstrated support.** The failing rollouts' closest approach to
+  any demonstration state is a median of 58 px (base 1) and 55 px (base 2), against τ = 29.76 px.
+  - Every successful rollout comes within τ, with a median closest approach of 3 px.
+  - Only 4 and 6 of the 334 and 336 near misses never do.
+  - The learner fails where the 41 demonstrations never went, not by drifting off a demonstrated path.
+- **Where a failing rollout does depart, the frozen solve cannot recover it.**
+  - Base 1: all 14 eligible departures failed to solve.
+  - Base 2: 18 of 19 failed, and 1 window was accepted.
+  - As in the smoke, these departures mostly need the T moved without the agent in contact, where the local solve has
+    no gradient. This limits #52's local solve, not every possible oracle, but it touches at most 33 of the 499
+    failing rollouts.
+- **Departure is not specific to failure.** 61 and 86 successful rollouts depart eligibly too, and so do 129 and 154
+  near misses.
+
+**Audit:** in a fresh process for each base, every chunk regenerated bit for bit, and the labels, reach and windows
+recomputed identically. Coverage recomputed from the saved states agreed within 5e-10, the accepted window landed
+within 2.1e-5 px of its target, and the simulator replay matched exactly
+([base 1](evidence/pusht-failure/stage-a-audit-b1.json), [base 2](evidence/pusht-failure/stage-a-audit-b2.json)).
+
+**Compute:** 3.5 GPU-hours, within the 6 GPU-hour ceiling. Each base's discovery and labelling took 52 minutes, and its
+audit 53.
+
+**What this means for CCIL here.** CCIL's labels lie near demonstration states and steer back toward them. At
+r = 0.25 the consequential failures of this learner happen at states the demonstrations never come near, so CCIL can
+supply no valid recovery supervision there. This points to coverage of the start distribution rather than recovery
+from drift, though Stage A does not test that. No τ, window, solve or threshold is changed, and Stage B does not run.
