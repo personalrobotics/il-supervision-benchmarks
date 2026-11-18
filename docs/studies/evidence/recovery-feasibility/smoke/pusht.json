@@ -1,17 +1,17 @@
 {
  "audit_ok": true,
  "code": {
-  "commit": "bcb82302b3abbaf630cb0760f2f0affa774eccf3",
+  "commit": "3cfb9b767129262cbc605e1bdc8b2b2f3fa580fc",
   "dirty": false
  },
  "faults": {
   "bounds": {
    "first_refusal": "bounds",
    "injected": {
-    "M": "1",
-    "file": "000.json",
-    "restart": 0,
-    "segment_valid": false,
+    "M": "2",
+    "file": "009.json",
+    "restart": 1,
+    "segment_valid": true,
     "solver": "cem"
    },
    "refused_for_the_right_reason": true
@@ -26,10 +26,10 @@
   "continuation": {
    "first_refusal": "continuation",
    "injected": {
-    "M": "1",
-    "file": "000.json",
-    "restart": 0,
-    "segment_valid": false,
+    "M": "2",
+    "file": "009.json",
+    "restart": 1,
+    "segment_valid": true,
     "solver": "cem"
    },
    "refused_for_the_right_reason": true
@@ -37,10 +37,10 @@
   "refinement": {
    "first_refusal": "refinement",
    "injected": {
-    "M": "1",
-    "file": "000.json",
-    "restart": 0,
-    "segment_valid": false,
+    "M": "2",
+    "file": "009.json",
+    "restart": 1,
+    "segment_valid": true,
     "solver": "cem"
    },
    "refused_for_the_right_reason": true
@@ -48,10 +48,10 @@
   "replay": {
    "first_refusal": "replay",
    "injected": {
-    "M": "1",
-    "file": "000.json",
-    "restart": 0,
-    "segment_valid": false,
+    "M": "2",
+    "file": "009.json",
+    "restart": 1,
+    "segment_valid": true,
     "solver": "cem"
    },
    "refused_for_the_right_reason": true
@@ -63,16 +63,16 @@
  "projection": {
   "measured_with_workers": 32,
   "seconds_per_start": {
-   "max": 98.2827742099762,
-   "mean": 87.35627647638321
+   "max": 98.61953663825989,
+   "mean": 87.49504479169846
   },
-  "smoke_core_seconds": 3494.2510590553284,
+  "smoke_core_seconds": 3499.8017916679382,
   "smoke_starts": 40,
-  "study_core_hours": 9.706252941820356,
-  "study_wall_hours": 0.3033204044318861,
+  "study_core_hours": 9.72167164352205,
+  "study_wall_hours": 0.3038022388600641,
   "study_workers": 32
  },
- "record_sha256": "9a0548dec90efc01cb2368846582d2686f5304da328cba0e00b4d5d62c11bc5a",
+ "record_sha256": "aa735fb59bfee008e43ad557a4253ce71a1aab5eb015fb87bbc05c284c6a56b8",
  "rerun_byte_identical": true,
  "schema": "ilsb.recovery_feasibility.smoke 1",
  "smoke_decision": {
@@ -108,7 +108,7 @@
      "distinct_valid": {
       "0": 0.0,
       "10": 0.0,
-      "100": 0.0,
+      "100": 1.0,
       "50": 0.0,
       "90": 0.0
      },
@@ -124,7 +124,7 @@
      "distinct_valid": {
       "0": 0.0,
       "10": 0.0,
-      "100": 0.0,
+      "100": 1.0,
       "50": 0.0,
       "90": 0.0
      },
@@ -252,15 +252,6 @@
     "start": 9
    },
    {
-    "M": 2,
-    "failed": [
-     "continuation"
-    ],
-    "restart": 1,
-    "solver": "cem",
-    "start": 9
-   },
-   {
     "M": 4,
     "failed": [
      "continuation",
@@ -326,29 +317,11 @@
     "start": 17
    },
    {
-    "M": 16,
-    "failed": [
-     "continuation"
-    ],
-    "restart": 1,
-    "solver": "cem",
-    "start": 17
-   },
-   {
     "M": 2,
     "failed": [
      "continuation"
     ],
     "restart": 0,
-    "solver": "cem",
-    "start": 24
-   },
-   {
-    "M": 2,
-    "failed": [
-     "continuation"
-    ],
-    "restart": 1,
     "solver": "cem",
     "start": 24
    },
@@ -552,7 +525,9 @@
   ],
   "returned_segments": 37,
   "shortest_valid_M": {
-   "None": 40
+   "16": 1,
+   "2": 2,
+   "None": 37
   },
   "starts": 40,
   "terminal_miss_over_eps_by_M": {
@@ -608,7 +583,7 @@
    "total": 0
   },
   "violations": {
-   "continuation": 400,
+   "continuation": 229,
    "refinement": 373,
    "terminal": 363
   },
@@ -620,11 +595,11 @@
       10
      ],
      "16": [
-      0,
+      1,
       10
      ],
      "2": [
-      0,
+      2,
       10
      ],
      "4": [

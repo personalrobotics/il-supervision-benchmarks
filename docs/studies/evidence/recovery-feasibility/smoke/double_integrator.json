@@ -1,7 +1,7 @@
 {
  "audit_ok": true,
  "code": {
-  "commit": "bcb82302b3abbaf630cb0760f2f0affa774eccf3",
+  "commit": "3cfb9b767129262cbc605e1bdc8b2b2f3fa580fc",
   "dirty": false
  },
  "faults": {
@@ -41,16 +41,16 @@
  "projection": {
   "measured_with_workers": 32,
   "seconds_per_start": {
-   "max": 0.16742300987243652,
-   "mean": 0.06309526562690734
+   "max": 0.17864680290222168,
+   "mean": 0.06512478590011597
   },
-  "smoke_core_seconds": 2.523810625076294,
+  "smoke_core_seconds": 2.6049914360046387,
   "smoke_starts": 40,
-  "study_core_hours": 0.007010585069656372,
-  "study_wall_hours": 0.00021908078342676164,
+  "study_core_hours": 0.007236087322235107,
+  "study_wall_hours": 0.0002261277288198471,
   "study_workers": 32
  },
- "record_sha256": "8644efdb9c57063fc52c8f77be9a0dd0ea19a6329c3f952beeaa989f1b779831",
+ "record_sha256": "e77b7961edc5610172a992ba9acbadc95dcc450f3787a90ed8d35ff379c3bff0",
  "rerun_byte_identical": true,
  "schema": "ilsb.recovery_feasibility.smoke 1",
  "smoke_decision": {
@@ -326,9 +326,9 @@
    "16": {
     "0": 0.0,
     "10": 0.0,
-    "100": 0.08799779095570237,
-    "50": 0.003575202513312072,
-    "90": 0.03457955474697585
+    "100": 0.04283245173175706,
+    "50": 0.0024028608725261726,
+    "90": 0.02740864866756119
    },
    "2": {
     "0": 0.0,
@@ -348,8 +348,8 @@
     "0": 0.0,
     "10": 0.0,
     "100": 13.232956944011958,
-    "50": 0.001003877027758298,
-    "90": 0.005636071823821482
+    "50": 0.0009706894680137061,
+    "90": 0.005093658400220896
    }
   },
   "unavailable_by_radius": {

@@ -226,15 +226,18 @@ Implementation choices the protocol leaves open:
   one whose terminal miss is within ε; DI's "every returned segment valid" applies to those.
 - **PushT envelope.** The start must not penetrate. Contact during a segment is the simulator's to resolve.
 
-**Smoke result**, from `bcb8230` on siddh, 40 starts per system on the key-99 anchors
+**Smoke result**, from `3cfb9b7` (the amended protocol) on siddh, 40 starts per system on the key-99 anchors
 ([`evidence/recovery-feasibility/smoke/`](evidence/recovery-feasibility/smoke/)):
 - **Reproduction.** Each system's second run was byte-identical on every start file and on its record, and the
   fresh-process audit found nothing.
 - **Faults.** Each injected fault was refused with its own reason first: action bounds, a forged terminal state, a
-  flipped certificate, a refined-replay miss (Pendulum, PushT), and a continuation miss (PushT).
-- **Projection.** The complete path takes 0.06 s per start for DI, 3.4 s for Pendulum and 87 s for PushT. That
+  flipped certificate, a refined-replay miss (Pendulum, PushT), and a continuation drift (PushT).
+- **Projection.** The complete path takes 0.07 s per start for DI, 3.4 s for Pendulum and 87 s for PushT. That
   projects to 0.32 h of wall time for the study on 32 workers, within the 3 h ceiling (`projection.json`).
 
-These smoke figures are not study outcomes. Two of them bear on the run:
-- On the smoke's DI starts, CEM recalled 100/106 oracle-reachable cases (94.3%), below the 95% gate.
-- On PushT, 37 segments ended within ε, but every one of the 400 returned segments left the 1.0 px continuation.
+These smoke figures are not study outcomes. Three of them bear on the run:
+- On the smoke's DI starts, CEM still recalled 100/106 oracle-reachable cases (94.3%) with amendment 1, below the
+  95% gate. If the study repeats this, CEM is recorded as inadequate and PushT's verdict is "solver inadequate".
+- On PushT, 37 segments ended within ε. Under the drift rule 3 are valid, all at r = 0.5 on starts whose M = 1 is
+  not certified infeasible; 24 drift more than 1.0 px, and 10 drift and also miss under refined replay.
+- Pendulum's 25 valid starts pass its treatment gate on the smoke anchors.

@@ -3,46 +3,46 @@
   "double_integrator": {
    "measured_with_workers": 32,
    "seconds_per_start": {
-    "max": 0.16742300987243652,
-    "mean": 0.06309526562690734
+    "max": 0.17864680290222168,
+    "mean": 0.06512478590011597
    },
-   "smoke_core_seconds": 2.523810625076294,
+   "smoke_core_seconds": 2.6049914360046387,
    "smoke_starts": 40,
-   "study_core_hours": 0.007010585069656372,
-   "study_wall_hours": 0.00021908078342676164,
+   "study_core_hours": 0.007236087322235107,
+   "study_wall_hours": 0.0002261277288198471,
    "study_workers": 32
   },
   "pendulum": {
    "measured_with_workers": 32,
    "seconds_per_start": {
-    "max": 3.9782605171203613,
-    "mean": 3.3617070615291595
+    "max": 4.021243333816528,
+    "mean": 3.38734575510025
    },
-   "smoke_core_seconds": 134.46828246116638,
+   "smoke_core_seconds": 135.49383020401,
    "smoke_starts": 40,
-   "study_core_hours": 0.3735230068365733,
-   "study_wall_hours": 0.011672593963642916,
+   "study_core_hours": 0.3763717505666945,
+   "study_wall_hours": 0.011761617205209202,
    "study_workers": 32
   },
   "pusht": {
    "measured_with_workers": 32,
    "seconds_per_start": {
-    "max": 98.2827742099762,
-    "mean": 87.35627647638321
+    "max": 98.61953663825989,
+    "mean": 87.49504479169846
    },
-   "smoke_core_seconds": 3494.2510590553284,
+   "smoke_core_seconds": 3499.8017916679382,
    "smoke_starts": 40,
-   "study_core_hours": 9.706252941820356,
-   "study_wall_hours": 0.3033204044318861,
+   "study_core_hours": 9.72167164352205,
+   "study_wall_hours": 0.3038022388600641,
    "study_workers": 32
   }
  },
  "ceiling_wall_hours": 3,
  "code": {
-  "commit": "bcb82302b3abbaf630cb0760f2f0affa774eccf3",
+  "commit": "3cfb9b767129262cbc605e1bdc8b2b2f3fa580fc",
   "dirty": false
  },
  "schema": "ilsb.recovery_feasibility.projection 1",
- "study_wall_hours": 0.31521207917895583,
+ "study_wall_hours": 0.3157899837940931,
  "within_ceiling": true
 }
