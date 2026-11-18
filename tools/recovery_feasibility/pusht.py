@@ -2,7 +2,8 @@
 
 The map is gym_pusht's 0.1 s action interval. The metric is the 9 current-frame points (oracle_probe.distance) and
 tau is tau.json's. Anchors are the r = 0.25 subset's replay-verified rows; each anchor's full state is its episode
-replay's (#52, stage_a.replay). Eligibility and continuation reuse #52's 1.0 px continuation tolerance.
+replay's (#52, stage_a.replay). Eligibility reuses #52's 1.0 px continuation tolerance; a segment's continuation
+may drift at most 1.0 px beyond its own terminal miss (protocol amendment 2).
 
 Envelope. A start is built by hand, so it must not penetrate (oracle_probe.penetration <= 0) and its agent and T
 centre must lie in [0, 512]^2. During a segment, contact is the simulator's to resolve (the kinematic agent may
@@ -183,8 +184,8 @@ class System:
         for j in range(CONT_STEPS):
             self.env.step(act[k + M + j])
             cont.append(positions(self.env))
-        cont_dev = float(distance(np.array(cont), cur[k + M + 1:k + M + 1 + CONT_STEPS]).max())
         miss = float(distance(states[-1], y)[0])
+        cont_dev = float(distance(np.array(cont), cur[k + M + 1:k + M + 1 + CONT_STEPS]).max()) - miss
         refined = float(distance(self.chain(x0, U, self.fine)[-1], y)[0])
         checks = {"bounds": self.check_bounds(U), "envelope": self.check_envelope(states), "terminal": miss <= self.eps,
                   "refinement": refined <= self.eps, "continuation": cont_dev <= CONT_TOL}

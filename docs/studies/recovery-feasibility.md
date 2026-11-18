@@ -65,12 +65,14 @@ Stage A's 1.0 px continuation tolerance):
   recorded actions a_t … a_(t+M+7) are stepped in one live space. The pair is eligible only if every row
   t + 1 … t + M + 8 stays within 1.0 px of the recording. An ineligible pair is recorded and counted. It is never
   solved and enters no denominator. If (start, M = 1) is ineligible, the start is not in I.
-- **Continuation of a segment.** In the same live space as the segment, the recorded actions a_(t+M) … a_(t+M+7) are
-  stepped from x_M. Each of the 8 resulting states must be within 1.0 px of recorded rows t + M + 1 … t + M + 8.
+- **Continuation of a segment** (amendment 2). In the same live space as the segment, the recorded actions
+  a_(t+M) … a_(t+M+7) are stepped from x_M. With d_0 ≤ ε the segment's terminal miss and d_k the distance of the
+  k-th resulting state to recorded row t + M + k, the segment passes only if max_k (d_k − d_0) ≤ 1.0 px. The 1.0 px
+  tolerance measures additional drift: whether a velocity or contact mismatch makes the recovered trajectory diverge
+  after rejoining. It does not demand a closer terminal match than ε.
 
-Because 1.0 px < ε = 2.870 px, the continuation is usually the binding tolerance at PushT's terminal. The M = 1
-certificate (no grid action within 2ε) is conservative under the stricter rule, so it remains a certificate that
-no M = 1 segment is valid. DI and Pendulum have no eligibility gate. Their target is the full state, and the record
+The M = 1 certificate (no grid action within 2ε) concerns the terminal alone, so it remains a certificate that no
+M = 1 segment is valid. DI and Pendulum have no eligibility gate. Their target is the full state, and the record
 reports each pair's demonstrated-action replay miss d(F^M(x_t, a_t…), y_M).
 
 ## Systems
@@ -116,6 +118,8 @@ those bounds, not a symbolic proof.
   - It samples a population of 128 and keeps 13 elites, for 30 iterations.
   - The initial mean is the demonstrated actions. The initial standard deviation is 0.5 ū; for PushT it is 64 px.
   - Samples are clipped to bounds, and it makes 2 seeded restarts.
+  - Each restart returns the better of the best sample over all iterations and the final mean, clipped to bounds; a
+    tie keeps the sample (amendment 1).
 - **Both.**
   - Every (start, M) is attempted, and the first valid segment is kept.
   - All restarts run, so that ambiguity is measured.
@@ -171,7 +175,7 @@ a fallback system with a provable certificate is needed, is decided by the user 
   - a forged terminal state;
   - a flipped certificate;
   - a segment whose refined replay misses;
-  - a PushT segment whose continuation leaves 1.0 px;
+  - a PushT segment whose continuation drifts more than 1.0 px;
 - a measured cost projection. It must be within the ceiling before the run. It times the complete path for every
   system: availability, eligibility, the M = 1 certificate, every M of the ladder, every restart, and the replay,
   refinement and continuation checks. It does not time a truncated ladder or a single restart.
@@ -189,6 +193,19 @@ atomically and the run is resumable, with progress logged every 5 minutes.
 
 That is about 8 core-hours. On 32 workers it is roughly 20 minutes of wall time. **The ceiling is 3 hours of wall
 time for all three systems together.** If the smoke's projection exceeds it, the run does not start.
+
+## Amendments before the study
+
+Both were made after the first smoke and before any study start was solved. Nothing else changed: not ε, the
+radii, the ladder, the 95% DI gate, the terminal tolerance, action or state validity, refined replay, or the
+treatment population gate.
+1. **CEM returns its final mean when it is better.** The first smoke recalled 94.3% on DI, below the gate. CEM
+   returned only its best sample, although the final mean is its estimate of the solution, and on the convex DI
+   problem it may be better. This is the one solver correction. If CEM still misses 95%, it is recorded as
+   inadequate, and it is not tuned further.
+2. **PushT continuation measures drift.** The absolute 1.0 px rule conflicted with ε = 2.870 px: a segment that met
+   its terminal contract failed continuation before taking a step. The rule is now max_k (d_k − d_0) ≤ 1.0 px. The
+   anchor eligibility rule is unchanged: the anchor is the replayed state itself, so its d_0 is the replay's.
 
 ## Code and smoke
 

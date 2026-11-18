@@ -4,6 +4,10 @@
  "parent": "personalrobotics/CCIL#171 Stage 2",
  "status": "protocol",
  "protocol": "docs/studies/recovery-feasibility.md",
+ "amendments": [
+  {"id": 1, "before": "any study start is solved", "what": "CEM also evaluates its final mean and returns the better of it and the best sample", "why": "the final mean is CEM's estimate of the solution; the 95% DI gate is unchanged"},
+  {"id": 2, "before": "any study start is solved", "what": "PushT segment continuation: max_k (d_k - d_0) <= 1.0 px, d_0 the terminal miss", "why": "an absolute 1.0 px rule is stricter than the terminal tolerance epsilon = 2.870 px; the drift rule tests divergence after rejoining"}
+ ],
  "contract": {
   "ccil_commit": "12b2fbf8c336ed55a35e942f471d7c96a0f69005",
   "doc": "docs/recovery-segments.md"
@@ -191,7 +195,7 @@
     "tolerance_px": 1.0,
     "steps": 8,
     "eligibility": "anchor's replay-reconstructed state restored fresh; recorded a_t..a_(t+M+7) keep rows t+1..t+M+8 within 1.0 px, else the anchor-M pair is ineligible (in no denominator)",
-    "segment": "same live space; recorded a_(t+M)..a_(t+M+7) from x_M keep rows t+M+1..t+M+8 within 1.0 px"
+    "segment": "same live space; recorded a_(t+M)..a_(t+M+7) from x_M give d_k to rows t+M+1..t+M+8 with max_k (d_k - d_0) <= 1.0 px, d_0 the terminal miss (amendment 2)"
    }
   }
  },
@@ -218,7 +222,8 @@
    "initial_mean": "demonstrated actions",
    "initial_std": "0.5 * ubar (PushT 64 px)",
    "clip": "bounds",
-   "restarts": 2
+   "restarts": 2,
+   "returns": "the better of the best sample over all iterations and the final mean clipped to bounds; a tie keeps the sample (amendment 1)"
   },
   "common": {
    "seed": [
@@ -273,7 +278,7 @@
    "forged terminal state",
    "flipped certificate",
    "refined replay miss",
-   "PushT continuation beyond 1.0 px"
+   "PushT continuation drift beyond 1.0 px"
   ],
   "cost_projection_within_ceiling": true,
   "cost_projection": "complete path for every system: availability, eligibility, M = 1 certificate, every M, every restart, all checks"

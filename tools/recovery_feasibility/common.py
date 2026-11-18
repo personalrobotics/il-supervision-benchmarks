@@ -116,7 +116,8 @@ def lm_starts(demo: np.ndarray, ubar: float, seed) -> np.ndarray:
 
 def cem(miss, demo: np.ndarray, std0: float, lo, hi, g: np.random.Generator) -> np.ndarray:
     """CEM (stage-2.json "cem") for one restart: miss(U) maps (B, M, d) action sequences to (B,) terminal misses.
-    Returns the best sampled sequence over all iterations."""
+    Returns the better of the best sampled sequence over all iterations and the final mean (protocol amendment 1);
+    a tie keeps the sample."""
     mean, std = demo.astype(np.float64).copy(), np.full(demo.shape, float(std0))
     best, best_miss = None, np.inf
     for _ in range(CEM["iterations"]):
@@ -127,7 +128,8 @@ def cem(miss, demo: np.ndarray, std0: float, lo, hi, g: np.random.Generator) -> 
             best, best_miss = x[order[0]].copy(), float(m[order[0]])
         elite = x[order[:CEM["elites"]]]
         mean, std = elite.mean(0), elite.std(0)
-    return best
+    mean = np.clip(mean, lo, hi)
+    return mean if float(miss(mean[None])[0]) < best_miss else best
 
 
 def ambiguity(segments: list, ubar: float) -> dict:
