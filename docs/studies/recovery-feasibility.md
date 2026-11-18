@@ -295,8 +295,8 @@ These smoke figures are not study outcomes. Three of them bear on the run:
 The study ran from `0eb22b1` on siddh on 2026-11-18, 400 starts per system, each followed by a fresh-process audit
 that found nothing. The records and audits are in
 [`evidence/recovery-feasibility/study/`](evidence/recovery-feasibility/study/). Each record lists the sha256 of
-every start file, and the start files are archived as `20261118T162312Z-study-starts.tar.gz` (sha256
-`090cf09e…`).
+every start file. The complete run directory is the asset of the evidence release
+`evidence-recovery-feasibility-stage-2-v1` ([`archive.json`](evidence/recovery-feasibility/archive.json)).
 
 | | Verdict | Evidence |
 |---|---|---|

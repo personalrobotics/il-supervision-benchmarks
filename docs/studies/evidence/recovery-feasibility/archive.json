@@ -1,0 +1,17 @@
+{
+ "archive": "20261118T162312Z-recovery-feasibility.tar.gz",
+ "contents": "the complete Stage 2 study run directory: per system, every start file (availability, eligibility, the M = 1 result, every M, solver and restart segment with its checks), timing, identity.json, record.json, run and audit logs, and the three fresh-process audits",
+ "bytes": 20504863,
+ "sha256": "0f06850794e97d688dea92d752c24268cad5e24fb01920aa3b3c21b737d8198c",
+ "built_with": "tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner -cf - -C runs 20261118T162312Z-study | gzip -n",
+ "location": "GitHub release asset of the evidence-only tag evidence-recovery-feasibility-stage-2-v1 (published after this result is merged; never overwritten: a correction is a new evidence version, -v2, ...). Copies also kept on the run host and off it.",
+ "tag": "evidence-recovery-feasibility-stage-2-v1",
+ "url": "https://github.com/personalrobotics/il-supervision-benchmarks/releases/download/evidence-recovery-feasibility-stage-2-v1/20261118T162312Z-recovery-feasibility.tar.gz",
+ "run_commit": "0eb22b13998a9452a0b5bf57310fd0f0f9751640",
+ "records_sha256": {
+  "double_integrator": "db8ff7b7d0a2e80ca95f4929e144e7b09c431d08580f34fce434bdbac21b4fc7",
+  "pendulum": "b7f47873baf93698757bd5285a0fff525cafafb0f01fb1251a2ca2fae9129f94",
+  "pusht": "903f5d0f4af194ed696150b58e7c0ef6ad14b2af2c023a85a1eab6efcc8fc086"
+ },
+ "reproduce": "curl -LO URL; sha256sum -c (expect sha256); tar -xzf ARCHIVE -C DIR; at run_commit, for each system: PY tools/recovery_feasibility/audit.py --run-dir DIR/20261118T162312Z-study/SYSTEM --workers N INPUT (inputs as in the protocol's Code and smoke section); each exits 0 and recomputes record.json byte for byte"
+}
