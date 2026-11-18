@@ -134,3 +134,27 @@ injected faults the audit must refuse for the right reason (an action out of bou
 Δ_M, a forged Δ̂_M, a learned selection that differs from its recomputation), the reference behaviors above, and a
 cost projection of the complete path against a 3 h wall ceiling on siddh. The run waits for the smoke and its own
 go.
+
+## Code and smoke
+
+The code is in [`tools/recovery_learned/`](../../tools/recovery_learned/), with the machine-readable protocol in
+`stage-3.json`:
+- `run.py` fits the five models and solves and evaluates every start;
+- `audit.py` is the fresh-process audit;
+- `smoke.py` runs the smoke.
+
+It reuses Stage 2's Pendulum system, LM solver and scheduler. It runs in an environment with the ilsb environment's
+pinned packages and CCIL at `12b2fbf` (`prlccil`); the study set refuses another CCIL commit.
+
+Implementation choices the protocol leaves open:
+- **Starts.** Each x_0 is read from its Stage 2 start file. Provenance: the file's sha256 is the one Stage 2's record
+  lists, and the record's sha256 is the one `stage-3.json` names. Content: the start recomputed from Stage 2's seeds
+  agrees within 1e-12 (the last bits differ across hosts).
+- **Precision.** The models are CCIL's float32 networks, evaluated in float64 (the float32 weights are exact in
+  float64). Stage 2's 1e-6 forward-difference step is below float32 resolution, so a float32 evaluation gives LM a
+  noise Jacobian. Every model rollout uses the same float64 evaluation.
+- **π as its own recovery.** The reference prefix is π's own actions along its continuation in the same dynamics,
+  executed open loop for M steps.
+- **Actions** of every branch are clipped to ±3, as the task applies them.
+- **The oracle ceiling** reads each M's first valid Stage 2 restart; the ceiling is the shortest M at which that
+  segment has exact Δ_M ≥ 1.

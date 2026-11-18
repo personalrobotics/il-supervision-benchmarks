@@ -1,0 +1,69 @@
+{
+ "study": "learned-dynamics recovery on Pendulum",
+ "issue": 73,
+ "parent": "personalrobotics/CCIL#171 Stage 3",
+ "status": "protocol",
+ "protocol": "docs/studies/recovery-learned.md",
+ "frozen_at": "7ce35a4",
+ "system": "pendulum",
+ "stage2": {
+  "spec": "tools/recovery_feasibility/stage-2.json",
+  "starts": "Stage 2's Pendulum starts, recomputed and checked equal to the Stage 2 records",
+  "record_sha256": {
+   "study": "b7f47873baf93698757bd5285a0fff525cafafb0f01fb1251a2ca2fae9129f94",
+   "smoke": "7d4c90c4ee126f7f9b2bd9994f63d98fa94ff35e4dc2949aaa623b622c9b0424"
+  },
+  "study_release": "evidence-recovery-feasibility-stage-2-v1"
+ },
+ "policy": {
+  "name": "#21 Stage A provisional BC, design seed 3321",
+  "release": "evidence-pendulum-recovery-segments-stage-a-v1",
+  "path": "20261102T221735Z-recovery-segments/policies/bc/s3321/policy.npz",
+  "sha256": "1457a98af553071348dbb1844ceeaeb18d259ba2350636ae3d5e8ef33277e34f"
+ },
+ "models": {
+  "ccil_commit": "12b2fbf8c336ed55a35e942f471d7c96a0f69005",
+  "settings": {"hidden_layers": [512, 512], "activation": "relu", "lipschitz_type": "soft_sampling",
+               "lipschitz_constraint": 2.0, "lipschitz_coordinates": "model_normalized", "soft_penalty_weight": 0.001,
+               "soft_sampling_eps": 0.0003, "soft_samples": 5, "learning_rate": 0.001, "weight_decay": 1.0e-05,
+               "epochs": 100, "batch_size": 512},
+  "members": 5,
+  "builder": 0,
+  "check": [1, 2, 3, 4],
+  "init_seed": "SeedSequence([171, 3, k]).generate_state(1)[0]",
+  "bootstrap": "check model k: 8 of the 8 training episodes drawn with replacement by SeedSequence([171, 3, k, 1])",
+  "fit": "ccil.models.mlp_batched.fit_group, CPU, deterministic, one group"
+ },
+ "construction": {
+  "solver": "Stage 2 lm_shooting through model 0, restarts keyed [171, 3, 1, (99,) start, M, k]",
+  "model_valid": "model-0 endpoint <= epsilon, actions in bounds, model-0 states in the envelope",
+  "valid": "exact and refined endpoints <= epsilon, actions in bounds, exact states in the envelope"
+ },
+ "relevance": {
+  "cost": "1 - 1{|wrap(e)| <= 8 deg}",
+  "gamma": 1,
+  "horizon": 500,
+  "delta": "sum over k < 500 - t of upright(recovery then pi) - upright(pi), states before each action",
+  "estimate": "both branches through check model k; ensemble minimum over k = 1..4",
+  "useful_threshold_steps": 1,
+  "secondary": "final hold: episode steps 400..499 upright",
+  "descriptive": ["gymnasium return: -(e^2 + 0.1 w^2 + 0.001 u^2) summed, exact branches",
+                  "demonstrator-relative delta: both exact branches continued by the demonstrator"]
+ },
+ "selection": {
+  "oracle_ceiling": "shortest M whose Stage 2 first valid restart has exact delta >= 1",
+  "learned": "shortest M, then restart order: first restart model-valid with ensemble-minimum delta_hat >= 1"
+ },
+ "decision": {
+  "min_ceiling_starts": 20,
+  "min_selected_starts": 20,
+  "min_precision": 0.8,
+  "recall": "reported, not gated"
+ },
+ "smoke": {
+  "starts": "Stage 2's key-99 smoke starts",
+  "faults": ["action out of bounds", "forged exact state", "forged delta", "forged delta_hat", "forged selection"],
+  "ceiling_wall_hours": 3,
+  "workers": 32
+ }
+}
