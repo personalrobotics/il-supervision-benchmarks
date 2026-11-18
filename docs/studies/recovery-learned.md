@@ -158,3 +158,16 @@ Implementation choices the protocol leaves open:
 - **Actions** of every branch are clipped to ±3, as the task applies them.
 - **The oracle ceiling** reads each M's first valid Stage 2 restart; the ceiling is the shortest M at which that
   segment has exact Δ_M ≥ 1.
+
+**Smoke result**, from `efae412` on siddh with CCIL `12b2fbf`, Stage 2's 40 key-99 Pendulum starts
+([`evidence/recovery-learned/smoke.json`](evidence/recovery-learned/smoke.json)):
+- **Reproduction.** The second run, with its own model fits, was byte-identical on all 46 files (the five models,
+  every start file and the record). The fresh-process audit found nothing.
+- **Faults.** Each injected fault was refused with its own reason first: action bounds, a forged exact state, a forged
+  Δ_M, a forged Δ̂_M, and a forged selection.
+- **References.** π as its own recovery gave Δ_M = 0 under the exact map and every check model, at every M.
+- **Projection.** The fit takes 72 s and the complete path 11.9 s per start: 0.06 h of wall time for the study on 32
+  workers, within the 3 h ceiling.
+
+These smoke figures are not study outcomes. On the smoke starts, 13 have an oracle-ceiling segment, the learned
+selection picked 11, and 1 of those 11 was correct; 430 of 516 model-valid segments missed ε under exact replay.
