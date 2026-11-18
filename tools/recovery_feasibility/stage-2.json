@@ -18,8 +18,10 @@
    "states within envelope",
    "d(x_M, y_M) <= epsilon",
    "exact replay",
-   "refined replay within epsilon where applicable"
-  ]
+   "refined replay within epsilon where applicable",
+   "PushT: continuation check (8 recorded actions within 1.0 px)"
+  ],
+  "targets": "current state only; observation history is kept in the artifact, not in the reach condition"
  },
  "starts": {
   "anchors_per_system": 50,
@@ -40,6 +42,16 @@
    "anchors_per_system": 5,
    "seed_key": 99,
    "disjoint_from_study_anchors": true
+  },
+  "anchor_rule": {
+   "all": "t + max(ladder) inside the episode",
+   "pusht": "t >= 1, t + 16 + 8 inside the episode, anchor row replay-verified (#52 B0)"
+  },
+  "availability": {
+   "invalid_draw": "outside the state envelope; PushT also penetration or bisection failure",
+   "max_redraws": 16,
+   "same_stream": true,
+   "exhausted": "start unavailable: recorded, never solved, in no denominator, never M = 1-infeasible"
   }
  },
  "systems": {
@@ -88,7 +100,8 @@
     "kind": "exact",
     "method": "scipy.optimize.lsq_linear in U; reachable if optimum <= 0.9 epsilon"
    },
-   "refinement": null
+   "refinement": null,
+   "eligibility": null
   },
   "pendulum": {
    "role": "treatment",
@@ -125,7 +138,8 @@
     "method": "scipy solve_ivp RK45",
     "rtol": 1e-10,
     "atol": 1e-12
-   }
+   },
+   "eligibility": null
   },
   "pusht": {
    "role": "treatment",
@@ -135,8 +149,8 @@
     "support_record": "docs/studies/evidence/pusht-recovery/support.json",
     "support_record_sha256": "be8136ac5782652188585e17bd50165f31b0e1a094ec3393451169ed724e02a6"
    },
-   "metric": "largest per-point distance over the current frame's agent and 8 T keypoints, px",
-   "tau_px": 29.764080044321236,
+   "metric": "largest per-point distance over the current frame's agent and 8 T keypoints, px (oracle_probe.distance)",
+   "tau_px": 28.702702094157768,
    "action_bound": [
     [
      0,
@@ -148,7 +162,7 @@
     ]
    ],
    "state_envelope": "agent and T center in [0, 512]^2; no penetration (simulator)",
-   "perturbation": "agent (x, y) and T (x, y, theta) along a uniform direction, bisected to the radius; velocities kept; redraw <= 16 times",
+   "perturbation": "agent (x, y) and T (x, y, theta) along a uniform direction, bisected to the radius; velocities kept",
    "ladder": [
     1,
     2,
@@ -168,6 +182,16 @@
    "oracle": null,
    "refinement": {
     "physics_dt": 0.0025
+   },
+   "tau_record": "docs/studies/evidence/recovery-feasibility/tau.json",
+   "tau_record_sha256": "fd55862185ba892becfdff177596eab9648cf376c2608c91e769fb25a409dde4",
+   "tau_rule": "#52 B0's rule on the 9 current-frame points; B0's 29.764080044321236 px was on 18 points",
+   "continuation": {
+    "machinery": "tools/pusht_recovery/stage_a.py replay; tools/pusht_v2/oracle_probe.py distance",
+    "tolerance_px": 1.0,
+    "steps": 8,
+    "eligibility": "anchor's replay-reconstructed state restored fresh; recorded a_t..a_(t+M+7) keep rows t+1..t+M+8 within 1.0 px, else the anchor-M pair is ineligible (in no denominator)",
+    "segment": "same live space; recorded a_(t+M)..a_(t+M+7) from x_M keep rows t+M+1..t+M+8 within 1.0 px"
    }
   }
  },
@@ -210,6 +234,7 @@
   }
  },
  "measures": [
+  "unavailable starts and redraws by system x radius; PushT ineligible anchor-M pairs",
   "valid yield by system x radius x M",
   "shortest valid M per start",
   "distance and temporal reach",
@@ -218,7 +243,8 @@
   "constraint violations by type",
   "ambiguity: distinct valid solutions (RMS action difference > 0.05 ubar) and ties within 1e-9",
   "DI recall per solver and M, and every rejected returned segment",
-  "refinement deltas"
+  "refinement deltas",
+  "DI and Pendulum demonstrated-action replay miss per anchor-M pair"
  ],
  "decision": {
   "double_integrator": {
@@ -229,14 +255,15 @@
    "cem_fails_only": "PushT verdict: solver inadequate"
   },
   "treatment": {
-   "population": "starts certified M = 1-infeasible",
+   "population": "available starts certified M = 1-infeasible; V counts valid segments at eligible M > 1",
    "min_valid_starts": 20,
    "min_fraction_at_some_radius": 0.1
   },
   "stage_2_passes": "DI passes and at least one of Pendulum or PushT passes",
   "after": "Stage 3 only for passing systems; no treatment pass ends #171 before Stage 3",
   "pusht_certificate": "empirical; if PushT alone passes, the user decides whether it suffices before Stage 3",
-  "no_changes_after_outcomes": true
+  "no_changes_after_outcomes": true,
+  "denominators": "available starts and, on PushT, eligible pairs only (DI recall included)"
  },
  "smoke": {
   "rerun_byte_identical": true,
@@ -245,19 +272,36 @@
    "action out of bounds",
    "forged terminal state",
    "flipped certificate",
-   "refined replay miss"
+   "refined replay miss",
+   "PushT continuation beyond 1.0 px"
   ],
-  "cost_projection_within_ceiling": true
+  "cost_projection_within_ceiling": true,
+  "cost_projection": "complete path for every system: availability, eligibility, M = 1 certificate, every M, every restart, all checks"
  },
  "compute": {
   "paid": false,
-  "pusht": {
-   "host": "siddh",
-   "workers": 32,
-   "tmux": true,
-   "progress_minutes": 5
+  "host": "siddh",
+  "tmux": true,
+  "workers": 32,
+  "progress_minutes": 5,
+  "work": {
+   "pusht_cem_steps": 95232000,
+   "pusht_cem_restores": 15360000,
+   "pusht_sweep_evaluations": 26419600,
+   "pendulum_certificate_solves": 2400400
   },
-  "estimate_hours": 1,
-  "ceiling_hours": 3
+  "unit_costs_us": {
+   "pusht_step": 176,
+   "pusht_restore": 75,
+   "pendulum_refined_solve": 90,
+   "pendulum_batched_evaluator_call": [
+    150,
+    600
+   ]
+  },
+  "estimate_core_hours": 8,
+  "estimate_wall_minutes": 20,
+  "ceiling_wall_hours": 3,
+  "ceiling_scope": "DI, Pendulum and PushT together"
  }
 }

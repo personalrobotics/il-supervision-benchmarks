@@ -1,0 +1,84 @@
+{
+ "b0_tau_18_point_px": 29.764080044321236,
+ "code": {
+  "commit": "9df45ebd82d041593b99a4994f1d8ed4fde44ded",
+  "dirty": false,
+  "files_sha256": {
+   "tools/pusht_recovery/stage_a.py": "7bb22943deecf1d1e4cfc8f59a6e99a20cfecb01057d7cfc4cdc99a545ce6a85",
+   "tools/pusht_recovery/support.py": "a11957aab0c9d7713cf50c8ce35836a0708d5758600886172c52efbec7d6bffc",
+   "tools/pusht_v2/source.py": "70f3fed087209e767f1ba2140bc50d2bce0a03a2e7704d4f92efbbac62c7af1e",
+   "tools/recovery_feasibility/tau.py": "1a1c36c94828d3f74d1a357359c2b9426c75066aa1b6ab1dcc843f2425723a13"
+  }
+ },
+ "counts": {
+  "subset_episodes": 41,
+  "subset_states": 5040
+ },
+ "demonstration_step_px": {
+  "10": 2.7738360347327866,
+  "100": 58.04388145882132,
+  "50": 7.852478322722969,
+  "90": 18.15350107551643,
+  "99": 28.70171028871576
+ },
+ "distance": "largest per-point Euclidean distance, px",
+ "inputs": {
+  "r": 0.25,
+  "source_content_sha256": "333a9b17ebfc6657591eb2b14a7f314200dd2ae1c743691802a319c1746e561d",
+  "subset_episodes": [
+   2,
+   13,
+   18,
+   30,
+   32,
+   33,
+   34,
+   35,
+   36,
+   39,
+   52,
+   54,
+   55,
+   59,
+   78,
+   82,
+   83,
+   88,
+   89,
+   90,
+   102,
+   105,
+   110,
+   113,
+   117,
+   121,
+   133,
+   136,
+   141,
+   143,
+   161,
+   163,
+   165,
+   172,
+   177,
+   181,
+   182,
+   185,
+   188,
+   193,
+   200
+  ],
+  "subset_seed": 0
+ },
+ "replay_error_max_px": 0.0009918054420089107,
+ "replay_verified_states": 4071,
+ "rule": "the 99th percentile of one demonstration step plus the largest replay error over the replay-verified states (#52 B0)",
+ "schema": "ilsb.recovery_feasibility.tau 1",
+ "simulator": {
+  "env": "gym_pusht/PushT-v0",
+  "gym_pusht": "0.1.8",
+  "pymunk": "6.11.1"
+ },
+ "state": "9 points: the agent and the T's 8 keypoints at the current frame",
+ "tau_px": 28.702702094157768
+}
