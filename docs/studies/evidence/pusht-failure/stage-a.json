@@ -1,0 +1,160 @@
+{
+ "bases": {
+  "1": {
+   "consequential": 277,
+   "descriptive": {
+    "near_miss_by_class": {
+     "departs_eligible": 129,
+     "departs_ineligible": 33,
+     "never_in_support": 4,
+     "no_departure": 168
+    },
+    "successful_by_class": {
+     "departs_eligible": 61,
+     "departs_ineligible": 13,
+     "never_in_support": 0,
+     "no_departure": 115
+    },
+    "successful_d_sup_min": {
+     "10": 1.6078278776350488,
+     "50": 2.9145973072348497,
+     "90": 4.767449185324371
+    },
+    "units_d_at_departure": {
+     "10": 29.859547623778354,
+     "50": 30.080786822867616,
+     "90": 32.3407796324713
+    },
+    "units_d_sup_min": {
+     "10": 31.57360940659598,
+     "50": 57.59556347377806,
+     "90": 93.348920709872
+    }
+   },
+   "failure_starts": 66,
+   "informative": true,
+   "model_sha256": "b4e025aa2cd2225a7b5308cbf6934d8c7210f7a94ed9f16f4d193af18cef71f0",
+   "near_miss": 334,
+   "pass": false,
+   "rollouts": 800,
+   "run_files_sha256": {
+    "record.json": "a2b16fa12229cf3fa32f47f06ac3646dc200ff6762ed0fe228e998756e14e71f",
+    "trajectories.npz": "41e853e7928d0819bdc9c55b89a930c07b9550bb0f7f448c99c0da4580766847",
+    "windows.npz": "26b5b37d2d587566c64c0da58f83677198904c5b64bf1dcf5cc32de43a884f61"
+   },
+   "successful": 189,
+   "trajectories_content_sha256": "5e259bab68e6c06cb8f28dba92ef7a16549efa9935bb4dad0bc8c5646901318a",
+   "units": 261,
+   "units_by_class": {
+    "departs_eligible": 14,
+    "departs_ineligible": 0,
+    "never_in_support": 247,
+    "no_departure": 0
+   },
+   "units_by_window_status": {
+    "action_out_of_bounds": 0,
+    "beyond_extent_envelope": 0,
+    "beyond_penetration_envelope": 0,
+    "non_finite": 0,
+    "ok": 0,
+    "singular_jacobian": 0,
+    "solve_failed": 14,
+    "speed_beyond_envelope": 0
+   },
+   "valid_window_starts": 0,
+   "valid_windows": 0,
+   "windows_content_sha256": "f8bdec57c6c1d398a1454656f7e4849d74b8e3c3be6ea8dc51c11ca3ea7ce38d"
+  },
+  "2": {
+   "consequential": 249,
+   "descriptive": {
+    "near_miss_by_class": {
+     "departs_eligible": 154,
+     "departs_ineligible": 31,
+     "never_in_support": 6,
+     "no_departure": 145
+    },
+    "successful_by_class": {
+     "departs_eligible": 86,
+     "departs_ineligible": 9,
+     "never_in_support": 0,
+     "no_departure": 120
+    },
+    "successful_d_sup_min": {
+     "10": 1.4899070583986542,
+     "50": 3.0461072225942165,
+     "90": 5.242799675875387
+    },
+    "units_d_at_departure": {
+     "10": 29.817945812919252,
+     "50": 30.25756206463752,
+     "90": 32.84365286084443
+    },
+    "units_d_sup_min": {
+     "10": 29.08986018094437,
+     "50": 55.374003198983985,
+     "90": 93.90667816696984
+    }
+   },
+   "failure_starts": 62,
+   "informative": true,
+   "model_sha256": "fdc8cf40a5a761b5a1c694ec704e331a8a84262e48765954c82ea8e95f2d36ad",
+   "near_miss": 336,
+   "pass": false,
+   "rollouts": 800,
+   "run_files_sha256": {
+    "record.json": "fa442987da8529d5fda87bf5bf85773002f0d24589a1f31379ac8db711353c4c",
+    "trajectories.npz": "d29d59d02d2d2ee4bf6cd6435c132d214760991eae35213fbc9b45bff2020842",
+    "windows.npz": "60b0f1ff3d994b82af71e292c8186b383a0297483040b9025c7328a788deecd7"
+   },
+   "successful": 215,
+   "trajectories_content_sha256": "6c6e494bc47f90320c6b8592c378c30487ce9936b49daa2b5874d3fb77e7f38d",
+   "units": 238,
+   "units_by_class": {
+    "departs_eligible": 19,
+    "departs_ineligible": 1,
+    "never_in_support": 213,
+    "no_departure": 5
+   },
+   "units_by_window_status": {
+    "action_out_of_bounds": 0,
+    "beyond_extent_envelope": 0,
+    "beyond_penetration_envelope": 0,
+    "non_finite": 0,
+    "ok": 1,
+    "singular_jacobian": 0,
+    "solve_failed": 18,
+    "speed_beyond_envelope": 0
+   },
+   "valid_window_starts": 1,
+   "valid_windows": 1,
+   "windows_content_sha256": "7410c95b9f13e4e1149de8c07efa2af0ef5a177087ec15fc190ac1e7f5e1d011"
+  }
+ },
+ "code": {
+  "commit": "9666dba935885cad3475f71c8599e881b5523776",
+  "dirty": false
+ },
+ "decision": "stop: too few valid recovery windows",
+ "environment": {
+  "cuda": "13.0",
+  "cudnn": 91900,
+  "cudnn_allow_tf32": true,
+  "deterministic_algorithms": true,
+  "driver": "595.99.02",
+  "gpu": "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition",
+  "lerobot": "0.6.1",
+  "matmul_allow_tf32": false,
+  "numpy": "2.2.6",
+  "torch": "2.11.0+cu130"
+ },
+ "pass": false,
+ "rule": {
+  "failure_repeats": "3 of 4",
+  "max_coverage_below": 0.504,
+  "min_failure_starts": 20,
+  "min_windows": 100,
+  "tau_px": 29.764080044321236
+ },
+ "schema": "ilsb.pusht_failure.stage_a 1"
+}
