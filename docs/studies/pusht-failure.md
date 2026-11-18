@@ -225,3 +225,30 @@ audit 53.
 r = 0.25 the consequential failures of this learner happen at states the demonstrations never come near, so CCIL can
 supply no valid recovery supervision there. This points to coverage of the start distribution rather than recovery
 from drift, though Stage A does not test that. No τ, window, solve or threshold is changed, and Stage B does not run.
+
+### Post hoc: initial support and failure geometry
+
+Read-only and run after the decision, on the saved Stage A rollouts. It changes nothing above.
+
+![CCIL labels, two matched starts, and distance to support](evidence/pusht-failure/pusht-failure-geometry.svg)
+
+- **CCIL's labels sit close to the demonstrations** (a, e). #52 Stage A's 1,865 oracle labels lie a median of 5 px,
+  and at most 13 px, from their demonstration states.
+- **Failure is start-determined, but initial distance barely predicts it.**
+  - 45 starts fail consequentially on all 8 rollouts (both bases, 4 repeats), and 112 on none.
+  - At t = 0, 197 of 200 starts lie beyond τ from the 41-demonstration subset, successful ones included.
+  - Initial distance separates mostly-failing starts with AUC 0.64 against the subset, and 0.58 against all 165
+    training demonstrations.
+- **It is the joint agent and T configuration that is far.**
+  - The agent alone is within τ for 198 of 200 starts.
+  - Every start begins at rest, so history adds 0.17 px.
+  - The T alone is within τ for 60 starts against the subset, and 131 against all 165.
+  - Scarcity explains little: 5 of 72 mostly-failing starts are far from the subset but near the full pool.
+- **What separates outcomes is whether the rollout later reaches support** (b–d). Starts 2042 and 2121 both begin about
+  70 px from support. 2121's rollouts fall below τ by about step 60, into the labels' band, and succeed. 2042's stay
+  near 100 px for all 300 steps.
+
+Record: [`evidence/pusht-failure/initial-support.json`](evidence/pusht-failure/initial-support.json), from
+[`tools/pusht_failure/initial_support.py`](../../tools/pusht_failure/initial_support.py). The figure is drawn by
+[`figure_data.py`](../../tools/pusht_failure/figure_data.py) and
+[`figure.py`](../../tools/pusht_failure/figure.py), and it redraws byte-identically from the same data.
