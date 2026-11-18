@@ -304,6 +304,10 @@ every start file, and the start files are archived as `20261118T162312Z-study-st
 | Pendulum | **passes** | M = 1 is certified infeasible on all 400 starts. 265 have a valid M > 1 segment. The fraction by radius is 0.88, 0.86, 0.55 and 0.36 (r = 0.5, 1, 2, 4). The shortest valid M is mostly 16–64. The refinement delta is at most 2e-7. |
 | PushT | **solver-inconclusive** (DI rejected CEM) | M = 1 is ruled out on 392 of 400 starts by the conservative sweep. 109 have a valid M > 1 segment that meets the endpoint, handoff, refinement, constraints and the continuation audit. The fraction by radius is 0.47, 0.35, 0.20 and 0.11. The treatment counts alone would pass, but the frozen rule makes the result solver-inconclusive. |
 
+**What PushT does establish.** 109 audited M > 1 segments exist on starts where the sweep ruled M = 1 out. CEM's
+weak recall can explain segments it missed, but it cannot invalidate segments already found and exactly checked.
+This is evidence of existence, not a calibrated estimate of prevalence.
+
 **Stage 2 passes**: DI passes through LM, and Pendulum passes. Stage 3 repeats Pendulum with learned dynamics. As
 the protocol requires, PushT is not counted as a treatment pass, because CEM failed DI's calibration.
 
