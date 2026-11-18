@@ -308,5 +308,5 @@ every start file, and the start files are archived as `20261118T162312Z-study-st
 the protocol requires, PushT is not counted as a treatment pass, because CEM failed DI's calibration.
 
 Among unsolved eligible pairs, almost every best returned candidate had no endpoint-feasible candidate. On PushT, 58
-pairs failed a constraint (mostly refinement) and 1 failed the continuation audit. These are observed solver
+pairs failed refined replay, the only constraint violated, and 1 failed the continuation audit. These are observed solver
 outcomes, not proofs of infeasibility.
