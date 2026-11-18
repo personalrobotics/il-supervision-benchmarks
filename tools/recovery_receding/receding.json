@@ -1,0 +1,69 @@
+{
+ "study": "value-free receding-horizon recovery on Pendulum",
+ "issue": 76,
+ "status": "protocol",
+ "protocol": "docs/studies/recovery-receding.md",
+ "frozen_at": "4b046d6",
+ "system": "pendulum",
+ "stage2": {
+  "spec": "tools/recovery_feasibility/stage-2.json",
+  "record_sha256": {
+   "study": "b7f47873baf93698757bd5285a0fff525cafafb0f01fb1251a2ca2fae9129f94",
+   "smoke": "7d4c90c4ee126f7f9b2bd9994f63d98fa94ff35e4dc2949aaa623b622c9b0424"
+  },
+  "study_release": "evidence-recovery-feasibility-stage-2-v1"
+ },
+ "stage3": {
+  "spec": "tools/recovery_learned/stage-3.json",
+  "record_sha256": {
+   "study": "f222e7067f8db00e8d1cb14f309bbcaec4f8f64e7d50fcd1cc4437abc4b20bda",
+   "smoke": "677f7ef2baa15f2ae0dfc4894a309a1d80147ce061791f57d5faccd0888539b8"
+  },
+  "study_release": "evidence-recovery-learned-stage-3-v1",
+  "model0_weights_sha256": "ffdfef73ab8b0e64b3fa0c35093932385c8fb1d34d2f0bc9b77c2d6bd2918194",
+  "model0_file_sha256": "816c85be1298e076df9d7994c4ed56d97855a7e2c47f6c6c36597b041ea52716"
+ },
+ "arms": {
+  "exact": 0,
+  "learned": 1
+ },
+ "execution": {
+  "horizon": "shrinking: at step j, M - j actions from the observed x_j to y_M",
+  "solver": "Stage 2 lm_shooting (50 iterations, damping 1e-3 x10/÷10, forward-difference step 1e-6)",
+  "first_solve": "Stage 2's 8 restarts (zero, demonstrated, 6 uniform keyed [171, 4, (99,) arm, start, M, k])",
+  "replan": [
+   "previous plan with its executed first action dropped",
+   "remaining demonstrated actions a_(t+j)..a_(t+M-1)"
+  ],
+  "executed": "first action of the restart with the smallest predicted terminal residual; ties to the earlier restart",
+  "failures": {
+   "solver": "non-finite first action",
+   "envelope": "an executed state leaves the envelope"
+  },
+  "exact_steps_per_start": 127
+ },
+ "declared": "all M steps executed and observed endpoint <= epsilon; per start, the shortest such M",
+ "audit": [
+  "bounds",
+  "envelope",
+  "replay",
+  "endpoint",
+  "refinement"
+ ],
+ "decision": {
+  "min_starts": 20,
+  "min_fraction_at_some_radius": 0.1,
+  "min_audited_fraction_learned": 0.8
+ },
+ "smoke": {
+  "starts": "Stage 2's key-99 smoke starts",
+  "faults": [
+   "action out of bounds",
+   "forged executed state",
+   "forged refined endpoint",
+   "forged declared success"
+  ],
+  "ceiling_wall_hours": 3,
+  "workers": 32
+ }
+}
