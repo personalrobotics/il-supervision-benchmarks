@@ -171,3 +171,38 @@ Implementation choices the protocol leaves open:
 
 These smoke figures are not study outcomes. On the smoke starts, 13 have an oracle-ceiling segment, the learned
 selection picked 11, and 1 of those 11 was correct; 430 of 516 model-valid segments missed ε under exact replay.
+
+## Result
+
+The study ran from `efae412` on siddh on 2026-11-18, with CCIL `12b2fbf`, on Stage 2's 400 Pendulum starts read from
+the Stage 2 release. The fresh-process audit found nothing, and π as its own recovery gave Δ_M = 0 under every
+dynamics. The record and audit are in [`evidence/recovery-learned/study/`](evidence/recovery-learned/study/); the
+complete run directory is the asset of `evidence-recovery-learned-stage-3-v1`
+([`archive.json`](evidence/recovery-learned/archive.json)).
+
+**Stage 3 does not pass.** The gate's yield conditions hold and its precision condition fails:
+
+| Condition | Required | Result |
+|---|---|---|
+| Oracle ceiling (starts) | ≥ 20 | **190** of 400 |
+| Learned selection (starts) | ≥ 20 | **106** |
+| Selected segments correct | ≥ 80% | **7 of 106 (6.6%)** |
+
+Recall against the ceiling is 7 of 190.
+
+**Relevance holds under exact dynamics.** Recovery followed by the frozen BC beats the BC's own continuation on 190
+starts, at radii 0.5, 1, 2 and 4 on 73, 69, 28 and 20 of 100. The ceiling's M is mostly 16 or 32 (59 and 72
+starts). The BC itself is upright a median 38% of the remaining steps and never holds.
+
+**Validity is where the learned model fails.** Model 0 found model-valid segments at 259 starts, but 4,222 of the
+4,445 model-valid segments miss ε under exact replay. The models' one-step validation error is small (q95 ≈ 0.001,
+under 0.1 ε), yet their M-step endpoint error along constructed segments has a median of 0.055 at M = 8, 0.063 at
+M = 16, 0.11 at M = 32 and 0.46 at M = 64, against ε = 0.014. The check models agree with model 0 about as closely
+as with the true map, so the ensemble minimum did not screen the errors: of the 106 selected segments, 9 are valid
+and 7 of those have exact Δ_M ≥ 1. On model-valid segments, the ensemble-minimum and exact advantages agree in sign
+on 2,958 of 4,445.
+
+**The conclusion.** Finite-horizon recovery strictly expands the feasible correction set (Stage 2), and members of
+that set improve a fixed learner's continuation on nearly half of the starts here. A learned dynamics model fitted to
+these demonstrations does not identify them: its segments do not survive exact replay at the horizons recovery needs,
+and an ensemble of such models does not detect that. By the protocol, #171 stops before any learner is trained.
