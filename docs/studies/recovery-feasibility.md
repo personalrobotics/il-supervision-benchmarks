@@ -189,3 +189,35 @@ atomically and the run is resumable, with progress logged every 5 minutes.
 
 That is about 8 core-hours. On 32 workers it is roughly 20 minutes of wall time. **The ceiling is 3 hours of wall
 time for all three systems together.** If the smoke's projection exceeds it, the run does not start.
+
+## Code and smoke
+
+The code is in [`tools/recovery_feasibility/`](../../tools/recovery_feasibility/):
+- `run.py` solves one system's starts;
+- `audit.py` is the fresh-process audit;
+- `smoke.py` runs the smoke and combines the projections.
+
+DI and Pendulum run under the ilsb environment with `PYTHONPATH=src`; PushT runs under the LeRobot environment. Each
+file's docstring gives its command. The study set refuses to start without `--study-go`.
+
+Implementation choices the protocol leaves open:
+- **System ids.** The seed keys use DI 0, Pendulum 1 and PushT 2.
+- **Restart streams.** LM's random restarts use restarts 2–7, and CEM's use 0–1. The smoke inserts 99 after the
+  system id in every seed key.
+- **One LM iteration** is one damped trial step. The Jacobian is recomputed after each accepted step.
+- **PushT perturbation.** The perturbation is drawn in #52's scaled coordinates (x, y, L θ). A "returned" segment is
+  one whose terminal miss is within ε; DI's "every returned segment valid" applies to those.
+- **PushT envelope.** The start must not penetrate. Contact during a segment is the simulator's to resolve.
+
+**Smoke result**, from `bcb8230` on siddh, 40 starts per system on the key-99 anchors
+([`evidence/recovery-feasibility/smoke/`](evidence/recovery-feasibility/smoke/)):
+- **Reproduction.** Each system's second run was byte-identical on every start file and on its record, and the
+  fresh-process audit found nothing.
+- **Faults.** Each injected fault was refused with its own reason first: action bounds, a forged terminal state, a
+  flipped certificate, a refined-replay miss (Pendulum, PushT), and a continuation miss (PushT).
+- **Projection.** The complete path takes 0.06 s per start for DI, 3.4 s for Pendulum and 87 s for PushT. That
+  projects to 0.32 h of wall time for the study on 32 workers, within the 3 h ceiling (`projection.json`).
+
+These smoke figures are not study outcomes. Two of them bear on the run:
+- On the smoke's DI starts, CEM recalled 100/106 oracle-reachable cases (94.3%), below the 95% gate.
+- On PushT, 37 segments ended within ε, but every one of the 400 returned segments left the 1.0 px continuation.
