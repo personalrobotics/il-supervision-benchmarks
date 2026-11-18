@@ -136,6 +136,22 @@ def summarize(name: str, recs: list, eps: float, ladder: tuple, solvers: tuple) 
     out["returned_rejected"] = [{"start": st, "M": M, "solver": s, "restart": k,
                                  "failed": sorted(c for c, ok in g["checks"].items() if not ok)}
                                 for st, M, s, k, g in returned if not g["valid"]]
+    # an unsolved eligible pair's best restart (by the handoff residual where there is one), by its first failure:
+    # endpoint, handoff, constraint (bounds, envelope, refinement), then the continuation audit
+    order = (("terminal", "endpoint"), ("handoff", "handoff"), ("bounds", "constraint"), ("envelope", "constraint"),
+             ("refinement", "constraint"), ("continuation", "continuation"))
+    failures = {}
+    for s in solvers:
+        failures[s] = {}
+        for M in ladder:
+            c = Counter()
+            for x in avail:
+                rung = x["rungs"][str(M)]
+                if rung["eligible"] and rung[s]["first_valid"] is None:
+                    g = min(rung[s]["segments"], key=lambda g: (g["miss"] if g.get("handoff_miss") is None else g["handoff_miss"], g["miss"]))
+                    c[next(w for k, w in order if not g["checks"].get(k, True))] += 1
+            failures[s][str(M)] = dict(sorted(c.items()))
+    out["unsolved_pairs_by_failure"] = failures
     if name == "double_integrator":
         recall, contradictions = {}, []
         for s in solvers:

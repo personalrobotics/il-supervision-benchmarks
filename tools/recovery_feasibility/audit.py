@@ -5,7 +5,7 @@
 It rebuilds the system from INPUT and, for every start, recomputes the start and its redraws, the eligibility, the
 M = 1 certificate and the oracle, then replays every returned segment (all solvers, all restarts) and recomputes its
 checks. Each start reports its first refusal in a fixed order:
-  start, eligibility, certificate, oracle, then per segment bounds, envelope, replay, terminal, refinement,
+  start, eligibility, certificate, oracle, then per segment bounds, envelope, replay, terminal, handoff, refinement,
   continuation, validity, then selection (first valid segment and ambiguity).
 Finally the record is recomputed from the start files and must equal record.json byte for byte. Solvers are not
 rerun here; the byte-identical second run covers them. Exit status 0 only with no refusal.
@@ -21,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import common as C  # noqa: E402
 import run as R  # noqa: E402
 
-ORDER = ("bounds", "envelope", "replay", "terminal", "refinement", "continuation", "validity")
+ORDER = ("bounds", "envelope", "replay", "terminal", "handoff", "refinement", "continuation", "validity")
 RUN_DIR = None
 
 
@@ -33,6 +33,8 @@ def segment_refusal(sy, a: int, x0, M: int, g: dict):
         "envelope": g["checks"]["envelope"] == sy.check_envelope(g["states"]) == re["checks"]["envelope"],
         "replay": g["states"] == re["states"],
         "terminal": g["miss"] == re["miss"] and g["checks"]["terminal"] == re["checks"]["terminal"],
+        "handoff": g.get("handoff_miss") == re.get("handoff_miss")
+        and g["checks"].get("handoff") == re["checks"].get("handoff"),
         "refinement": g["refined_miss"] == re["refined_miss"]
         and g["checks"].get("refinement") == re["checks"].get("refinement"),
         "continuation": g["continuation_px"] == re["continuation_px"]

@@ -5,6 +5,11 @@ tau is tau.json's. Anchors are the r = 0.25 subset's replay-verified rows; each 
 replay's (#52, stage_a.replay). Eligibility reuses #52's 1.0 px continuation tolerance; a segment's continuation
 may drift at most 1.0 px beyond its own terminal miss (protocol amendment 2).
 
+Information state (amendment 3): the policy sees W = 2 frames, so a segment's M free actions are followed by L = 1
+fixed demonstrated handoff action a_(t+M). The handoff residual is the larger of the two frames' distances,
+max(d(x_M, y_M), d(x_(M+1), y_(M+1))), and must be within epsilon, separately from the endpoint. CEM ranks samples by
+that residual; the M = 1 certificate sweeps it.
+
 Envelope. A start is built by hand, so it must not penetrate (oracle_probe.penetration <= 0) and its agent and T
 centre must lie in [0, 512]^2. During a segment, contact is the simulator's to resolve (the kinematic agent may
 penetrate, as in the demonstrations), and every state's agent and T centre must stay in [0, 512]^2.
@@ -149,17 +154,23 @@ class System:
                 "eligible": {str(M): bool((dev[:M + CONT_STEPS] <= CONT_TOL).all()) for M in self.ladder}}
 
     def certificate(self, a: int, x0) -> dict:
-        """Empirical: no action on the 2 px grid ends within 2 epsilon of y_1."""
-        y = self.target(a, 1)
-        best, arg = np.inf, None
+        """Empirical: no action on the 2 px grid, followed by the handoff action a_(t+1), has a handoff residual
+        within 2 epsilon. The endpoint-only minimum is recorded beside it."""
+        e, k = self.anchors[a]
+        y1, y2, h = self.target(a, 1), self.target(a, 2), self.ep[e][1][k + 1]
+        best, arg, best_end = np.inf, None, np.inf
         for ax in GRID:
             for ay in GRID:
                 load_fresh(self.env, x0)
                 self.env.step(np.array([ax, ay]))
-                d = float(distance(positions(self.env), y)[0])
+                d1 = float(distance(positions(self.env), y1)[0])
+                self.env.step(h)
+                d = max(d1, float(distance(positions(self.env), y2)[0]))
+                best_end = min(best_end, d1)
                 if d < best:
                     best, arg = d, [float(ax), float(ay)]
         return {"kind": "sweep_certified_empirical", "min_grid": best, "argmin_action": arg,
+                "min_grid_endpoint": best_end, "endpoint_infeasible": bool(best_end > 2 * self.eps),
                 "infeasible": bool(best > 2 * self.eps)}
 
     def oracle(self, a: int, x0, M: int):
@@ -169,9 +180,16 @@ class System:
         return None
 
     # --- solvers and segments ------------------------------------------------------------------------------------
+    def handoff(self, a: int, x0, M: int, U, env=None) -> tuple:
+        """(endpoint residual, handoff residual) of M free actions U followed by the handoff action a_(t+M)."""
+        e, k = self.anchors[a]
+        p = self.chain(x0, [*np.asarray(U, np.float64), self.ep[e][1][k + M]], env)[-2:]
+        d = distance(p, np.array([self.target(a, M), self.target(a, M + 1)]))
+        return float(d[0]), float(d.max())
+
     def solve(self, solver: str, a: int, x0, M: int, seed) -> list:
-        y, demo = self.target(a, M), self.anchor(a)[1][:M]
-        miss = lambda X: np.array([float(distance(self.chain(x0, U)[-1], y)[0]) for U in X])  # noqa: E731
+        demo = self.anchor(a)[1][:M]
+        miss = lambda X: np.array([self.handoff(a, x0, M, U)[1] for U in X])  # noqa: E731
         return [C.cem(miss, demo, S_CEM_STD, LO, HI, seed(k)) for k in range(C.CEM["restarts"])]
 
     def segment(self, a: int, x0, M: int, U) -> dict:
@@ -186,11 +204,12 @@ class System:
             cont.append(positions(self.env))
         miss = float(distance(states[-1], y)[0])
         cont_dev = float(distance(np.array(cont), cur[k + M + 1:k + M + 1 + CONT_STEPS]).max()) - miss
-        refined = float(distance(self.chain(x0, U, self.fine)[-1], y)[0])
+        handoff = max(miss, float(distance(cont[0], cur[k + M + 1])[0]))
+        refined = max(self.handoff(a, x0, M, U, self.fine))
         checks = {"bounds": self.check_bounds(U), "envelope": self.check_envelope(states), "terminal": miss <= self.eps,
-                  "refinement": refined <= self.eps, "continuation": cont_dev <= CONT_TOL}
-        return {"actions": C.floats(U), "states": C.floats(states), "miss": miss, "refined_miss": refined,
-                "continuation_px": cont_dev, "checks": checks, "valid": all(checks.values())}
+                  "handoff": handoff <= self.eps, "refinement": refined <= self.eps, "continuation": cont_dev <= CONT_TOL}
+        return {"actions": C.floats(U), "states": C.floats(states), "miss": miss, "handoff_miss": handoff,
+                "refined_miss": refined, "continuation_px": cont_dev, "checks": checks, "valid": all(checks.values())}
 
     def check_bounds(self, actions) -> bool:
         U = np.asarray(actions)

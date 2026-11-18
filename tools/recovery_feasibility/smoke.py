@@ -28,7 +28,7 @@ CEILING_H = C.SPEC["compute"]["ceiling_wall_hours"]
 BOUND_PAST = {"double_integrator": None, "pendulum": 4.0, "pusht": 513.0}  # an action outside each system's bounds
 FAULTS = {"double_integrator": ("bounds", "replay", "certificate"),
           "pendulum": ("bounds", "replay", "certificate", "refinement"),
-          "pusht": ("bounds", "replay", "certificate", "refinement", "continuation")}
+          "pusht": ("bounds", "replay", "certificate", "handoff", "refinement", "continuation")}
 
 
 def files(d: Path) -> dict:
@@ -67,6 +67,8 @@ def inject(src: Path, dst: Path, fault: str, system: str, ubar: float) -> dict:
         g["states"][-1][0] += 1e-3
     elif fault == "refinement":
         g["refined_miss"] = g["refined_miss"] + 10.0 * (g["miss"] + 1.0)
+    elif fault == "handoff":
+        g["handoff_miss"] = g["handoff_miss"] + 10.0 * (g["miss"] + 1.0)
     elif fault == "continuation":
         g["continuation_px"] = g["continuation_px"] + 1.0
     p.write_text(C.dumps(rec))
