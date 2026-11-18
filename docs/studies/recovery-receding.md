@@ -86,3 +86,28 @@ The smoke runs both arms on Stage 2's key-99 smoke starts: a byte-identical reru
 faults the audit must refuse for the right reason (an action out of bounds, a forged executed state, a forged
 refined endpoint, a forged declared success), and a cost projection of both arms against a 3 h wall ceiling on siddh
 with 32 workers. The run waits for the smoke and its own go.
+
+## Code and smoke
+
+The code is [`tools/recovery_receding/`](../../tools/recovery_receding/) (`receding.json` restates the frozen choices
+and pins the Stage 2 and #73 records and model 0 by hash). It builds on #73's code for the starts, model 0, the frozen
+BC and the branches, and reuses Stage 2's LM and scheduler unchanged. Implementation choices the protocol leaves open:
+- **Smoke keys** insert 99 after the 4, as Stage 2 and #73 do: `[171, 4, 99, arm, start, M, k]`; arm 0 is exact,
+  1 learned.
+- **The predicted residual** of a restart is its terminal miss under the arm's planning dynamics; a restart whose
+  prediction is not finite never wins.
+- **The open-loop cells** are read from the Stage 2 and #73 start files by provenance: Stage 2's shortest M with a
+  valid restart, and #73's shortest M with a restart that is model-valid and valid.
+- **The diagnostic Δ** is computed for each arm's declared recovery, under the exact map, as in #73.
+
+**Smoke result**, from `2fd6681` on siddh with CCIL `12b2fbf`, Stage 2's 40 key-99 Pendulum starts
+([`evidence/recovery-receding/smoke.json`](evidence/recovery-receding/smoke.json)):
+- **Reproduction.** The second run was byte-identical on all 41 files (every start file and the record). The
+  fresh-process audit found nothing.
+- **Faults.** Each injected fault was refused with its own reason first: action bounds, a forged executed state, a
+  forged refined endpoint, and a forged declared success.
+- **Projection.** 92 s per start on average (both arms, every M): 0.32 h of wall time for the study on 32 workers,
+  within the 3 h ceiling.
+
+These smoke figures are not study outcomes. On the 40 smoke starts, the exact arm declared 26 recoveries and the
+learned arm 18, all of which passed the audit; the open-loop cells had 25 (exact) and 10 (learned).
