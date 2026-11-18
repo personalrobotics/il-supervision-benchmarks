@@ -4,6 +4,11 @@
  "parent": "personalrobotics/CCIL#171 Stage 2",
  "status": "protocol",
  "protocol": "docs/studies/recovery-feasibility.md",
+ "amendments": [
+  {"id": 1, "before": "any study start is solved", "what": "CEM also evaluates its final mean and returns the better of it and the best sample", "why": "the final mean is CEM's estimate of the solution; the 95% DI gate is unchanged"},
+  {"id": 2, "before": "any study start is solved", "what": "PushT segment continuation: max_k (d_k - d_0) <= 1.0 px, d_0 the terminal miss", "why": "an absolute 1.0 px rule is stricter than the terminal tolerance epsilon = 2.870 px; the drift rule tests divergence after rejoining"},
+  {"id": 3, "before": "any study start is solved", "what": "continuation-consistent recovery (CCIL #171, 2026-11-18): W, psi, L = W - 1 handoff actions, endpoint and handoff residuals as separate constraints; PushT W = 2, L = 1; DI and Pendulum W = 1, L = 0 (unchanged); M = 1 is ruled out only if no M = 1 action passes endpoint and handoff", "why": "endpoint agreement alone does not restore a two-frame policy's information state"}
+ ],
  "contract": {
   "ccil_commit": "12b2fbf8c336ed55a35e942f471d7c96a0f69005",
   "doc": "docs/recovery-segments.md"
@@ -78,6 +83,7 @@
     "split": "ccil.data.split.make_split(ids, 0.2, 42)"
    },
    "metric": "per-coordinate training-std-scaled Euclidean",
+   "information_state": {"W": 1, "psi": "the current state", "L": 0, "handoff": "none: the endpoint condition alone"},
    "tau": "q95 validation -> nearest training state",
    "action_bound": "max |u| over training demonstrations",
    "state_envelope": "training bounding box +/- 50% of range",
@@ -113,6 +119,7 @@
     "split": "ccil.data.split.make_split(ids, 0.2, 3321)"
    },
    "metric": "sqrt(wrap(de)^2 + (dw/sqrt(g))^2)",
+   "information_state": {"W": 1, "psi": "the current state", "L": 0, "handoff": "none: the endpoint condition alone"},
    "tau": "q95 validation -> nearest training state",
    "action_bound": 3.0,
    "state_envelope": "|omega| <= 1.5 * max |omega| over training demonstrations",
@@ -150,6 +157,7 @@
     "support_record_sha256": "be8136ac5782652188585e17bd50165f31b0e1a094ec3393451169ed724e02a6"
    },
    "metric": "largest per-point distance over the current frame's agent and 8 T keypoints, px (oracle_probe.distance)",
+   "information_state": {"W": 2, "psi": "the last two frames' 9-point configurations", "L": 1, "handoff_action": "demonstrated a_(t+M), fixed", "endpoint_metric": "d(x_M, y_M)", "handoff_metric": "max over the window of the per-frame metric: max(d(x_M, y_M), d(x_(M+1), y_(M+1)))", "epsilon_end": "0.1 tau", "epsilon_handoff": "0.1 tau", "cem_objective": "handoff residual", "audit": "the 8-action continuation drift, independent of the optimizer"},
    "tau_px": 28.702702094157768,
    "action_bound": [
     [
@@ -174,10 +182,10 @@
     "cem"
    ],
    "m1_infeasibility": {
-    "kind": "sweep_certified_empirical",
+    "kind": "sweep_conservative_empirical",
     "grid_px": 2,
     "actions": 66049,
-    "rule": "no grid action within 2 epsilon"
+    "rule": "no grid action u, followed by the handoff action a_(t+1), has handoff residual within 2 epsilon (amendment 3); the endpoint-only minimum is recorded"
    },
    "oracle": null,
    "refinement": {
@@ -191,7 +199,7 @@
     "tolerance_px": 1.0,
     "steps": 8,
     "eligibility": "anchor's replay-reconstructed state restored fresh; recorded a_t..a_(t+M+7) keep rows t+1..t+M+8 within 1.0 px, else the anchor-M pair is ineligible (in no denominator)",
-    "segment": "same live space; recorded a_(t+M)..a_(t+M+7) from x_M keep rows t+M+1..t+M+8 within 1.0 px"
+    "segment": "same live space; recorded a_(t+M)..a_(t+M+7) from x_M give d_k to rows t+M+1..t+M+8 with max_k (d_k - d_0) <= 1.0 px, d_0 the terminal miss (amendment 2)"
    }
   }
  },
@@ -218,7 +226,8 @@
    "initial_mean": "demonstrated actions",
    "initial_std": "0.5 * ubar (PushT 64 px)",
    "clip": "bounds",
-   "restarts": 2
+   "restarts": 2,
+   "returns": "the better of the best sample over all iterations and the final mean clipped to bounds; a tie keeps the sample (amendment 1)"
   },
   "common": {
    "seed": [
@@ -244,7 +253,8 @@
   "ambiguity: distinct valid solutions (RMS action difference > 0.05 ubar) and ties within 1e-9",
   "DI recall per solver and M, and every rejected returned segment",
   "refinement deltas",
-  "DI and Pendulum demonstrated-action replay miss per anchor-M pair"
+  "DI and Pendulum demonstrated-action replay miss per anchor-M pair",
+  "unsolved eligible pairs per solver and M by the best returned candidate: no returned endpoint-feasible candidate, handoff miss, constraint violation, continuation failure, or no candidate returned; observed solver outcomes, not proofs of infeasibility; optimizer adequacy is calibrated on DI only"
  ],
  "decision": {
   "double_integrator": {
@@ -252,16 +262,16 @@
    "recall_min": 0.95,
    "recall_population": "M > 1 cases with oracle optimum <= 0.9 epsilon",
    "lm_fails": "stop: solver inadequate",
-   "cem_fails_only": "PushT verdict: solver inadequate"
+   "cem_fails_only": "PushT verdict: solver-inconclusive, not evidence that recovery is impossible"
   },
   "treatment": {
-   "population": "available starts certified M = 1-infeasible; V counts valid segments at eligible M > 1",
+   "population": "available starts with M = 1 ruled out by the same validity predicate as M > 1 (endpoint and handoff; Pendulum Lipschitz-certified, PushT conservative empirical sweep); V counts valid segments at eligible M > 1, each passing replay, constraints, endpoint, handoff, refinement and the continuation audit",
    "min_valid_starts": 20,
    "min_fraction_at_some_radius": 0.1
   },
   "stage_2_passes": "DI passes and at least one of Pendulum or PushT passes",
   "after": "Stage 3 only for passing systems; no treatment pass ends #171 before Stage 3",
-  "pusht_certificate": "empirical; if PushT alone passes, the user decides whether it suffices before Stage 3",
+  "pusht_certificate": "conservative empirical evidence, not an exact certificate (no bound closes the 2 px grid gaps); if PushT alone passes, the user decides whether it suffices before Stage 3",
   "no_changes_after_outcomes": true,
   "denominators": "available starts and, on PushT, eligible pairs only (DI recall included)"
  },
@@ -273,7 +283,8 @@
    "forged terminal state",
    "flipped certificate",
    "refined replay miss",
-   "PushT continuation beyond 1.0 px"
+   "PushT handoff residual beyond epsilon",
+   "PushT continuation drift beyond 1.0 px"
   ],
   "cost_projection_within_ceiling": true,
   "cost_projection": "complete path for every system: availability, eligibility, M = 1 certificate, every M, every restart, all checks"
@@ -285,9 +296,10 @@
   "workers": 32,
   "progress_minutes": 5,
   "work": {
-   "pusht_cem_steps": 95232000,
+   "pusht_cem_steps": 110592000,
    "pusht_cem_restores": 15360000,
    "pusht_sweep_evaluations": 26419600,
+   "pusht_sweep_steps": 52839200,
    "pendulum_certificate_solves": 2400400
   },
   "unit_costs_us": {
@@ -299,7 +311,7 @@
     600
    ]
   },
-  "estimate_core_hours": 8,
+  "estimate_core_hours": 11,
   "estimate_wall_minutes": 20,
   "ceiling_wall_hours": 3,
   "ceiling_scope": "DI, Pendulum and PushT together"

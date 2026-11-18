@@ -1,0 +1,48 @@
+{
+ "by_system": {
+  "double_integrator": {
+   "measured_with_workers": 32,
+   "seconds_per_start": {
+    "max": 0.15486884117126465,
+    "mean": 0.061357390880584714
+   },
+   "smoke_core_seconds": 2.4542956352233887,
+   "smoke_starts": 40,
+   "study_core_hours": 0.006817487875620524,
+   "study_wall_hours": 0.00021304649611314137,
+   "study_workers": 32
+  },
+  "pendulum": {
+   "measured_with_workers": 32,
+   "seconds_per_start": {
+    "max": 3.999425172805786,
+    "mean": 3.384818285703659
+   },
+   "smoke_core_seconds": 135.39273142814636,
+   "smoke_starts": 40,
+   "study_core_hours": 0.3760909206337399,
+   "study_wall_hours": 0.011752841269804372,
+   "study_workers": 32
+  },
+  "pusht": {
+   "measured_with_workers": 32,
+   "seconds_per_start": {
+    "max": 128.68319439888,
+    "mean": 115.4854027748108
+   },
+   "smoke_core_seconds": 4619.416110992432,
+   "smoke_starts": 40,
+   "study_core_hours": 12.83171141942342,
+   "study_wall_hours": 0.4009909818569819,
+   "study_workers": 32
+  }
+ },
+ "ceiling_wall_hours": 3,
+ "code": {
+  "commit": "0eb22b13998a9452a0b5bf57310fd0f0f9751640",
+  "dirty": false
+ },
+ "schema": "ilsb.recovery_feasibility.projection 1",
+ "study_wall_hours": 0.4129568696228994,
+ "within_ceiling": true
+}

@@ -9,6 +9,7 @@ Immutable releases are enabled for this repository from 2026-11-03. A release is
 | Release | Study | Archive | sha256 | Locked |
 |---|---|---|---|---|
 | [evidence-pendulum-recovery-segments-stage-a-v1](https://github.com/personalrobotics/il-supervision-benchmarks/releases/tag/evidence-pendulum-recovery-segments-stage-a-v1) | [recovery segments, Stage A](https://github.com/personalrobotics/il-supervision-benchmarks/pull/23) | `20261102T221735Z-recovery-segments.tar.gz`, 96,111,122 bytes ([archive.json](pendulum-recovery-segments/archive.json)) | `9d0f25d957fc612589f0889be421bf14929c44f0307b8a19d15d8de99bc11f69` | no |
+| [evidence-recovery-feasibility-stage-2-v1](https://github.com/personalrobotics/il-supervision-benchmarks/releases/tag/evidence-recovery-feasibility-stage-2-v1) | [recovery feasibility, Stage 2](https://github.com/personalrobotics/il-supervision-benchmarks/pull/72) | `20261118T162312Z-recovery-feasibility.tar.gz`, 20,504,863 bytes ([archive.json](recovery-feasibility/archive.json)) | `0f06850794e97d688dea92d752c24268cad5e24fb01920aa3b3c21b737d8198c` | yes |
 
 **Limitation of v1.** v1 was published before immutable releases were enabled, and the setting does not apply retroactively. GitHub does not lock its tag or asset. Tamper detection rests on three things:
 
