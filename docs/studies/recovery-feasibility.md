@@ -62,10 +62,12 @@ constraints: each must be within its tolerance, and a small one cannot compensat
   threshold is introduced.
 - **The optimizer.** PushT's CEM ranks samples by r_handoff, which bounds both residuals. DI's and Pendulum's
   objectives are unchanged.
-- **M = 1 is ruled out** only if no M = 1 action passes both the endpoint and the handoff. On PushT the sweep steps
-  each grid action, then the handoff action a_(t+1), and certifies infeasibility if no grid action has
-  r_handoff ≤ 2ε. The endpoint-only minimum is recorded beside it. At M = 1 the construction is ordinary one-step
-  CCIL. The handoff decides whether that construction restored the information state.
+- **M = 1 is ruled out** by the same complete validity predicate as M > 1: no M = 1 action passes both the endpoint
+  and the handoff. On PushT the sweep steps each grid action, then the handoff action a_(t+1), and rules M = 1 out if
+  no grid action has r_handoff ≤ 2ε. This is conservative empirical evidence of infeasibility, not an exact
+  certificate: no bound closes the gaps between the 2 px grid's actions. The endpoint-only minimum is recorded
+  beside it. At M = 1 the construction is ordinary one-step CCIL. The handoff decides whether that construction
+  restored the information state.
 - **The continuation audit stays independent.** The 8-action continuation drift is not part of the optimizer, and it
   cannot repair a failed handoff.
 
@@ -99,8 +101,7 @@ Stage A's 1.0 px continuation tolerance):
   tolerance measures additional drift: whether a velocity or contact mismatch makes the recovered trajectory diverge
   after rejoining. It does not demand a closer terminal match than ε.
 
-The M = 1 certificate (no grid action within 2ε) concerns the terminal alone, so it remains a certificate that no
-M = 1 segment is valid. DI and Pendulum have no eligibility gate. Their target is the full state, and the record
+DI and Pendulum have no eligibility gate. Their target is the full state, and the record
 reports each pair's demonstrated-action replay miss d(F^M(x_t, a_t…), y_M).
 
 ## Systems
@@ -117,7 +118,7 @@ reports each pair's demonstrated-action replay miss d(F^M(x_t, a_t…), y_M).
 | Perturbation | uniform direction in metric coordinates | uniform direction in (e, ω/√g) | agent (x, y) and T (x, y, θ) along a uniform direction, scaled by bisection to the radius. Velocities are kept from the anchor's restored state |
 | Ladder M | {1, 2, 4, 8, 16} | {1, 2, 4, 8, 16, 32, 64} | {1, 2, 4, 8, 16} |
 | Solver | LM shooting **and** CEM | LM shooting (a smooth, closed-form map) | CEM (query-only and nonsmooth; #66's local solve had zero gradient out of contact) |
-| M = 1 infeasibility | **exact**: the bounded least-squares optimum (`scipy.optimize.lsq_linear`) exceeds ε | **Lipschitz-certified sweep** ([below](#pendulum-certificate)) | **sweep-certified, empirical**: no action on the 2 px grid (257² actions) ends within 2ε |
+| M = 1 infeasibility | **exact**: the bounded least-squares optimum (`scipy.optimize.lsq_linear`) exceeds ε | **Lipschitz-certified sweep** ([below](#pendulum-certificate)) | **conservative empirical sweep**, not a certificate: no action on the 2 px grid (257² actions), followed by the handoff action, has a handoff residual within 2ε |
 | Reachability oracle, M > 1 | **exact**: the same bounded least squares in U | none: a valid solver result is a constructive certificate | none |
 | Integration refinement | not applicable (the map is exact) | replay with `solve_ivp` RK45 at rtol 1e-10, atol 1e-12 must end within ε | replay at physics dt 0.0025 (4× substeps) must end within ε |
 
@@ -165,10 +166,10 @@ those bounds, not a symbolic proof.
 - For DI: each solver's recall against the oracle per M, and every returned segment the oracle or a validity check
   rejects.
 - Integration-refinement deltas, where applicable.
-- For every eligible (start, M) a solver leaves unsolved, the first failure of its best restart, in this order:
-  endpoint, handoff, constraint (bounds, envelope, refinement), then continuation. On Pendulum and PushT, which have
-  no oracle, an endpoint failure cannot be separated per pair into infeasibility and optimizer failure. Optimizer
-  failure is measured on DI, by each solver's recall against the oracle.
+- For every eligible (start, M) a solver leaves unsolved, the outcome of its best returned candidate: no returned
+  endpoint-feasible candidate, handoff miss, constraint violation (bounds, envelope, refinement), continuation
+  failure, or no candidate returned. Optimizer adequacy is calibrated on DI, by each solver's recall against the
+  oracle.
 
 ## Decision
 
@@ -177,18 +178,23 @@ those bounds, not a symbolic proof.
 - Each solver must recover ≥ 95% of the analytically reachable (start, M) cases with M > 1. Reachable means an oracle
   optimum ≤ 0.9 ε; the margin keeps tolerance-boundary cases out of the count.
 - LM below 95%: Stage 2 stops with "solver inadequate".
-- CEM alone below 95%: PushT's verdict is "solver inadequate", and Pendulum still decides.
+- CEM alone below 95%: PushT's result is "solver-inconclusive", which is not evidence that recovery is impossible,
+  and Pendulum still decides.
+
+Optimizer adequacy is calibrated only on DI, where reachability is known. Pendulum and PushT report, for each
+unsolved eligible pair, what happened to the solver's best returned candidate: no returned endpoint-feasible
+candidate, a handoff miss, a constraint violation, a continuation failure, or no candidate returned. These are
+observed solver outcomes, not proofs of infeasibility.
 
 Only available starts and, on PushT, eligible pairs enter any denominator, including DI's recall population.
 
-**Pendulum and PushT, treatment.** Let I be the available starts certified M = 1-infeasible, and V ⊆ I those with
+**Pendulum and PushT, treatment.** Let I be the available starts on which M = 1 is ruled out, and V ⊆ I those with
 at least one valid segment at an eligible M > 1. A system passes if both hold:
 - |V| ≥ 20;
 - |V_r| / |I_r| ≥ 0.10 at at least one radius r ∈ {0.5, 1, 2, 4}.
 
 Every counted segment must replay, satisfy every state and action constraint, meet the endpoint and handoff
-tolerances, stay valid under refinement, and pass the continuation audit. On PushT, "certified M = 1-infeasible"
-means no M = 1 action passes the endpoint and the handoff.
+tolerances, stay valid under refinement, and pass the continuation audit.
 
 **Stage 2 passes** only if DI passes **and** at least one of Pendulum and PushT passes.
 - DI alone never unlocks Stage 3.
@@ -196,7 +202,8 @@ means no M = 1 action passes the endpoint and the handoff.
 - If no treatment system passes, the refusal is the result, and #171 stops before Stage 3.
 - No ε, radius, ladder, solver setting or threshold is changed after any study start is solved.
 
-**PushT's certificate is empirical.** If PushT alone carries the pass, the result says so. Whether that suffices, or
+**PushT's M = 1 evidence is empirical and conservative, not a certificate.** If PushT alone carries the pass, the
+result says so. Whether that suffices, or
 a fallback system with a provable certificate is needed, is decided by the user before Stage 3.
 
 ## Smoke, then the run
@@ -277,7 +284,7 @@ Implementation choices the protocol leaves open:
 
 These smoke figures are not study outcomes. Three of them bear on the run:
 - On the smoke's DI starts, CEM still recalled 100/106 oracle-reachable cases (94.3%) with amendment 1, below the
-  95% gate. If the study repeats this, CEM is recorded as inadequate and PushT's verdict is "solver inadequate".
+  95% gate. If the study repeats this, CEM is recorded as inadequate and PushT's result is "solver-inconclusive".
 - On PushT, 37 segments ended within ε. Under the drift rule 3 are valid, all at r = 0.5 on starts whose M = 1 is
   not certified infeasible; 24 drift more than 1.0 px, and 10 drift and also miss under refined replay.
 - Pendulum's 25 valid starts pass its treatment gate on the smoke anchors.

@@ -8,7 +8,7 @@ may drift at most 1.0 px beyond its own terminal miss (protocol amendment 2).
 Information state (amendment 3): the policy sees W = 2 frames, so a segment's M free actions are followed by L = 1
 fixed demonstrated handoff action a_(t+M). The handoff residual is the larger of the two frames' distances,
 max(d(x_M, y_M), d(x_(M+1), y_(M+1))), and must be within epsilon, separately from the endpoint. CEM ranks samples by
-that residual; the M = 1 certificate sweeps it.
+that residual; the M = 1 sweep (conservative evidence, not a certificate) uses it.
 
 Envelope. A start is built by hand, so it must not penetrate (oracle_probe.penetration <= 0) and its agent and T
 centre must lie in [0, 512]^2. During a segment, contact is the simulator's to resolve (the kinematic agent may
@@ -169,7 +169,7 @@ class System:
                 best_end = min(best_end, d1)
                 if d < best:
                     best, arg = d, [float(ax), float(ay)]
-        return {"kind": "sweep_certified_empirical", "min_grid": best, "argmin_action": arg,
+        return {"kind": "sweep_conservative_empirical", "min_grid": best, "argmin_action": arg,
                 "min_grid_endpoint": best_end, "endpoint_infeasible": bool(best_end > 2 * self.eps),
                 "infeasible": bool(best > 2 * self.eps)}
 

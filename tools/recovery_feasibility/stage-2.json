@@ -182,7 +182,7 @@
     "cem"
    ],
    "m1_infeasibility": {
-    "kind": "sweep_certified_empirical",
+    "kind": "sweep_conservative_empirical",
     "grid_px": 2,
     "actions": 66049,
     "rule": "no grid action u, followed by the handoff action a_(t+1), has handoff residual within 2 epsilon (amendment 3); the endpoint-only minimum is recorded"
@@ -254,7 +254,7 @@
   "DI recall per solver and M, and every rejected returned segment",
   "refinement deltas",
   "DI and Pendulum demonstrated-action replay miss per anchor-M pair",
-  "unsolved eligible pairs per solver and M by first failure of the best restart: endpoint, handoff, constraint, continuation; optimizer failure is measured by DI recall against the oracle"
+  "unsolved eligible pairs per solver and M by the best returned candidate: no returned endpoint-feasible candidate, handoff miss, constraint violation, continuation failure, or no candidate returned; observed solver outcomes, not proofs of infeasibility; optimizer adequacy is calibrated on DI only"
  ],
  "decision": {
   "double_integrator": {
@@ -262,16 +262,16 @@
    "recall_min": 0.95,
    "recall_population": "M > 1 cases with oracle optimum <= 0.9 epsilon",
    "lm_fails": "stop: solver inadequate",
-   "cem_fails_only": "PushT verdict: solver inadequate"
+   "cem_fails_only": "PushT verdict: solver-inconclusive, not evidence that recovery is impossible"
   },
   "treatment": {
-   "population": "available starts certified M = 1-infeasible (PushT: endpoint and handoff); V counts valid segments at eligible M > 1, each passing replay, constraints, endpoint, handoff, refinement and the continuation audit",
+   "population": "available starts with M = 1 ruled out by the same validity predicate as M > 1 (endpoint and handoff; Pendulum Lipschitz-certified, PushT conservative empirical sweep); V counts valid segments at eligible M > 1, each passing replay, constraints, endpoint, handoff, refinement and the continuation audit",
    "min_valid_starts": 20,
    "min_fraction_at_some_radius": 0.1
   },
   "stage_2_passes": "DI passes and at least one of Pendulum or PushT passes",
   "after": "Stage 3 only for passing systems; no treatment pass ends #171 before Stage 3",
-  "pusht_certificate": "empirical; if PushT alone passes, the user decides whether it suffices before Stage 3",
+  "pusht_certificate": "conservative empirical evidence, not an exact certificate (no bound closes the 2 px grid gaps); if PushT alone passes, the user decides whether it suffices before Stage 3",
   "no_changes_after_outcomes": true,
   "denominators": "available starts and, on PushT, eligible pairs only (DI recall included)"
  },

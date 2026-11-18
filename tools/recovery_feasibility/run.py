@@ -107,8 +107,8 @@ def summarize(name: str, recs: list, eps: float, ladder: tuple, solvers: tuple) 
 
     I = [x for x in avail if x["m1"] is not None and x["m1"]["infeasible"]]
     V = [x for x in I if any(valid_at(x, M) for M in ladder if M > 1)]
-    out["certified_m1_infeasible"] = {"total": len(I), "by_radius": {str(rad): len(by_r(I, rad)) for rad in radii}}
-    out["valid_m_gt_1_among_infeasible"] = {"total": len(V), "by_radius": {str(rad): len(by_r(V, rad)) for rad in radii}}
+    out["m1_ruled_out"] = {"total": len(I), "by_radius": {str(rad): len(by_r(I, rad)) for rad in radii}}
+    out["valid_m_gt_1_among_ruled_out"] = {"total": len(V), "by_radius": {str(rad): len(by_r(V, rad)) for rad in radii}}
     out["yield"] = {s: {str(rad): {str(M): [sum(valid_at(x, M, s) for x in by_r(avail, rad)),
                                             sum(x["rungs"][str(M)]["eligible"] for x in by_r(avail, rad))]
                                    for M in ladder} for rad in radii} for s in solvers}
@@ -136,10 +136,11 @@ def summarize(name: str, recs: list, eps: float, ladder: tuple, solvers: tuple) 
     out["returned_rejected"] = [{"start": st, "M": M, "solver": s, "restart": k,
                                  "failed": sorted(c for c, ok in g["checks"].items() if not ok)}
                                 for st, M, s, k, g in returned if not g["valid"]]
-    # an unsolved eligible pair's best restart (by the handoff residual where there is one), by its first failure:
-    # endpoint, handoff, constraint (bounds, envelope, refinement), then the continuation audit
-    order = (("terminal", "endpoint"), ("handoff", "handoff"), ("bounds", "constraint"), ("envelope", "constraint"),
-             ("refinement", "constraint"), ("continuation", "continuation"))
+    # an unsolved eligible pair's best returned candidate (by the handoff residual where there is one), by its first
+    # failure. These are observed solver outcomes, not proofs of infeasibility.
+    order = (("terminal", "no_returned_endpoint_feasible_candidate"), ("handoff", "handoff_miss"),
+             ("bounds", "constraint_violation"), ("envelope", "constraint_violation"),
+             ("refinement", "constraint_violation"), ("continuation", "continuation_failure"))
     failures = {}
     for s in solvers:
         failures[s] = {}
@@ -147,7 +148,9 @@ def summarize(name: str, recs: list, eps: float, ladder: tuple, solvers: tuple) 
             c = Counter()
             for x in avail:
                 rung = x["rungs"][str(M)]
-                if rung["eligible"] and rung[s]["first_valid"] is None:
+                if rung["eligible"] and rung[s]["first_valid"] is None and not rung[s]["segments"]:
+                    c["no_candidate_returned"] += 1
+                elif rung["eligible"] and rung[s]["first_valid"] is None:
                     g = min(rung[s]["segments"], key=lambda g: (g["miss"] if g.get("handoff_miss") is None else g["handoff_miss"], g["miss"]))
                     c[next(w for k, w in order if not g["checks"].get(k, True))] += 1
             failures[s][str(M)] = dict(sorted(c.items()))
@@ -181,7 +184,7 @@ def decide(name: str, s: dict) -> dict:
         return {"recall": recall, "recall_ok": ok, "every_returned_segment_valid": clean,
                 "lm_passes": clean and ok["lm_shooting"], "cem_passes": clean and ok["cem"]}
     t = C.SPEC["decision"]["treatment"]
-    I, V = s["certified_m1_infeasible"], s["valid_m_gt_1_among_infeasible"]
+    I, V = s["m1_ruled_out"], s["valid_m_gt_1_among_ruled_out"]
     frac = {r: (V["by_radius"][r] / n if n else None) for r, n in I["by_radius"].items()}
     best = max((f for f in frac.values() if f is not None), default=0.0)
     return {"valid_starts": V["total"], "fraction_by_radius": frac,
