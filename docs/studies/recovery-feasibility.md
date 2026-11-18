@@ -289,3 +289,24 @@ These smoke figures are not study outcomes. Three of them bear on the run:
 - On PushT, 2 of the 36 starts with M = 1 ruled out have a valid M > 1 segment; every valid segment's continuation
   drift is below 0.6 px.
 - Pendulum's 25 valid starts pass its treatment gate on the smoke anchors.
+
+## Result
+
+The study ran from `0eb22b1` on siddh on 2026-11-18, 400 starts per system, each followed by a fresh-process audit
+that found nothing. The records and audits are in
+[`evidence/recovery-feasibility/study/`](evidence/recovery-feasibility/study/). Each record lists the sha256 of
+every start file, and the start files are archived as `20261118T162312Z-study-starts.tar.gz` (sha256
+`090cf09e…`).
+
+| | Verdict | Evidence |
+|---|---|---|
+| DI | **LM passes; CEM is inadequate** | LM recalled 1122/1122 oracle-reachable cases. CEM recalled 1052/1122 (93.8%), below 95%. Every returned segment was valid, and no valid segment contradicted the oracle. |
+| Pendulum | **passes** | M = 1 is certified infeasible on all 400 starts. 265 have a valid M > 1 segment. The fraction by radius is 0.88, 0.86, 0.55 and 0.36 (r = 0.5, 1, 2, 4). The shortest valid M is mostly 16–64. The refinement delta is at most 2e-7. |
+| PushT | **solver-inconclusive** (DI rejected CEM) | M = 1 is ruled out on 392 of 400 starts by the conservative sweep. 109 have a valid M > 1 segment that meets the endpoint, handoff, refinement, constraints and the continuation audit. The fraction by radius is 0.47, 0.35, 0.20 and 0.11. The treatment counts alone would pass, but the frozen rule makes the result solver-inconclusive. |
+
+**Stage 2 passes**: DI passes through LM, and Pendulum passes. Stage 3 repeats Pendulum with learned dynamics. As
+the protocol requires, PushT is not counted as a treatment pass, because CEM failed DI's calibration.
+
+Among unsolved eligible pairs, almost every best returned candidate had no endpoint-feasible candidate. On PushT, 58
+pairs failed a constraint (mostly refinement) and 1 failed the continuation audit. These are observed solver
+outcomes, not proofs of infeasibility.
