@@ -1,0 +1,14 @@
+{
+ "archive": "20261118T190446Z-recovery-learned.tar.gz",
+ "contents": "the complete Stage 3 study run directory: the five fitted models and their fit records, every start file (all restarts at every M with model and exact states, checks, advantages and model error; references; Stage 2 segments; the oracle ceiling and the learned selection), timing, identity.json, record.json, run and audit logs, and the fresh-process audit",
+ "bytes": 34549985,
+ "sha256": "dbdde528dbc6b0103622e63100e3e71d5fc64fe22132da88e0b6471ec9bd7069",
+ "built_with": "tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner -cf - -C runs 20261118T190446Z-study | gzip -n",
+ "location": "GitHub release asset of the evidence-only tag evidence-recovery-learned-stage-3-v1 (published after this result is merged; never overwritten: a correction is a new evidence version, -v2, ...). Copies also kept on the run host and off it.",
+ "tag": "evidence-recovery-learned-stage-3-v1",
+ "url": "https://github.com/personalrobotics/il-supervision-benchmarks/releases/download/evidence-recovery-learned-stage-3-v1/20261118T190446Z-recovery-learned.tar.gz",
+ "run_commit": "efae412920056df6f9f336d967872944636f4326",
+ "ccil_commit": "12b2fbf8c336ed55a35e942f471d7c96a0f69005",
+ "record_sha256": "f222e7067f8db00e8d1cb14f309bbcaec4f8f64e7d50fcd1cc4437abc4b20bda",
+ "reproduce": "curl -LO URL; sha256sum -c (expect sha256); tar -xzf ARCHIVE -C DIR; at run_commit, in an environment with CCIL ccil_commit: PY tools/recovery_learned/audit.py --run-dir DIR/20261118T190446Z-study --workers N --pendulum pendulum_cont_corrected.npz --policy POLICY --stage2 STAGE2_PENDULUM_STUDY_DIR (POLICY from evidence-pendulum-recovery-segments-stage-a-v1, STAGE2 from evidence-recovery-feasibility-stage-2-v1); exits 0 and recomputes record.json byte for byte"
+}

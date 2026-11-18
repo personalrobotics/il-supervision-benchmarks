@@ -134,3 +134,75 @@ injected faults the audit must refuse for the right reason (an action out of bou
 Δ_M, a forged Δ̂_M, a learned selection that differs from its recomputation), the reference behaviors above, and a
 cost projection of the complete path against a 3 h wall ceiling on siddh. The run waits for the smoke and its own
 go.
+
+## Code and smoke
+
+The code is in [`tools/recovery_learned/`](../../tools/recovery_learned/), with the machine-readable protocol in
+`stage-3.json`:
+- `run.py` fits the five models and solves and evaluates every start;
+- `audit.py` is the fresh-process audit;
+- `smoke.py` runs the smoke.
+
+It reuses Stage 2's Pendulum system, LM solver and scheduler. It runs in an environment with the ilsb environment's
+pinned packages and CCIL at `12b2fbf` (`prlccil`); the study set refuses another CCIL commit.
+
+Implementation choices the protocol leaves open:
+- **Starts.** Each x_0 is read from its Stage 2 start file. Provenance: the file's sha256 is the one Stage 2's record
+  lists, and the record's sha256 is the one `stage-3.json` names. Content: the start recomputed from Stage 2's seeds
+  agrees within 1e-12 (the last bits differ across hosts).
+- **Precision.** The models are CCIL's float32 networks, evaluated in float64 (the float32 weights are exact in
+  float64). Stage 2's 1e-6 forward-difference step is below float32 resolution, so a float32 evaluation gives LM a
+  noise Jacobian. Every model rollout uses the same float64 evaluation.
+- **π as its own recovery.** The reference prefix is π's own actions along its continuation in the same dynamics,
+  executed open loop for M steps.
+- **Actions** of every branch are clipped to ±3, as the task applies them.
+- **The oracle ceiling** reads each M's first valid Stage 2 restart; the ceiling is the shortest M at which that
+  segment has exact Δ_M ≥ 1.
+
+**Smoke result**, from `efae412` on siddh with CCIL `12b2fbf`, Stage 2's 40 key-99 Pendulum starts
+([`evidence/recovery-learned/smoke.json`](evidence/recovery-learned/smoke.json)):
+- **Reproduction.** The second run, with its own model fits, was byte-identical on all 46 files (the five models,
+  every start file and the record). The fresh-process audit found nothing.
+- **Faults.** Each injected fault was refused with its own reason first: action bounds, a forged exact state, a forged
+  Δ_M, a forged Δ̂_M, and a forged selection.
+- **References.** π as its own recovery gave Δ_M = 0 under the exact map and every check model, at every M.
+- **Projection.** The fit takes 72 s and the complete path 11.9 s per start: 0.06 h of wall time for the study on 32
+  workers, within the 3 h ceiling.
+
+These smoke figures are not study outcomes. On the smoke starts, 13 have an oracle-ceiling segment, the learned
+selection picked 11, and 1 of those 11 was correct; 430 of 516 model-valid segments missed ε under exact replay.
+
+## Result
+
+The study ran from `efae412` on siddh on 2026-11-18, with CCIL `12b2fbf`, on Stage 2's 400 Pendulum starts read from
+the Stage 2 release. The fresh-process audit found nothing, and π as its own recovery gave Δ_M = 0 under every
+dynamics. The record and audit are in [`evidence/recovery-learned/study/`](evidence/recovery-learned/study/); the
+complete run directory is the asset of `evidence-recovery-learned-stage-3-v1`
+([`archive.json`](evidence/recovery-learned/archive.json)).
+
+**Stage 3 does not pass.** The gate's yield conditions hold and its precision condition fails:
+
+| Condition | Required | Result |
+|---|---|---|
+| Oracle ceiling (starts) | ≥ 20 | **190** of 400 |
+| Learned selection (starts) | ≥ 20 | **106** |
+| Selected segments correct | ≥ 80% | **7 of 106 (6.6%)** |
+
+Recall against the ceiling is 7 of 190.
+
+**Relevance holds under exact dynamics.** Recovery followed by the frozen BC beats the BC's own continuation on 190
+starts, at radii 0.5, 1, 2 and 4 on 73, 69, 28 and 20 of 100. The ceiling's M is mostly 16 or 32 (59 and 72
+starts). The BC itself is upright a median 38% of the remaining steps and never holds.
+
+**Validity is where the learned model fails.** Model 0 found model-valid segments at 259 starts, but 4,222 of the
+4,445 model-valid segments miss ε under exact replay. The models' one-step validation error is small (q95 ≈ 0.001,
+under 0.1 ε), yet their M-step endpoint error along constructed segments has a median of 0.055 at M = 8, 0.063 at
+M = 16, 0.11 at M = 32 and 0.46 at M = 64, against ε = 0.014; the four check models' errors are similar. The
+ensemble minimum did not screen these segments out: of the 106 selected, 9 are valid and 7 of those have exact
+Δ_M ≥ 1. On model-valid segments, the ensemble-minimum and exact advantages agree in sign
+on 2,958 of 4,445.
+
+**The conclusion.** Finite-horizon recovery strictly expands the feasible correction set (Stage 2), and members of
+that set improve a fixed learner's continuation on nearly half of the starts here. A learned dynamics model fitted to
+these demonstrations does not identify them: its segments do not survive exact replay at the horizons recovery needs,
+and an ensemble of such models does not detect that. By the protocol, #171 stops before any learner is trained.
