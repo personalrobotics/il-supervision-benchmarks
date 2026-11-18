@@ -197,9 +197,9 @@ starts). The BC itself is upright a median 38% of the remaining steps and never 
 **Validity is where the learned model fails.** Model 0 found model-valid segments at 259 starts, but 4,222 of the
 4,445 model-valid segments miss ε under exact replay. The models' one-step validation error is small (q95 ≈ 0.001,
 under 0.1 ε), yet their M-step endpoint error along constructed segments has a median of 0.055 at M = 8, 0.063 at
-M = 16, 0.11 at M = 32 and 0.46 at M = 64, against ε = 0.014. The check models agree with model 0 about as closely
-as with the true map, so the ensemble minimum did not screen the errors: of the 106 selected segments, 9 are valid
-and 7 of those have exact Δ_M ≥ 1. On model-valid segments, the ensemble-minimum and exact advantages agree in sign
+M = 16, 0.11 at M = 32 and 0.46 at M = 64, against ε = 0.014; the four check models' errors are similar. The
+ensemble minimum did not screen these segments out: of the 106 selected, 9 are valid and 7 of those have exact
+Δ_M ≥ 1. On model-valid segments, the ensemble-minimum and exact advantages agree in sign
 on 2,958 of 4,445.
 
 **The conclusion.** Finite-horizon recovery strictly expands the feasible correction set (Stage 2), and members of
