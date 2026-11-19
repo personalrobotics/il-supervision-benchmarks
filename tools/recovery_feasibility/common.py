@@ -77,7 +77,8 @@ def lm(residuals, n: int, ubar: float, starts: np.ndarray):
 
     residuals(U) maps (B, n) actions to (B, k) metric residuals of the terminal miss. starts is (R, n) initial actions.
     Each iteration is one damped Gauss-Newton trial from a forward-difference Jacobian: accepted if it lowers the
-    residual norm (damping / down), else rejected (damping * up). Returns (R, n) actions: each restart's best.
+    residual norm (damping / down), else rejected (damping * up); a trial whose damped system is singular in floating
+    point is rejected. Returns (R, n) actions: each restart's best.
     """
     h, mu0, up, down = LM_JACOBIAN_STEP, LM["damping"]["initial"], LM["damping"]["up"], LM["damping"]["down"]
     v = np.arctanh(np.clip(starts / ubar, -1 + 1e-12, 1 - 1e-12))
@@ -96,11 +97,21 @@ def lm(residuals, n: int, ubar: float, starts: np.ndarray):
             J[rows] = ((rp - r[rows, None, :]) / h).transpose(0, 2, 1)
             jac_stale[:] = False
         JtJ = J.transpose(0, 2, 1) @ J
-        step = -np.linalg.solve(JtJ + mu[:, None, None] * eye, (J.transpose(0, 2, 1) @ r[..., None]))[..., 0]
+        A, b = JtJ + mu[:, None, None] * eye, J.transpose(0, 2, 1) @ r[..., None]
+        solved = np.ones(r_count, bool)
+        try:
+            step = -np.linalg.solve(A, b)[..., 0]
+        except np.linalg.LinAlgError:  # #76 amendment: a singular damped system is that restart's rejected trial
+            step = np.zeros((r_count, n))
+            for i in range(r_count):
+                try:
+                    step[i] = -np.linalg.solve(A[i], b[i])[:, 0]
+                except np.linalg.LinAlgError:
+                    solved[i] = False
         trial = v + step
         r_new = residuals(ubar * np.tanh(trial))
         cost_new = (r_new * r_new).sum(1)
-        ok = np.isfinite(cost_new) & (cost_new < cost)
+        ok = solved & np.isfinite(cost_new) & (cost_new < cost)
         v[ok], r[ok], cost[ok] = trial[ok], r_new[ok], cost_new[ok]
         mu = np.where(ok, mu / down, mu * up)
         jac_stale = ok

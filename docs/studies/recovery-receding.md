@@ -111,3 +111,15 @@ BC and the branches, and reuses Stage 2's LM and scheduler unchanged. Implementa
 
 These smoke figures are not study outcomes. On the 40 smoke starts, the exact arm declared 26 recoveries and the
 learned arm 18, all of which passed the audit; the open-loop cells had 25 (exact) and 10 (learned).
+
+## Amendment 1: a singular damped LM system
+
+The first study run from `a053221` stopped at start 171 before writing a record, and no outcome was inspected. In the
+learned arm at M = 16, a replan with horizon 8 met a damped system J^T J + μI that is singular in floating point: J^T J
+has rank at most 2, and after many accepted steps μ is too small to register against it. Stage 2 and #73 never met
+one, so the frozen LM did not define the case.
+
+**Amendment.** A trial whose damped system is singular is that restart's rejected trial (μ × 10, iterate kept), the
+LM's own rule for a rejected step. Every solve that never meets a singular system is unchanged, so Stage 2's and #73's
+results are unaffected. The smoke is rerun at the amended commit, and the study reruns all 400 starts from it; the
+start files the stopped run had written are compared byte for byte with the rerun's.
