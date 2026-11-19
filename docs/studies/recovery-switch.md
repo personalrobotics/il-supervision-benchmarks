@@ -1,7 +1,8 @@
 # A value-free switch for post-training recovery on Pendulum (protocol)
 
 This is the protocol of [#79](https://github.com/personalrobotics/il-supervision-benchmarks/issues/79). It is
-frozen before any population is evaluated, and before any wrapper code runs.
+frozen before any study or control episode is evaluated; the split and start times were drawn before any wrapper
+code ran.
 
 **Question.** Can a value-free switching rule turn #76's learned receding-horizon recovery into a post-training
 wrapper around the frozen BC: inactive on trusted behavior, taking authority when the state has departed and a
@@ -35,7 +36,7 @@ The Pendulum dataset has 100 episodes of 500 steps. Ten are #70's (8 train, 2 va
 Each held-out episode gives 4 distinct start times in [0, 435] from `SeedSequence([171, 5, 1, episode])`, so every
 start has at least 64 continuation steps. The split and every start time were drawn from the seeds and episode ids
 alone, before any wrapper code ran, and are frozen in [`tools/recovery_switch/split.json`](../../tools/recovery_switch/split.json).
-Calibration fixes the tolerances; controls are evaluated with them.
+Calibration fixes the action-agreement scale and threshold; controls are evaluated with them.
 
 ## The wrapper
 
@@ -68,32 +69,34 @@ and runs to episode step 500, or until it abstains. At each step k, with state x
 - **Abstention ends the episode's record.** The wrapper claims nothing after it, and never executes an unaudited
   fallback action.
 
-**Hysteresis.** Entry needs D > δ_out. Exit needs D ≤ δ_in < δ_out, plus H steps of agreement and a declared
+**Hysteresis.** Entry needs D > δ_out = 2ε. Exit needs D ≤ δ_in = ε, plus H steps of agreement and a declared
 segment. Every mode transition is recorded, as is any re-entry after a handoff.
 
-## Tolerances (from calibration only)
+## Tolerances
 
-From each calibration start, the frozen BC runs alone to step 500 under the exact map, phase-tracked as above.
-- **δ_out** is the 99th percentile, over calibration starts, of each run's maximum D_k. It is conservative by design,
-  for margin over the 95% control gate, and is not lowered whatever the retention.
-- **δ_in = ε is inherited from #76's recovery contract, not estimated from replay.** A recovery that meets its
-  endpoint contract is close enough to be considered for handoff; the five-step action agreement is the additional
-  protection. The protocol needs δ_out > δ_in: if calibration gives δ_out ≤ ε, the study stops before any
-  evaluation.
-- **σ_u** is the standard deviation of the demonstrated actions over the calibration episodes. **α** is the 95th
-  percentile, over every calibration transition, of |π(x) − u_demo| / σ_u: the base's own disagreement with the
-  demonstrator on demonstrated states.
+**The demonstrations, not the base policy's rollouts, define the trusted continuation.** The frozen BC is imperfect,
+and its departures from the continuation are what the wrapper exists to catch, so they are not part of the nominal
+distribution.
+- **δ_in = ε and δ_out = 2ε**, both from #76's recovery contract and fixed before any outcome: a simple hysteresis
+  band in the existing physical tolerance. A recovery that meets its endpoint contract is close enough to be
+  considered for handoff; the five-step action agreement is the additional protection.
+- **σ_u** is the population standard deviation of the demonstrated actions over the calibration episodes. **α** is
+  the 95th percentile, over every calibration transition, of |clip(π(x)) − clip(u_demo)| / σ_u: the base's own
+  disagreement with the demonstrator on demonstrated states.
 - **H = 5** steps (0.1 s).
 - **No separate model-error threshold.** "Trusted enough to try" means model 0 finds a feasible constrained plan.
   Execution uses observed states, and any endpoint miss abstains. A threshold calibrated on demonstration transitions
   would likely reject the recoveries #76 showed can work: their executed one-step errors exceed the validation
   error.
 
-The calibration record (δ_out, α, σ_u and their inputs) is written and checked by hash before any population runs.
+The calibration record (σ_u, α and their inputs) is written and checked by hash before any population runs.
 
 ## Populations
 
-1. **Continue controls:** the 180 control starts, each on its demonstrated state.
+1. **Held-out demonstration starts (controls):** the 180 control starts, each on its demonstrated state. A switch
+   later in such an episode is not automatically a false activation: if the base has actually departed, switching is
+   correct. These episodes measure when the frozen BC departs, whether recovery catches it, whether it hands back,
+   and how the trajectory compares with the BC alone.
 2. **Recover population:** #76's 182 starts with a learned receding-horizon recovery.
 3. **Unknown population:** #76's other 218 starts.
 
@@ -101,13 +104,17 @@ The comparator is #76's always-on learned arm, read from its record and not reru
 
 ## Gates
 
-All of the following must hold:
-1. **Inactive on trusted behavior.** At least 95% of the continue controls stay in `base` for their whole episode.
-2. **Retention.** At least 80% of the recover population (≥ 146 of 182) are **retained**: the wrapper enters
+All of the following must hold, in every population:
+1. **Base first.** Every episode begins under the base policy.
+2. **Exact base reproduction.** Before the first frozen departure event (the first step with D > δ_out), the
+   wrapper's actions are exactly, bitwise, the frozen BC's actions from the same start, and that event is where the
+   wrapper first leaves `base`.
+3. **Valid entries.** Every entry occurs at a step with D > δ_out and executes a feasible recovery plan.
+4. **Valid handoffs.** Every handoff has D ≤ δ_in and the five-step close-and-agree window, on recomputation.
+5. **Retention.** At least 80% of the recover population (≥ 146 of 182) are **retained**: the wrapper enters
    recovery at step 0, and that recovery episode ends in a handoff with every segment declared.
-3. **Audited claims.** Every declared segment, in every population, passes #76's audit.
-4. **Valid handoffs.** Every handoff satisfies the frozen proximity and agreement rule on recomputation.
-5. **Complete accounting.** Every episode ends at step 500 in `base`, or with a recorded abstention category; no
+6. **Audited claims.** Every declared segment passes #76's audit.
+7. **Complete accounting.** Every episode ends at step 500 in `base`, or with a recorded abstention category; no
    action is unaccounted for.
 
 A negative result ends #79. It does not lead to threshold tuning, a target selector, online model updates or policy
@@ -115,7 +122,9 @@ training.
 
 ## Measures (by population and radius)
 
-- Retention; false activation on the controls; abstention by category; first failure category.
+- Retention; abstention by category; first failure category.
+- On the held-out demonstration starts: the step of the BC's first departure, whether recovery entered, whether it
+  handed back, and the upright steps against the BC alone.
 - Handoff time (steps from entry to handoff), recovery steps used, switch count and re-entries after a handoff.
 - **Descriptive only:** upright steps to step 500 (#73's 8° criterion) of the switched episode against the frozen BC
   alone, for episodes that reach step 500.
@@ -132,3 +141,12 @@ workers. The run waits for the smoke and its own go.
 demonstrated actions reproduces the continuation to within 1e-13 ε, so a replay-only tolerance would be zero. The
 frozen BC from a demonstrated state stayed within ε of its time-aligned continuation for 64 steps in 18 of 20 cases.
 Those 20 episodes (ids 0–19) are assigned to calibration and never serve as controls.
+
+## Revision before the study
+
+The protocol frozen at `b45a46e` calibrated δ_out as the 99th percentile of the BC's maximum tracked distance over
+full calibration rollouts. A development smoke of the wrapper, on calibration episodes and Stage 2's key-99 smoke
+starts, showed that rule made the BC's own failures nominal: the BC leaves its continuation on most calibration runs
+(median maximum 263 ε), so δ_out was about 265 ε and the switch could never enter. No study or control episode had
+run. The revision above replaces that rule by δ_in = ε, δ_out = 2ε, and replaces the "controls stay with the BC"
+gate by gates 1–4.
