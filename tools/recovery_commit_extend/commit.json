@@ -1,0 +1,72 @@
+{
+ "study": "commit-and-extend recovery on Pendulum",
+ "issue": 85,
+ "protocol": "docs/studies/recovery-commit-extend.md",
+ "frozen_at": "bfcc151",
+ "selection": "tools/recovery_commit_extend/selection.json",
+ "inventory": "tools/recovery_commit_extend/inventory.json",
+ "max_target": 64,
+ "tolerances": {
+  "path": "docs/studies/evidence/recovery-switch/study/calibration.json",
+  "sha256": "4781b26b7a70c0338e185e2ab4914ec4a0b77978e49cabe7ad1f9794f02bdfad"
+ },
+ "arms": [
+  "any_horizon",
+  "fixed_learned",
+  "ce_exact",
+  "ce_learned"
+ ],
+ "stages": {
+  "a": {"starts": ["ce_exact"], "controls": ["ce_exact"]},
+  "b": {"starts": ["any_horizon", "fixed_learned", "ce_learned"], "controls": ["fixed_learned", "ce_learned"]}
+ },
+ "seeds": {
+  "commit_and_extend": "commitment restart r toward target M at step k: SeedSequence([171, 7, (99,) 4, dynamics (0 learned, 1 exact), population, unit, k, M, r])",
+  "fixed_learned": "#82's key: [171, 6, (99,) 4, 0, population, unit, k, r]",
+  "any_horizon": "#79's key with population 9: [171, 5, 2, (99,) 9, population, unit, M, r]",
+  "population": "0 #70 starts (smoke), 1 #79 controls (smoke), 4 fresh starts, 5 fresh controls"
+ },
+ "target_failure": [
+  "solver",
+  "plan_envelope",
+  "predicted_miss",
+  "expired"
+ ],
+ "abstention": [
+  "no_feasible_plan",
+  "targets_exhausted",
+  "envelope",
+  "insufficient_continuation",
+  "timeout",
+  "reentry_limit",
+  "episode_end_in_recovery"
+ ],
+ "decision": {
+  "min_recovered": 20,
+  "min_fraction_at_some_radius": 0.1,
+  "min_retention": 0.8
+ },
+ "smoke": {
+  "starts": "Stage 2's key-99 smoke starts",
+  "controls": "#79's smoke controls (calibration episodes 0 and 1)",
+  "paths": [
+   "commitment at M > 1",
+   "countdown",
+   "target failure by the authority test",
+   "target failure by expiry",
+   "extension",
+   "handoff",
+   "abstention"
+  ],
+  "faults": [
+   "forged base action",
+   "forged committed target",
+   "forged countdown horizon",
+   "forged authority test",
+   "forged target failure",
+   "forged handoff"
+  ],
+  "ceiling_wall_hours": 3,
+  "workers": 32
+ }
+}
