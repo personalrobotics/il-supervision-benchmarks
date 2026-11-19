@@ -1,0 +1,14 @@
+{
+ "archive": "20261119T080519Z-recovery-fixed-horizon.tar.gz",
+ "contents": "the complete #82 study run directory: every fresh start and control unit with all four arms (the any-horizon reference's seven executions; the shortest-feasible wrapper's episode; each fixed-H arm's actions, modes, phases, distances, states, transitions, and every recovery with its entry, stored per-step plans, closeness, agreement, handoff and #76 audit checks; the BC-alone reproduction check and upright counts), timing, identity.json, record.json, run and audit logs, and the fresh-process audit",
+ "bytes": 50127728,
+ "sha256": "845ccff908994cf8940fe6d96858f2caa957277f703c370cb05a0fe20baa3687",
+ "built_with": "tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner -cf - -C runs 20261119T080519Z-study | gzip -n",
+ "location": "GitHub release asset of the evidence-only tag evidence-recovery-fixed-horizon-v1 (published after this result is merged; never overwritten: a correction is a new evidence version, -v2, ...). Copies also kept on the run host and off it.",
+ "tag": "evidence-recovery-fixed-horizon-v1",
+ "url": "https://github.com/personalrobotics/il-supervision-benchmarks/releases/download/evidence-recovery-fixed-horizon-v1/20261119T080519Z-recovery-fixed-horizon.tar.gz",
+ "run_commit": "bdc6dd12a37254b1cc43eccebddcbecae33230f5",
+ "ccil_commit": "12b2fbf8c336ed55a35e942f471d7c96a0f69005",
+ "record_sha256": "d5191f26d141f847171d08ecb65c25c7400fe376e2611f9117521bbe2fffc640",
+ "reproduce": "curl -LO URL; sha256sum -c (expect sha256); tar -xzf ARCHIVE -C DIR; at run_commit, in an environment with CCIL ccil_commit: PY tools/recovery_fixed_horizon/audit.py --run-dir DIR/20261119T080519Z-study --workers N --pendulum pendulum_cont_corrected.npz --policy POLICY --stage2 STAGE2_PENDULUM_STUDY_DIR --stage3 STAGE3_STUDY_DIR --stage4 STAGE4_STUDY_DIR (POLICY from evidence-pendulum-recovery-segments-stage-a-v1, STAGE2 from evidence-recovery-feasibility-stage-2-v1, STAGE3 from evidence-recovery-learned-stage-3-v1, STAGE4 from evidence-recovery-receding-v1); exits 0 and recomputes record.json byte for byte"
+}

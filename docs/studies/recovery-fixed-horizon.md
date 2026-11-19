@@ -114,3 +114,87 @@ A negative result ends #82: no horizon sweep, tolerance relaxation, online model
   forged agreement flag, a forged plan validity, a forged handoff), and a cost projection against a 3 h wall ceiling
   on siddh with 32 workers.
 - The run waits for the smoke and its own go.
+
+## Code, smoke and development replay
+
+The code is [`tools/recovery_fixed_horizon/`](../../tools/recovery_fixed_horizon/) (`fixedh.json` restates the frozen
+choices and pins #79's calibration by hash). It builds on #79's code: the shortest-feasible arm is #79's wrapper
+unchanged, the any-horizon arm is #76's segment execution per M, and the fixed-H wrapper is #79's switch with the
+horizon handling above. Implementation choices the protocol leaves open:
+- **Keys** are listed in `fixedh.json`; the fresh starts and controls are populations 2 and 3, distinct from every
+  #76 and #79 stream.
+- **The any-horizon reference** counts a start if some M's execution is declared and passes #76's audit.
+- **An episode whose clock ends during a recovery** records `episode_end_in_recovery`; with every fresh anchor at
+  t ≤ 308 it cannot happen within a recovery entered at step 0.
+- **The audit** replays every arm from its stored plans (each fixed-H step's chosen plan is stored), recomputing
+  states, phase, distances, base actions, plan validity, closeness, agreement, handoffs, #76's audit of each
+  declared recovery, and the base reproduction.
+
+**Smoke result**, from `2caba58` on siddh with CCIL `12b2fbf`, Stage 2's 40 key-99 starts and #79's 8 smoke controls,
+all four arms ([`evidence/recovery-fixed-horizon/smoke.json`](evidence/recovery-fixed-horizon/smoke.json)):
+- **Reproduction.** The second run was byte-identical on all 49 files. The fresh-process audit found nothing.
+- **Faults.** Each injected fault was refused with its own reason first: a forged base action, a forged agreement
+  flag, a forged plan validity, and a forged handoff.
+- **Projection.** 0.92 h of wall time for the study on 32 workers, within the 3 h ceiling.
+
+**Development replay** (descriptive; it authorizes no change), from `2caba58`: the fixed-H learned wrapper on #76's
+400 starts ([`evidence/recovery-fixed-horizon/development/`](evidence/recovery-fixed-horizon/development/)). Its
+audit found nothing. It recovered 108 starts, 93 of them among #76's 182 learned recoveries. These starts include
+anchors later than t = 308, and 84 episodes ended in `insufficient_continuation`, so they are not comparable with the
+fresh population.
+
+These smoke and development figures are not study outcomes.
+
+## Result
+
+The study ran from `bdc6dd1` on siddh on 2026-11-19, with CCIL `12b2fbf`, on the 400 fresh starts and 20 fresh
+controls, reading Stage 2, #73 and #76 from their releases. The fresh-process audit found nothing. The record and
+audit are in [`evidence/recovery-fixed-horizon/study/`](evidence/recovery-fixed-horizon/study/); the complete run
+directory is the asset of `evidence-recovery-fixed-horizon-v1`
+([`archive.json`](evidence/recovery-fixed-horizon/archive.json)).
+
+**#82 does not pass.** Both treatment gates and every mechanical check hold; retention fails:
+
+| Gate | Required | Result |
+|---|---|---|
+| 1. Exact-H control | ≥ 20, ≥ 10% at one radius | 201 (76% at 0.5 τ) |
+| 2. Fixed-H learned | ≥ 20, ≥ 10% at one radius | 117 (57% at 0.5 τ) |
+| 3. Retention of the any-horizon reference's 174 | ≥ 140 | **97** (56%) |
+| 4. Exact base reproduction before the first departure | all | 420 of 420 per wrapper arm |
+| 5. Audits: entries, handoffs, declared recoveries | all | learned 455, 295, 295; exact 555, 485, 485 |
+| 6. Complete accounting | all | 420 of 420 |
+
+Recoveries by arm and radius 0.5, 1, 2 and 4 τ (100 starts each):
+
+| Arm | 0.5 | 1 | 2 | 4 | All |
+|---|---|---|---|---|---|
+| Any-horizon reference | 68 | 64 | 31 | 11 | 174 |
+| Shortest-feasible (#79) | 30 | 18 | 13 | 5 | 66 |
+| Fixed-H learned | 57 | 32 | 18 | 10 | 117 |
+| Fixed-H exact | 76 | 65 | 37 | 23 | 201 |
+
+Retention by radius: 49 of 68, 27 of 64, 15 of 31, 6 of 11. Fixed-H learned also recovered 20 starts the reference
+did not. Fixed-H exact recovered 146 of the reference's 174.
+
+**Where the retention is lost.** Of the 77 reference recoveries fixed-H learned missed, 25 had no predicted H = 64
+recovery at entry (`no_feasible_plan`) and 52 entered and reached the 127-step budget (`timeout`). In 47 of those 52
+the executed state never came within ε of the continuation; the median closest approach was 4.0 ε. The misses
+concentrate where the reference needed its longest horizon: 51 of the 77 were recovered by the reference only at
+M = 64, against 27 of the 97 retained.
+
+**Paired with #79's wrapper on the same starts:** fixed-H learned recovered 117 and shortest-feasible 66; 49 both,
+68 fixed-H only, 17 shortest-feasible only. On the 20 controls, both fixed-H arms entered and handed back on all 20;
+the shortest-feasible wrapper ended all 20 in `endpoint_miss`. The 64 learned and 109 exact
+`insufficient_continuation` outcomes are later re-entries near the episode's end, not first recoveries.
+
+**Descriptive.** The 30 learned and 67 exact episodes (starts and controls) that reached step 500 were upright a
+median 128 and 111 steps more than the BC alone; too few complete for more than description.
+
+**The conclusion.** Fixing a long horizon materially improves the deployable wrapper over shortest-feasible
+selection, 117 against 66 recoveries, but does not retain enough of the any-horizon capability: 97 of the reference's
+174 (56%), short of the 80% bar. The controls isolate the remaining problem. Through exact dynamics the same H = 64
+wrapper recovers 201 starts; through model 0 it recovers 117. The wrapper's mechanics held on every check, and most
+entered failures never approached the continuation, so the handoff is not the bottleneck: the learned model still
+directs the controller poorly on part of the long-horizon recovery region. By the protocol, #82 ends here, with no
+horizon sweep, tolerance relaxation, online model update or policy training, and no adaptive-horizon follow-up is
+launched from this result.

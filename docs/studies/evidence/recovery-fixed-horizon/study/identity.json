@@ -1,0 +1,28 @@
+{
+ "code": {
+  "commit": "bdc6dd12a37254b1cc43eccebddcbecae33230f5",
+  "dirty": false
+ },
+ "identity": {
+  "arms": [
+   "any_horizon",
+   "shortest_feasible",
+   "fixed_learned",
+   "fixed_exact"
+  ],
+  "ccil_commit": "12b2fbf8c336ed55a35e942f471d7c96a0f69005",
+  "epsilon": 0.014039779876517956,
+  "inventory_sha256": "3769002a07aa3dfd1aa62609a43c89e7564657e54a1edb34d69398d6a109c281",
+  "model0_weights_sha256": "ffdfef73ab8b0e64b3fa0c35093932385c8fb1d34d2f0bc9b77c2d6bd2918194",
+  "pendulum_sha256": "59c332bc829db9c9da40d9c1bd9ebbf808965aca6a167be48dc0f2ade52cf43c",
+  "policy_sha256": "1457a98af553071348dbb1844ceeaeb18d259ba2350636ae3d5e8ef33277e34f",
+  "selection_sha256": "312e7c372270f94615dc507de1c34e57f93adfaa73ba3eecc70799eb320e3870",
+  "set": "study",
+  "stage2_record_sha256": "b7f47873baf93698757bd5285a0fff525cafafb0f01fb1251a2ca2fae9129f94",
+  "stage3_record_sha256": "f222e7067f8db00e8d1cb14f309bbcaec4f8f64e7d50fcd1cc4437abc4b20bda",
+  "stage4_record_sha256": "e9e2cb9c91d49e2266bfe58c921f5a82a79332c05e1c01b0a2390398ce501e67",
+  "system": "pendulum",
+  "tolerances_sha256": "4781b26b7a70c0338e185e2ab4914ec4a0b77978e49cabe7ad1f9794f02bdfad"
+ },
+ "set": "study"
+}

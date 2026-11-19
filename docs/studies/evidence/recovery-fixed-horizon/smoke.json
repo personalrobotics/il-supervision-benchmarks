@@ -1,0 +1,310 @@
+{
+ "audit_ok": true,
+ "code": {
+  "commit": "2caba5843fde7fb4f6facff8040eb8e37b874878",
+  "dirty": false
+ },
+ "faults": {
+  "agreement": {
+   "first_refusal": "agreement",
+   "injected": {
+    "file": "control-0000.json"
+   },
+   "refused_for_the_right_reason": true
+  },
+  "handoff": {
+   "first_refusal": "handoff",
+   "injected": {
+    "file": "control-0000.json"
+   },
+   "refused_for_the_right_reason": true
+  },
+  "trajectory": {
+   "first_refusal": "trajectory",
+   "injected": {
+    "file": "control-0000.json"
+   },
+   "refused_for_the_right_reason": true
+  },
+  "validity": {
+   "first_refusal": "validity",
+   "injected": {
+    "file": "control-0000.json"
+   },
+   "refused_for_the_right_reason": true
+  }
+ },
+ "files_compared": 49,
+ "note": "Stage 2's key-99 smoke starts and #79's smoke controls; no fresh episode; not a study outcome",
+ "ok": true,
+ "projection": {
+  "ceiling_wall_hours": 3,
+  "measured_with_workers": 32,
+  "seconds_per_unit": {
+   "control": {
+    "max": 257.2180697917938,
+    "mean": 134.2201954126358
+   },
+   "start": {
+    "max": 530.4207236766815,
+    "mean": 258.6940426468849
+   }
+  },
+  "study_core_hours": 29.489450268612966,
+  "study_wall_hours": 0.9215453208941552,
+  "study_workers": 32,
+  "units": {
+   "control": 8,
+   "start": 40
+  },
+  "within_ceiling": true
+ },
+ "record_sha256": "3fea047e3d816d7fbf33687d8e20cc507d04332a29bb695af7001b9d29a05d29",
+ "rerun_byte_identical": true,
+ "schema": "ilsb.recovery_fixed_horizon.smoke 1",
+ "smoke_decision": {
+  "accounted": true,
+  "audits": true,
+  "base_reproduced": true,
+  "exact_gate": true,
+  "learned_gate": false,
+  "passes": false,
+  "retention": [
+   11,
+   17
+  ],
+  "retention_fraction": 0.6470588235294118
+ },
+ "smoke_summary": {
+  "arms": {
+   "any_horizon": {
+    "gate": {
+     "by_radius": {
+      "0.5": 10,
+      "1.0": 6,
+      "2.0": 1,
+      "4.0": 0
+     },
+     "fraction_by_radius": {
+      "0.5": 1.0,
+      "1.0": 0.6,
+      "2.0": 0.1,
+      "4.0": 0.0
+     },
+     "passes": false,
+     "recovered": 17
+    },
+    "recovered_M": {
+     "16": 4,
+     "32": 8,
+     "4": 1,
+     "64": 3,
+     "8": 1
+    }
+   },
+   "fixed_exact": {
+    "base_reproduced": [
+     48,
+     48
+    ],
+    "controls_departed": 7,
+    "controls_entered": 7,
+    "controls_handed_back": 7,
+    "declared_audited": [
+     55,
+     55
+    ],
+    "entries_valid": [
+     62,
+     62
+    ],
+    "gate": {
+     "by_radius": {
+      "0.5": 10,
+      "1.0": 6,
+      "2.0": 4,
+      "4.0": 2
+     },
+     "fraction_by_radius": {
+      "0.5": 1.0,
+      "1.0": 0.6,
+      "2.0": 0.4,
+      "4.0": 0.2
+     },
+     "passes": true,
+     "recovered": 22
+    },
+    "handoff_steps": {
+     "0": 23.0,
+     "10": 39.0,
+     "100": 120.0,
+     "50": 41.0,
+     "90": 88.4
+    },
+    "handoffs_valid": [
+     55,
+     55
+    ],
+    "outcome_controls": {
+     "complete": 6,
+     "episode_end_in_recovery": 1,
+     "insufficient_continuation": 1
+    },
+    "outcome_starts": {
+     "complete": 6,
+     "episode_end_in_recovery": 4,
+     "insufficient_continuation": 9,
+     "no_feasible_plan": 18,
+     "reentry_limit": 3
+    },
+    "reentries": 33,
+    "upright_minus_bc_complete": {
+     "0": 0.0,
+     "10": 60.1,
+     "100": 217.0,
+     "50": 105.5,
+     "90": 204.50000000000003
+    }
+   },
+   "fixed_learned": {
+    "base_reproduced": [
+     48,
+     48
+    ],
+    "controls_departed": 7,
+    "controls_entered": 7,
+    "controls_handed_back": 7,
+    "declared_audited": [
+     31,
+     31
+    ],
+    "entries_valid": [
+     45,
+     45
+    ],
+    "gate": {
+     "by_radius": {
+      "0.5": 6,
+      "1.0": 4,
+      "2.0": 1,
+      "4.0": 1
+     },
+     "fraction_by_radius": {
+      "0.5": 0.6,
+      "1.0": 0.4,
+      "2.0": 0.1,
+      "4.0": 0.1
+     },
+     "passes": false,
+     "recovered": 12
+    },
+    "handoff_steps": {
+     "0": 24.0,
+     "10": 36.0,
+     "100": 124.0,
+     "50": 46.0,
+     "90": 103.0
+    },
+    "handoffs_valid": [
+     31,
+     31
+    ],
+    "outcome_controls": {
+     "complete": 3,
+     "episode_end_in_recovery": 1,
+     "insufficient_continuation": 4
+    },
+    "outcome_starts": {
+     "complete": 2,
+     "episode_end_in_recovery": 1,
+     "insufficient_continuation": 12,
+     "no_feasible_plan": 16,
+     "reentry_limit": 1,
+     "timeout": 8
+    },
+    "reentries": 14,
+    "upright_minus_bc_complete": {
+     "0": 0.0,
+     "10": 22.400000000000002,
+     "100": 110.0,
+     "50": 107.0,
+     "90": 109.2
+    }
+   },
+   "shortest_feasible": {
+    "base_reproduced": [
+     48,
+     48
+    ],
+    "controls_departed": 7,
+    "controls_entered": 7,
+    "controls_handed_back": 0,
+    "declared_audited": [
+     142,
+     142
+    ],
+    "entries_valid": [
+     38,
+     38
+    ],
+    "gate": {
+     "by_radius": {
+      "0.5": 5,
+      "1.0": 1,
+      "2.0": 1,
+      "4.0": 0
+     },
+     "fraction_by_radius": {
+      "0.5": 0.5,
+      "1.0": 0.1,
+      "2.0": 0.1,
+      "4.0": 0.0
+     },
+     "passes": false,
+     "recovered": 7
+    },
+    "handoff_steps": {
+     "0": 21.0,
+     "10": 21.0,
+     "100": 82.0,
+     "50": 37.0,
+     "90": 74.2
+    },
+    "handoffs_valid": [
+     7,
+     7
+    ],
+    "outcome_controls": {
+     "complete": 1,
+     "endpoint_miss": 7
+    },
+    "outcome_starts": {
+     "complete": 1,
+     "continuation_end": 1,
+     "endpoint_miss": 24,
+     "no_feasible_plan": 14
+    },
+    "reentries": 5,
+    "upright_minus_bc_complete": {
+     "0": 0.0,
+     "10": 8.200000000000001,
+     "100": 82.0,
+     "50": 41.0,
+     "90": 73.8
+    }
+   }
+  },
+  "controls": 8,
+  "paired_fixed_vs_shortest": {
+   "fixed_0_shortest_0": 27,
+   "fixed_0_shortest_1": 1,
+   "fixed_1_shortest_0": 6,
+   "fixed_1_shortest_1": 6
+  },
+  "retention": [
+   11,
+   17
+  ],
+  "starts": 40
+ }
+}
