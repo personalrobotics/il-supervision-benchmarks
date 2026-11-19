@@ -1,7 +1,7 @@
 # A value-free switch for post-training recovery on Pendulum (protocol)
 
 This is the protocol of [#79](https://github.com/personalrobotics/il-supervision-benchmarks/issues/79). It is
-frozen before any population is evaluated.
+frozen before any population is evaluated, and before any wrapper code runs.
 
 **Question.** Can a value-free switching rule turn #76's learned receding-horizon recovery into a post-training
 wrapper around the frozen BC: inactive on trusted behavior, taking authority when the state has departed and a
@@ -27,9 +27,15 @@ retrieval among demonstrations.
 ## Demonstration data
 
 The Pendulum dataset has 100 episodes of 500 steps. Ten are #70's (8 train, 2 validation). The other 90 are
-**held out** and split once by `SeedSequence([171, 5, 0])` into 45 **calibration** and 45 **control** episodes. Each
-held-out episode gives 4 start times, uniform on [0, 435] from `SeedSequence([171, 5, 1, episode])`, so every start
-has at least 64 continuation steps. Calibration fixes the tolerances; controls are evaluated with them.
+**held out**:
+- **Calibration (45):** the 20 episodes inspected by the pre-protocol reference check below (ids 0–19), plus 25 of
+  the remaining 70 drawn by `SeedSequence([171, 5, 0])`.
+- **Controls (45):** the rest, untouched by anything before the evaluation.
+
+Each held-out episode gives 4 distinct start times in [0, 435] from `SeedSequence([171, 5, 1, episode])`, so every
+start has at least 64 continuation steps. The split and every start time were drawn from the seeds and episode ids
+alone, before any wrapper code ran, and are frozen in [`tools/recovery_switch/split.json`](../../tools/recovery_switch/split.json).
+Calibration fixes the tolerances; controls are evaluated with them.
 
 ## The wrapper
 
@@ -37,7 +43,7 @@ An episode starts at x_0 with phase p_0 = t (the start's anchor time, or the con
 and runs to episode step 500, or until it abstains. At each step k, with state x_k:
 
 - **Phase tracking (online, monotone).** In `base`, p_k is the index in [p_(k−1), p_(k−1) + 2] minimizing
-  d(x_k, c_p), with ties to the smaller index. In `recover`, the phase is timed by the segment:
+  d(x_k, c_p); ties choose the smallest forward advance. In `recover`, the phase is timed by the segment:
   p = p_entry + j at the segment's step j. The tracked distance is D_k = d(x_k, c_(p_k)).
 - **Entry (base → recover).** If D_k > δ_out, the wrapper looks for a segment: for M in the ladder, in order, with
   p_k + M ≤ 499, it runs #76's first solve (8 restarts, keyed `[171, 5, 2, episode, k, M, restart]`) through model 0
@@ -46,7 +52,9 @@ and runs to episode step 500, or until it abstains. At each step k, with state x
   reusing that first solve. If no M is feasible, the wrapper **abstains** (`no_feasible_plan`, or
   `continuation_end` if no M fits before step 499).
 - **During a segment.** Each executed step j records the state x_j before the action, the recovery action u_j,
-  the base's action π(x_j), close_j = (D_j ≤ δ_in) and agree_j = (|π(x_j) − u_j| / σ_u ≤ α).
+  the base's action π(x_j), close_j = (D_j ≤ δ_in) and agree_j = (|clip(π(x_j)) − u_j| / σ_u ≤ α). Agreement
+  compares the bounded actions that would actually be executed (π clipped to ±3, as the task applies it), in physical
+  units normalized by σ_u.
   A `solver` or `envelope` failure abstains with that category.
 - **At a segment's end.** A segment is **declared** if it ran all M steps and its observed endpoint is within ε of
   c_(p_entry + M); otherwise the wrapper abstains (`endpoint_miss`).
@@ -66,13 +74,20 @@ segment. Every mode transition is recorded, as is any re-entry after a handoff.
 ## Tolerances (from calibration only)
 
 From each calibration start, the frozen BC runs alone to step 500 under the exact map, phase-tracked as above.
-- **δ_out** is the 99th percentile, over calibration starts, of each run's maximum D_k.
-- **δ_in** is ε, the recovery's own endpoint tolerance. The protocol needs δ_out > δ_in. If calibration gives
-  δ_out ≤ ε, the study stops before any evaluation.
+- **δ_out** is the 99th percentile, over calibration starts, of each run's maximum D_k. It is conservative by design,
+  for margin over the 95% control gate, and is not lowered whatever the retention.
+- **δ_in = ε is inherited from #76's recovery contract, not estimated from replay.** A recovery that meets its
+  endpoint contract is close enough to be considered for handoff; the five-step action agreement is the additional
+  protection. The protocol needs δ_out > δ_in: if calibration gives δ_out ≤ ε, the study stops before any
+  evaluation.
 - **σ_u** is the standard deviation of the demonstrated actions over the calibration episodes. **α** is the 95th
   percentile, over every calibration transition, of |π(x) − u_demo| / σ_u: the base's own disagreement with the
   demonstrator on demonstrated states.
 - **H = 5** steps (0.1 s).
+- **No separate model-error threshold.** "Trusted enough to try" means model 0 finds a feasible constrained plan.
+  Execution uses observed states, and any endpoint miss abstains. A threshold calibrated on demonstration transitions
+  would likely reject the recoveries #76 showed can work: their executed one-step errors exceed the validation
+  error.
 
 The calibration record (δ_out, α, σ_u and their inputs) is written and checked by hash before any population runs.
 
@@ -116,4 +131,4 @@ workers. The run waits for the smoke and its own go.
 **Pre-protocol reference check** (no switching outcome was consulted). On 20 held-out episodes, replaying the
 demonstrated actions reproduces the continuation to within 1e-13 ε, so a replay-only tolerance would be zero. The
 frozen BC from a demonstrated state stayed within ε of its time-aligned continuation for 64 steps in 18 of 20 cases.
-Those 20 episodes are among the 90 held out and fall into either set by the split.
+Those 20 episodes (ids 0–19) are assigned to calibration and never serve as controls.
