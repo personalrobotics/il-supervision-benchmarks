@@ -88,8 +88,8 @@ committed target. Observed failure can only move the target later or cause abste
   (`envelope`); the demonstrated continuation ends, here an entry with p₀ + 64 > 499 (`insufficient_continuation`);
   the recovery exceeds #79's 127-step budget (`timeout`); a fourth entry (`reentry_limit`); or the episode ends during
   a recovery (`episode_end_in_recovery`). There is no unaudited fallback action. Because every target lies within
-  64 steps of p₀, the budget and the episode end cannot bind within one recovery; they are kept as audited
-  categories.
+  64 steps of p₀, a recovery lasts at most 64 steps and the budget cannot bind; the episode end can bind only in a
+  recovery entered within 64 steps of step 500, never in one entered at step 0.
 
 **A recovered start** enters at step 0 and that recovery ends in an audited handoff. **A declared recovery's audit**
 is #82's: #76's segment audit of the executed actions from the entry state to the handoff state, with target
@@ -137,3 +137,29 @@ A negative result at either stage ends #85: no ladder, tolerance, solver, model,
   reason; and a cost projection against a 3 h wall ceiling on siddh with 32 workers.
 - **No development replay** on #82's starts.
 - **Stage A run**, after the smoke, on its own go. **Stage B run**, only if Stage A passes, on its own go.
+
+## Code and smoke
+
+The code is [`tools/recovery_commit_extend/`](../../tools/recovery_commit_extend/) (`commit.json` restates the frozen
+choices and pins #79's calibration by hash). It builds on #82's code: the any-horizon arm is #76's segment execution
+per M, the fixed-H comparator is #82's wrapper unchanged, and the commit-and-extend wrapper is #79's switch with the
+target handling above. Implementation choices the protocol leaves open:
+- **Keys** are listed in `commit.json`; the fresh starts and controls are populations 4 and 5, distinct from every
+  #76, #79 and #82 stream.
+- **Every planner call is stored** (commitments and replans, passing or failing, with the plan, horizon, predicted
+  miss and envelope), so the audit replays each arm from its stored plans and recomputes the authority test, the
+  target bookkeeping, distances, base actions, closeness, agreement, handoffs, #76's audit of each declared recovery,
+  the base reproduction and the advantage.
+- **Stage runs** take `--set a` or `--set b` and each refuses without `--stage-go`.
+
+**Smoke result**, from `b7f15c1` on siddh with CCIL `12b2fbf`, Stage 2's 40 key-99 starts and #79's 8 smoke controls,
+all four arms ([`evidence/recovery-commit-extend/smoke.json`](evidence/recovery-commit-extend/smoke.json)):
+- **Reproduction.** The second run was byte-identical on all 49 files. The fresh-process audit found nothing.
+- **Paths.** Every required path occurred: commitment at M > 1 (100), countdown replans (3,384), target failure by
+  the authority test (61) and by expiry (203), extension (98), handoff (81), abstention (72).
+- **Faults.** Each injected fault was refused with its own reason first: a forged base action, committed target,
+  countdown horizon, authority test, target failure and handoff.
+- **Projection.** At most 0.79 h of wall time for either stage on 32 workers (all four arms per unit bound both),
+  within the 3 h ceiling.
+
+These smoke figures are not study outcomes.

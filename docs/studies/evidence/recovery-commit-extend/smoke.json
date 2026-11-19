@@ -1,0 +1,484 @@
+{
+ "audit_ok": true,
+ "code": {
+  "commit": "b7f15c1ab5be89a4f543e4981492afab62e85aab",
+  "dirty": false
+ },
+ "faults": {
+  "authority": {
+   "first_refusal": "authority",
+   "injected": {
+    "file": "control-0000.json"
+   },
+   "refused_for_the_right_reason": true
+  },
+  "countdown": {
+   "first_refusal": "countdown",
+   "injected": {
+    "file": "control-0000.json"
+   },
+   "refused_for_the_right_reason": true
+  },
+  "failure": {
+   "first_refusal": "failure",
+   "injected": {
+    "file": "control-0000.json"
+   },
+   "refused_for_the_right_reason": true
+  },
+  "handoff": {
+   "first_refusal": "handoff",
+   "injected": {
+    "file": "control-0000.json"
+   },
+   "refused_for_the_right_reason": true
+  },
+  "target": {
+   "first_refusal": "target",
+   "injected": {
+    "file": "control-0000.json"
+   },
+   "refused_for_the_right_reason": true
+  },
+  "trajectory": {
+   "first_refusal": "trajectory",
+   "injected": {
+    "file": "control-0000.json"
+   },
+   "refused_for_the_right_reason": true
+  }
+ },
+ "files_compared": 49,
+ "note": "Stage 2's key-99 smoke starts and #79's smoke controls; no fresh episode; not a study outcome",
+ "ok": true,
+ "paths": {
+  "abstention": 72,
+  "commitment at M > 1": 100,
+  "countdown": 3384,
+  "extension": 98,
+  "handoff": 81,
+  "target failure by expiry": 203,
+  "target failure by the authority test": 61
+ },
+ "paths_covered": true,
+ "projection": {
+  "all_arms_core_hours": 25.132391698824033,
+  "ceiling_wall_hours": 3,
+  "measured_with_workers": 32,
+  "seconds_per_unit": {
+   "control": {
+    "max": 208.94765281677246,
+    "mean": 108.74708527326584
+   },
+   "start": {
+    "max": 453.86311411857605,
+    "mean": 220.754171025753
+   }
+  },
+  "stage_wall_hours_bound": 0.785387240588251,
+  "study_workers": 32,
+  "units": {
+   "control": 8,
+   "start": 40
+  },
+  "within_ceiling": true
+ },
+ "record_sha256": "051a6741ac16c136350022becacbfef462382697a9a30ebf50de4d2c6cef6339",
+ "rerun_byte_identical": true,
+ "schema": "ilsb.recovery_commit_extend.smoke 1",
+ "smoke_decision": {
+  "accounted": true,
+  "audits": true,
+  "base_reproduced": true,
+  "stage_a": {
+   "exact_gate": false,
+   "passes": false
+  },
+  "stage_b": {
+   "beats_fixed": [
+    9,
+    12
+   ],
+   "learned_gate": false,
+   "passes": false,
+   "retention": [
+    9,
+    17
+   ],
+   "retention_fraction": 0.5294117647058824
+  }
+ },
+ "smoke_summary": {
+  "arms": {
+   "any_horizon": {
+    "gate": {
+     "by_radius": {
+      "0.5": 10,
+      "1.0": 6,
+      "2.0": 1,
+      "4.0": 0
+     },
+     "fraction_by_radius": {
+      "0.5": 1.0,
+      "1.0": 0.6,
+      "2.0": 0.1,
+      "4.0": 0.0
+     },
+     "passes": false,
+     "recovered": 17
+    },
+    "recovered_M": {
+     "16": 4,
+     "32": 8,
+     "4": 1,
+     "64": 3,
+     "8": 1
+    }
+   },
+   "ce_exact": {
+    "advantage": {
+     "delta": {
+      "0": -92.0,
+      "10": -11.0,
+      "100": 122.0,
+      "50": 0.0,
+      "90": 108.0
+     },
+     "hold": [
+      15,
+      0,
+      40
+     ],
+     "not_recovered": [
+      16,
+      21
+     ],
+     "recovered": [
+      18,
+      19
+     ]
+    },
+    "base_reproduced": [
+     48,
+     48
+    ],
+    "checks": {
+     "audited": [
+      52,
+      52
+     ],
+     "calls": [
+      2117,
+      2117
+     ],
+     "entries": [
+      60,
+      60
+     ],
+     "handoffs": [
+      52,
+      52
+     ],
+     "targets": [
+      75,
+      75
+     ]
+    },
+    "committed_M_at_entry": {
+     "16": 10,
+     "32": 6,
+     "4": 2,
+     "64": 4,
+     "8": 23
+    },
+    "committed_M_at_handoff": {
+     "16": 2,
+     "32": 25,
+     "64": 11
+    },
+    "controls_departed": 7,
+    "controls_entered": 7,
+    "controls_handed_back": 7,
+    "gate": {
+     "by_radius": {
+      "0.5": 10,
+      "1.0": 6,
+      "2.0": 2,
+      "4.0": 1
+     },
+     "fraction_by_radius": {
+      "0.5": 1.0,
+      "1.0": 0.6,
+      "2.0": 0.2,
+      "4.0": 0.1
+     },
+     "passes": false,
+     "recovered": 19
+    },
+    "handoff_steps": {
+     "0": 13.0,
+     "10": 21.0,
+     "100": 53.0,
+     "50": 21.0,
+     "90": 38.0
+    },
+    "outcome_controls": {
+     "complete": 7,
+     "episode_end_in_recovery": 1
+    },
+    "outcome_starts": {
+     "complete": 10,
+     "insufficient_continuation": 8,
+     "no_feasible_plan": 15,
+     "targets_exhausted": 7
+    },
+    "reentries": 28,
+    "target_ends": {
+     "expired": 81,
+     "handoff": 38
+    },
+    "targets_per_recovery": {
+     "0": 15,
+     "1": 4,
+     "2": 12,
+     "3": 25,
+     "4": 4
+    }
+   },
+   "ce_learned": {
+    "advantage": {
+     "delta": {
+      "0": -42.0,
+      "10": -12.499999999999998,
+      "100": 116.0,
+      "50": 0.0,
+      "90": 107.1
+     },
+     "hold": [
+      7,
+      0,
+      40
+     ],
+     "not_recovered": [
+      21,
+      31
+     ],
+     "recovered": [
+      8,
+      9
+     ]
+    },
+    "base_reproduced": [
+     48,
+     48
+    ],
+    "checks": {
+     "audited": [
+      29,
+      29
+     ],
+     "calls": [
+      2243,
+      2243
+     ],
+     "entries": [
+      49,
+      49
+     ],
+     "handoffs": [
+      29,
+      29
+     ],
+     "targets": [
+      63,
+      63
+     ]
+    },
+    "committed_M_at_entry": {
+     "1": 4,
+     "16": 8,
+     "2": 1,
+     "32": 6,
+     "4": 7,
+     "64": 5,
+     "8": 6
+    },
+    "committed_M_at_handoff": {
+     "32": 2,
+     "64": 15
+    },
+    "controls_departed": 7,
+    "controls_entered": 7,
+    "controls_handed_back": 7,
+    "gate": {
+     "by_radius": {
+      "0.5": 5,
+      "1.0": 4,
+      "2.0": 0,
+      "4.0": 0
+     },
+     "fraction_by_radius": {
+      "0.5": 0.5,
+      "1.0": 0.4,
+      "2.0": 0.0,
+      "4.0": 0.0
+     },
+     "passes": false,
+     "recovered": 9
+    },
+    "handoff_steps": {
+     "0": 21.0,
+     "10": 22.6,
+     "100": 49.0,
+     "50": 37.0,
+     "90": 41.599999999999994
+    },
+    "outcome_controls": {
+     "complete": 3,
+     "insufficient_continuation": 4,
+     "reentry_limit": 1
+    },
+    "outcome_starts": {
+     "complete": 4,
+     "episode_end_in_recovery": 2,
+     "insufficient_continuation": 2,
+     "no_feasible_plan": 14,
+     "targets_exhausted": 18
+    },
+    "reentries": 16,
+    "target_ends": {
+     "None": 2,
+     "expired": 56,
+     "handoff": 17,
+     "predicted_miss": 47
+    },
+    "targets_per_recovery": {
+     "0": 14,
+     "1": 7,
+     "2": 6,
+     "3": 7,
+     "4": 10,
+     "5": 3,
+     "6": 1,
+     "7": 3
+    }
+   },
+   "fixed_learned": {
+    "advantage": {
+     "delta": {
+      "0": -65.0,
+      "10": -54.0,
+      "100": 110.0,
+      "50": 0.0,
+      "90": 105.2
+     },
+     "hold": [
+      4,
+      0,
+      40
+     ],
+     "not_recovered": [
+      18,
+      28
+     ],
+     "recovered": [
+      12,
+      12
+     ]
+    },
+    "base_reproduced": [
+     48,
+     48
+    ],
+    "checks": {
+     "audited": [
+      31,
+      31
+     ],
+     "entries": [
+      45,
+      45
+     ],
+     "handoffs": [
+      31,
+      31
+     ]
+    },
+    "controls_departed": 7,
+    "controls_entered": 7,
+    "controls_handed_back": 7,
+    "gate": {
+     "by_radius": {
+      "0.5": 6,
+      "1.0": 4,
+      "2.0": 1,
+      "4.0": 1
+     },
+     "fraction_by_radius": {
+      "0.5": 0.6,
+      "1.0": 0.4,
+      "2.0": 0.1,
+      "4.0": 0.1
+     },
+     "passes": false,
+     "recovered": 12
+    },
+    "handoff_steps": {
+     "0": 24.0,
+     "10": 36.0,
+     "100": 124.0,
+     "50": 46.0,
+     "90": 103.0
+    },
+    "outcome_controls": {
+     "complete": 3,
+     "episode_end_in_recovery": 1,
+     "insufficient_continuation": 4
+    },
+    "outcome_starts": {
+     "complete": 2,
+     "episode_end_in_recovery": 1,
+     "insufficient_continuation": 12,
+     "no_feasible_plan": 16,
+     "reentry_limit": 1,
+     "timeout": 8
+    },
+    "reentries": 14
+   }
+  },
+  "controls": 8,
+  "paired": {
+   "arms": [
+    "any_horizon",
+    "fixed_learned",
+    "ce_exact",
+    "ce_learned"
+   ],
+   "counts": {
+    "0000": 19,
+    "0010": 3,
+    "0110": 1,
+    "1000": 1,
+    "1010": 4,
+    "1011": 1,
+    "1101": 1,
+    "1110": 3,
+    "1111": 7
+   }
+  },
+  "paths": {
+   "abstention": 72,
+   "commitment at M > 1": 100,
+   "countdown": 3384,
+   "extension": 98,
+   "handoff": 81,
+   "target failure by expiry": 203,
+   "target failure by the authority test": 61
+  },
+  "retention": [
+   9,
+   17
+  ],
+  "starts": 40
+ }
+}
