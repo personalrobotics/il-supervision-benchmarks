@@ -220,8 +220,13 @@ feasible plan at entry and the 114 that entered all ended in `endpoint_miss`.
 **Descriptive.** The 9 recover-population episodes that reached step 500 were upright a median 73 steps more than
 the BC alone; too few episodes complete for this to be more than descriptive.
 
-**The conclusion.** A value-free switch can reproduce the frozen BC exactly until it departs, enter only with a
-feasible plan, and hand back only on the frozen proximity-and-agreement rule, with every declared segment passing
-the exact audit. With #76's controller used online under that rule, it retains 78 of #76's 182 recoveries, below the
-gate. By the protocol, #79 ends here: no threshold tuning, target selector, online model updates or policy training
-follow.
+**The conclusion.** The switching and handoff rules behaved correctly: all 510 entries and 91 handoffs satisfied
+their contracts, and the wrapper reproduced the frozen BC exactly until it departed. The wrapper did not retain
+enough of #76's recovery capability. #76 evaluated an oracle over horizons (a start counted if some M succeeded),
+whereas deployment must select one horizon from the learned model without exact dynamics; the shortfall is
+attributed to that difference in contracts, which #79 did not test separately. The failure does not show that
+proximity plus action agreement is an invalid switching rule. It shows that #76's recovery controller is not yet
+autonomous: "some M succeeds" is materially easier than choosing M. The median miss of 1.6 ε and the repeated
+selection of M = 1 are descriptive diagnostics. By the protocol, #79 ends here, with no change to the endpoint
+tolerance or the horizon selection, and no threshold tuning, target selector, online model updates or policy
+training.
