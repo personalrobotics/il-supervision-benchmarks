@@ -190,11 +190,11 @@ the shortest-feasible wrapper ended all 20 in `endpoint_miss`. The 64 learned an
 **Descriptive.** The 30 learned and 67 exact episodes (starts and controls) that reached step 500 were upright a
 median 128 and 111 steps more than the BC alone; too few complete for more than description.
 
-**The conclusion.** A single fixed long horizon does not recover enough of the any-horizon capability. With the
-horizon supplied externally and any success counted, the learned model recovers 174 of 400 fresh starts; a fixed
-H = 64 receding-horizon controller through the same model, with #79's switch, retains 97 of them (56%), short of the
-80% bar. The controller's mechanics held on every check, and through exact dynamics the same wrapper recovered 201,
-so the shortfall lies in planning through model 0 at a fixed long horizon: most lost starts entered and then failed
-to close on the continuation within the budget. Fixed-H learned did recover more than #79's shortest-feasible
-wrapper (117 against 66). By the protocol, #82 ends here, with no horizon sweep, tolerance relaxation, online model
-update or policy training, and no adaptive-horizon follow-up is launched from this result.
+**The conclusion.** Fixing a long horizon materially improves the deployable wrapper over shortest-feasible
+selection, 117 against 66 recoveries, but does not retain enough of the any-horizon capability: 97 of the reference's
+174 (56%), short of the 80% bar. The controls isolate the remaining problem. Through exact dynamics the same H = 64
+wrapper recovers 201 starts; through model 0 it recovers 117. The wrapper's mechanics held on every check, and most
+entered failures never approached the continuation, so the handoff is not the bottleneck: the learned model still
+directs the controller poorly on part of the long-horizon recovery region. By the protocol, #82 ends here, with no
+horizon sweep, tolerance relaxation, online model update or policy training, and no adaptive-horizon follow-up is
+launched from this result.
