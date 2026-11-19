@@ -62,27 +62,34 @@ Arms 2–4 also run the 20 controls. #79's shortest-feasible wrapper is not reru
 
 #79's wrapper with the horizon handling replaced; entry, phase tracking, handoff and the entry limit are unchanged.
 
-- **Entry and commitment.** At a base step with D > δ_out and phase p₀, for M = 1, 2, 4, …, 64 in order, solve toward
-  the fixed target c_(p₀+M) with horizon M from #76's 8 restarts (keyed `[171, 7, 4, arm, unit, k, M, restart]`).
-  Commit to the first target whose best restart is finite, keeps its predicted states in the envelope and predicts an
-  endpoint within ε. If none qualifies, abstain (`no_feasible_plan`).
-- **Countdown.** While committed to target j at phase p: execute the plan's first action, observe the real state,
-  advance the phase by one, and, if j − p > 0, solve again toward the same c_j with horizon j − p from 2 warm
-  restarts: the previous plan shifted by one, and the demonstrated actions a_p … a_(j−1). The executed action is the
-  first action of the restart with the smallest predicted terminal miss; ties go to the earlier restart. The target
-  never moves while it is active.
+**Invariant.** Every executed recovery action belongs to a plan that currently predicts a valid arrival at its
+committed target. Observed failure can only move the target later or cause abstention.
+
+- **The authority test.** A plan toward target c_j passes if its actions are finite, its predicted states stay in the
+  envelope, and its predicted endpoint is within ε of c_j. Every commitment and every replan is held to it.
+- **Targets.** A recovery entered at phase p₀ has the ladder targets c_(p₀+M), M ∈ {1, 2, 4, 8, 16, 32, 64}, all
+  relative to p₀. At phase p a target is unexpired if p₀ + M > p.
+- **Commitment.** At a base step with D > δ_out, try the targets in increasing M: solve toward c_(p₀+M) with horizon M
+  from #76's 8 restarts (keyed `[171, 7, 4, arm, unit, k, M, restart]`) and commit to the first that passes. If none
+  passes, abstain (`no_feasible_plan`).
+- **Countdown.** While committed to target j at phase p < j: replan toward the same c_j with horizon j − p from 2 warm
+  restarts, the previous plan shifted by one and the demonstrated actions a_p … a_(j−1); the best restart is the one
+  with the smallest predicted terminal miss, ties to the earlier. If it passes, execute its first action, observe the
+  real state and advance the phase by one. The first step after a commitment executes the commitment plan itself. The
+  target never moves while it is active.
 - **Handoff** after any executed recovery step at which #79's rule holds: D ≤ ε and the last five recovery steps
   close and agreeing.
-- **Extension.** The active target fails when the phase reaches j without a handoff, or when a replan toward it keeps
-  a predicted state outside the envelope. The controller then commits to the next unexpired target in the original
-  ladder, c_(p₀+M′) for the smallest M′ with p₀ + M′ > p, solved from the current state with horizon p₀ + M′ − p from
-  8 restarts (keyed as above, with M′). The extension is not required to predict an endpoint within ε: it is made
-  because the earlier target was observed to fail, and is valid if finite and in the envelope; otherwise that target
-  fails too and the next is tried.
-- **Abstention.** After the M = 64 target fails (`targets_exhausted`); on a non-finite plan (`solver`); on an
-  executed state outside the envelope (`envelope`); on a fourth entry (`reentry_limit`); on an entry with
-  p₀ + 64 > 499 (`insufficient_continuation`); when the episode ends during a recovery (`episode_end_in_recovery`).
-  There is no unaudited fallback action. A recovery lasts at most 64 steps, so #79's 127-step budget never binds.
+- **Target failure is local.** The current target fails, and its plan is not executed, if the replan is non-finite,
+  leaves the predicted envelope, or predicts an endpoint miss above ε; it also fails when the phase reaches j without
+  a handoff. The controller then tries the remaining unexpired targets in increasing M from the current state, each
+  with horizon p₀ + M − p and 8 restarts (keyed as above), and commits to the first that passes. Each failure and its
+  reason are recorded.
+- **Abstention**, only when: no unexpired target passes (`targets_exhausted`); an observed state leaves the envelope
+  (`envelope`); the demonstrated continuation ends, here an entry with p₀ + 64 > 499 (`insufficient_continuation`);
+  the recovery exceeds #79's 127-step budget (`timeout`); a fourth entry (`reentry_limit`); or the episode ends during
+  a recovery (`episode_end_in_recovery`). There is no unaudited fallback action. Because every target lies within
+  64 steps of p₀, the budget and the episode end cannot bind within one recovery; they are kept as audited
+  categories.
 
 **A recovered start** enters at step 0 and that recovery ends in an audited handoff. **A declared recovery's audit**
 is #82's: #76's segment audit of the executed actions from the entry state to the handoff state, with target
@@ -93,8 +100,8 @@ c_(p₀ + steps).
 **Stage A, exact prerequisite** (arm 3 on the starts and controls). All must hold:
 1. at least 20 starts recovered, and at least 10% at one radius;
 2. every action before the first departure is bitwise the frozen BC's;
-3. every entry, commitment, extension, handoff and declared recovery passes on recomputation, and every abstention
-   has its recorded category;
+3. every entry, commitment, replan, target failure, handoff and declared recovery passes on recomputation, and
+   every abstention has its recorded category;
 4. every episode ends at step 500 in `base` or with an abstention.
 
 If Stage A fails, its result is published and #85 stops; the learned arms do not run.
@@ -110,21 +117,23 @@ A negative result at either stage ends #85: no ladder, tolerance, solver, model,
 ## Measures
 
 - Paired outcomes per start among the four arms; overlaps.
-- By arm and radius: recoveries, the committed M at entry, extensions per recovery, the failing target's final miss,
-  first failure and abstention categories, steps to handoff, re-entries.
+- By arm and radius: recoveries, the committed M at entry and at handoff, target failures per recovery by reason,
+  abstention categories, steps to handoff, re-entries.
 - Controls: the BC's first departure, entries, handoffs.
-- **Recovery advantage** (descriptive, H3; it affects no selection or gate). For each start and wrapper arm,
-  Δ = J(wrapper) − J(BC alone), where J sums Pendulum's reward −(θ² + 0.1 θ̇² + 0.001 u²) (#73's `gym_cost`, negated) from the start to
-  step 500.
-  For evaluation only, an abstained episode is continued by the frozen BC from the abstention state; that
-  continuation is never counted as a recovery. Reported: the fraction with Δ ≥ 0 among recovered starts against
-  failed or abstained ones.
+- **Recovery advantage** (descriptive, H3; it affects no selection or gate). #73's task measure, with no effort term:
+  for each start and wrapper arm, Δ = upright steps under the wrapper (recovery, then the frozen BC) − upright steps
+  under the frozen BC alone, from the same start through step 500, counted on the state before each action (#73's
+  `score` convention). Secondary: #73's final two-second hold, for both branches. For evaluation only, an abstained
+  episode is continued by the frozen BC from the abstention state; that continuation never counts as a recovery.
+  Reported: the fraction with Δ ≥ 0 among recovered starts against failed or abstained ones.
 
 ## Smoke, then the runs
 
 - **Smoke:** Stage 2's key-99 smoke starts and #79's 8 smoke controls (calibration episodes 0 and 1), all four arms,
-  so it touches no fresh episode. It must exhibit each path at least once: commitment at M > 1, countdown, extension,
-  handoff and abstention; a byte-identical rerun; a fresh-process audit; injected faults (a forged base action, a
-  forged committed target, a forged countdown horizon, a forged extension, a forged handoff), each refused for its own
+  so it touches no fresh episode. It must exhibit each path at least once: commitment at M > 1, countdown, target
+  failure by a failed authority test and by expiry, extension, handoff and abstention. It needs a byte-identical
+  rerun, a fresh-process audit, and injected faults (a forged base action, a forged committed target, a forged
+  countdown horizon, a forged authority test, a forged target failure, a forged handoff), each refused for its own
   reason; and a cost projection against a 3 h wall ceiling on siddh with 32 workers.
+- **No development replay** on #82's starts.
 - **Stage A run**, after the smoke, on its own go. **Stage B run**, only if Stage A passes, on its own go.
