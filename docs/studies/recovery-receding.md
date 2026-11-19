@@ -86,3 +86,85 @@ The smoke runs both arms on Stage 2's key-99 smoke starts: a byte-identical reru
 faults the audit must refuse for the right reason (an action out of bounds, a forged executed state, a forged
 refined endpoint, a forged declared success), and a cost projection of both arms against a 3 h wall ceiling on siddh
 with 32 workers. The run waits for the smoke and its own go.
+
+## Code and smoke
+
+The code is [`tools/recovery_receding/`](../../tools/recovery_receding/) (`receding.json` restates the frozen choices
+and pins the Stage 2 and #73 records and model 0 by hash). It builds on #73's code for the starts, model 0, the frozen
+BC and the branches, and reuses Stage 2's LM and scheduler unchanged. Implementation choices the protocol leaves open:
+- **Smoke keys** insert 99 after the 4, as Stage 2 and #73 do: `[171, 4, 99, arm, start, M, k]`; arm 0 is exact,
+  1 learned.
+- **The predicted residual** of a restart is its terminal miss under the arm's planning dynamics; a restart whose
+  prediction is not finite never wins.
+- **The open-loop cells** are read from the Stage 2 and #73 start files by provenance: Stage 2's shortest M with a
+  valid restart, and #73's shortest M with a restart that is model-valid and valid.
+- **The diagnostic Δ** is computed for each arm's declared recovery, under the exact map, as in #73.
+
+**Smoke result**, from `6ff6ee3` (amendment 1) on siddh with CCIL `12b2fbf`, Stage 2's 40 key-99 Pendulum starts
+([`evidence/recovery-receding/smoke.json`](evidence/recovery-receding/smoke.json)); its start files are byte-identical
+to those of the smoke from `2fd6681`, before the amendment:
+- **Reproduction.** The second run was byte-identical on all 41 files (every start file and the record). The
+  fresh-process audit found nothing.
+- **Faults.** Each injected fault was refused with its own reason first: action bounds, a forged executed state, a
+  forged refined endpoint, and a forged declared success.
+- **Projection.** 91 s per start on average (both arms, every M): 0.32 h of wall time for the study on 32 workers,
+  within the 3 h ceiling.
+
+These smoke figures are not study outcomes. On the 40 smoke starts, the exact arm declared 26 recoveries and the
+learned arm 18, all of which passed the audit; the open-loop cells had 25 (exact) and 10 (learned).
+
+## Amendment 1: a singular damped LM system
+
+The first study run from `a053221` stopped at start 171 before writing a record, and no outcome was inspected. In the
+learned arm at M = 16, a replan with horizon 8 met a damped system J^T J + μI that is singular in floating point: J^T J
+has rank at most 2, and after many accepted steps μ is too small to register against it. Stage 2 and #73 never met
+one, so the frozen LM did not define the case.
+
+**Amendment.** A trial whose damped system is singular is that restart's rejected trial (μ × 10, iterate kept), the
+LM's own rule for a rejected step. Every solve that never meets a singular system is unchanged, so Stage 2's and #73's
+results are unaffected. The smoke is rerun at the amended commit, and the study reruns all 400 starts from it; the
+start files the stopped run had written are compared byte for byte with the rerun's.
+
+## Result
+
+The study ran from `6ff6ee3` on siddh on 2026-11-18, with CCIL `12b2fbf`, on Stage 2's 400 Pendulum starts and #73's
+model 0, both read from their releases. The fresh-process audit found nothing. The 152 start files written by the
+stopped run from `a053221` are byte-identical to the rerun's. The record and audit are in
+[`evidence/recovery-receding/study/`](evidence/recovery-receding/study/); the complete run directory is the asset of
+`evidence-recovery-receding-v1` ([`archive.json`](evidence/recovery-receding/archive.json)).
+
+**#76 passes.** Both gates hold:
+
+| Condition | Required | Result |
+|---|---|---|
+| Exact receding horizon: recoveries | ≥ 20 starts, ≥ 10% at some radius | **268** of 400; 88% at radius 0.5 |
+| Learned receding horizon: recoveries | ≥ 20 starts, ≥ 10% at some radius | **182** of 400; 79% at radius 0.5 |
+| Learned receding horizon: recoveries passing the audit | ≥ 80% | **182 of 182** |
+
+**The 2 × 2**, as starts with a recovery out of 100 at each radius:
+
+| Dynamics | Open loop | Receding horizon |
+|---|---|---|
+| Exact | 88, 86, 55, 36 (265) | 88, 86, 55, 39 (268) |
+| Learned | 24, 12, 7, 2 (45) | 79, 58, 29, 16 (182) |
+
+The learned open-loop cell counts #73's starts with a restart that is model-valid and valid under exact replay.
+
+**Feedback recovers most of the gap between learned and exact planning.** Replanning from the observed state takes the
+learned model from 45 to 182 starts, against 268 for exact planning. Its declared executions concentrate at long
+horizons: 31, 83 and 156 of 400 at M = 16, 32 and 64, against 107, 215 and 260 for the exact arm. The shortest
+recovery is M = 64 on 88 of its 182 starts (exact arm: 53 of 268). On the transitions it executed, model 0's one-step
+error has a median of 0.17 ε and a 90th percentile of 1.3 ε, above its validation error in #73 (q95 under 0.1 ε).
+
+**Diagnostic advantage for the frozen BC** (not gated). The learned arm's recoveries have a median Δ_M of 16.5 upright
+steps, with Δ_M ≥ 1 on 124 of 182; the exact arm's have a median of 7, with Δ_M ≥ 1 on 170 of 268. The learned arm
+recovers 149 of #73's 190 oracle-ceiling starts; the exact arm recovers all 190.
+
+**What this establishes, and what it does not.**
+- Each recovery here is an execution on the exact system, at most 127 exact steps per start. The learned model
+  plans; the system supplies the observed states. A receding-horizon recovery is therefore not an offline label in
+  the sense of #73's open-loop segments.
+- Because a declared success already requires the observed endpoint to be within ε and replay is deterministic, the
+  audit gate tests little beyond refinement, bounds and the envelope. The informative result is the learned arm's
+  yield.
+- By the protocol, nothing follows automatically: no online model updates, learner training, reward or new target.
