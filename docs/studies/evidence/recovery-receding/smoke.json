@@ -1,7 +1,7 @@
 {
  "audit_ok": true,
  "code": {
-  "commit": "2fd6681e6e9663413fce38448777478aca5204f8",
+  "commit": "6ff6ee39427d9fdc0adefe9c2f9213b59ec75a0a",
   "dirty": false
  },
  "faults": {
@@ -49,16 +49,16 @@
   "ceiling_wall_hours": 3,
   "measured_with_workers": 32,
   "seconds_per_start": {
-   "max": 119.51539731025696,
-   "mean": 92.33553002476692
+   "max": 119.7377781867981,
+   "mean": 91.34040370583534
   },
   "smoke_starts": 40,
-  "study_core_hours": 10.259503336085213,
-  "study_wall_hours": 0.3206094792526629,
+  "study_core_hours": 10.148933745092815,
+  "study_wall_hours": 0.3171541795341505,
   "study_workers": 32,
   "within_ceiling": true
  },
- "record_sha256": "737d6f082a9cd38bad32309706268c0a1da5ec96edeb5c55ab48c439ba59e546",
+ "record_sha256": "af3bfd2af1e9d51dd8673cf73c06c2a87be1bd40ebf3d0fb7bcbff625d2e0d24",
  "rerun_byte_identical": true,
  "schema": "ilsb.recovery_receding.smoke 1",
  "smoke_decision": {

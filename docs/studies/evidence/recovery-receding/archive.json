@@ -1,0 +1,14 @@
+{
+ "archive": "20261119T003320Z-recovery-receding.tar.gz",
+ "contents": "the complete #76 study run directory: every start file (both arms, every M: executed actions, observed states, predicted misses, failures, audit checks, model one-step errors; each arm's recovery and diagnostic advantage; the open-loop cells), timing, identity.json, record.json, run and audit logs, and the fresh-process audit",
+ "bytes": 5326265,
+ "sha256": "af33f1c755687eb5a4fe2d56f1d7ca1d2ba50a856f1c3dd68882ecb4d3203872",
+ "built_with": "tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner -cf - -C runs 20261119T003320Z-study | gzip -n",
+ "location": "GitHub release asset of the evidence-only tag evidence-recovery-receding-v1 (published after this result is merged; never overwritten: a correction is a new evidence version, -v2, ...). Copies also kept on the run host and off it.",
+ "tag": "evidence-recovery-receding-v1",
+ "url": "https://github.com/personalrobotics/il-supervision-benchmarks/releases/download/evidence-recovery-receding-v1/20261119T003320Z-recovery-receding.tar.gz",
+ "run_commit": "6ff6ee39427d9fdc0adefe9c2f9213b59ec75a0a",
+ "ccil_commit": "12b2fbf8c336ed55a35e942f471d7c96a0f69005",
+ "record_sha256": "e9e2cb9c91d49e2266bfe58c921f5a82a79332c05e1c01b0a2390398ce501e67",
+ "reproduce": "curl -LO URL; sha256sum -c (expect sha256); tar -xzf ARCHIVE -C DIR; at run_commit, in an environment with CCIL ccil_commit: PY tools/recovery_receding/audit.py --run-dir DIR/20261119T003320Z-study --workers N --pendulum pendulum_cont_corrected.npz --policy POLICY --stage2 STAGE2_PENDULUM_STUDY_DIR --stage3 STAGE3_STUDY_DIR (POLICY from evidence-pendulum-recovery-segments-stage-a-v1, STAGE2 from evidence-recovery-feasibility-stage-2-v1, STAGE3 from evidence-recovery-learned-stage-3-v1); exits 0 and recomputes record.json byte for byte"
+}
