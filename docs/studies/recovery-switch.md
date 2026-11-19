@@ -181,3 +181,47 @@ calibration episodes 0 and 1, calibrated on the other 43
 These smoke figures are not study outcomes. Every episode reproduced the BC exactly up to its first departure;
 every entry and handoff was valid. Of the 18 smoke starts in the recover population, 7 were retained; most
 recoveries ended in `endpoint_miss`, as did the 7 controls whose BC departed.
+
+## Result
+
+The study ran from `08ef12e` on siddh on 2026-11-18, with CCIL `12b2fbf`, on Stage 2's 400 Pendulum starts and the
+180 control starts, reading Stage 2, #73 and #76 from their releases. Calibration gave σ_u = 1.452 and α = 0.0572.
+The fresh-process audit found nothing. The record, calibration and audit are in
+[`evidence/recovery-switch/study/`](evidence/recovery-switch/study/); the complete run directory is the asset of
+`evidence-recovery-switch-v1` ([`archive.json`](evidence/recovery-switch/archive.json)).
+
+**#79 does not pass.** The switch's mechanics hold on every check; retention fails:
+
+| Gate | Required | Result |
+|---|---|---|
+| 1. Base first (controls) | all | 180 of 180 |
+| 2. Exact base reproduction before the first departure | all | 580 of 580 |
+| 3. Valid entries | all | 510 of 510 |
+| 4. Valid handoffs | all | 91 of 91 |
+| 5. Retention of #76's 182 recoveries | ≥ 146 | **78** (43%) |
+| 6. Declared segments passing #76's audit | all | 2,206 of 2,206 |
+| 7. Complete accounting | all | 580 of 580 |
+
+Retention by radius 0.5, 1, 2 and 4: 33 of 79, 21 of 58, 18 of 29, 6 of 16.
+
+**Recoveries end at the endpoint contract, by small margins.** In the recover population, the wrapper entered at
+step 0 on 171 starts (11 had no feasible plan). 152 of the 182 episodes end in `endpoint_miss`: 92 in the first
+recovery and 60 after a handoff, once the BC departed again (63 re-entries in all). The failing segment's median
+miss is 1.6 ε, and its M is spread over the ladder (1: 37, 4: 22, 8: 30, 16: 33, 32: 24). Of the population's 1,994
+segments, 1,788 are M = 1, chained close to the continuation. #76 counted a start as recovered if any of its seven
+independent executions, one per M, met ε; the wrapper commits to the shortest model-feasible M and abstains on a
+miss.
+
+**On the held-out demonstration starts**, the frozen BC departed from its continuation on 164 of 180 (median first
+departure at step 104). Recovery entered on 152 and handed back on 10; 148 ended in `endpoint_miss` (median miss
+1.35 ε), 16 stayed with the BC throughout, and 19 reached step 500. In the unknown population, 104 starts had no
+feasible plan at entry and the 114 that entered all ended in `endpoint_miss`.
+
+**Descriptive.** The 9 recover-population episodes that reached step 500 were upright a median 73 steps more than
+the BC alone; too few episodes complete for this to be more than descriptive.
+
+**The conclusion.** A value-free switch can reproduce the frozen BC exactly until it departs, enter only with a
+feasible plan, and hand back only on the frozen proximity-and-agreement rule, with every declared segment passing
+the exact audit. With #76's controller used online under that rule, it retains 78 of #76's 182 recoveries, below the
+gate. By the protocol, #79 ends here: no threshold tuning, target selector, online model updates or policy training
+follow.
