@@ -1,0 +1,52 @@
+{
+ "study": "fixed-horizon post-training recovery MPC on Pendulum",
+ "issue": 82,
+ "protocol": "docs/studies/recovery-fixed-horizon.md",
+ "frozen_at": "49d3c28",
+ "selection": "tools/recovery_fixed_horizon/selection.json",
+ "inventory": "tools/recovery_fixed_horizon/inventory.json",
+ "horizon": 64,
+ "tolerances": {
+  "path": "docs/studies/evidence/recovery-switch/study/calibration.json",
+  "sha256": "4781b26b7a70c0338e185e2ab4914ec4a0b77978e49cabe7ad1f9794f02bdfad"
+ },
+ "arms": [
+  "any_horizon",
+  "shortest_feasible",
+  "fixed_learned",
+  "fixed_exact"
+ ],
+ "seeds": {
+  "fixed": "entry restart r at step k: SeedSequence([171, 6, (99,) 4, dynamics (0 learned, 1 exact), population, unit, k, r])",
+  "any_horizon": "#79's key with population 9: [171, 5, 2, (99,) 9, population, unit, M, r]",
+  "shortest_feasible": "#79's key: [171, 5, 2, (99,) population, unit, k, M, r]",
+  "population": "0 #70 starts (smoke, development), 1 #79 controls (smoke), 2 fresh starts, 3 fresh controls"
+ },
+ "abstention": [
+  "reentry_limit",
+  "insufficient_continuation",
+  "no_feasible_plan",
+  "solver",
+  "plan_envelope",
+  "envelope",
+  "timeout",
+  "episode_end_in_recovery"
+ ],
+ "decision": {
+  "min_recovered": 20,
+  "min_fraction_at_some_radius": 0.1,
+  "min_retention": 0.8
+ },
+ "smoke": {
+  "starts": "Stage 2's key-99 smoke starts",
+  "controls": "#79's smoke controls (calibration episodes 0 and 1)",
+  "faults": [
+   "forged base action",
+   "forged agreement flag",
+   "forged plan validity",
+   "forged handoff"
+  ],
+  "ceiling_wall_hours": 3,
+  "workers": 32
+ }
+}
