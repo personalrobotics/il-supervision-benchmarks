@@ -22,20 +22,27 @@ the #76/#79 starts are development evidence only (implementation checks and desc
 
 ## Fresh starts
 
-**Source.** The only demonstrations used neither to fit the dynamics model nor by #76 or #79 are #70's two
-validation episodes, 80 and 81. They set τ in Stage 2 and gave #73's descriptive one-step validation error; no
-recovery, switch or base outcome was ever computed on them.
-- **Anchors.** The pool is every (episode, t) with t ≤ 435 in episodes 80 and 81 (872 anchors). 50 anchors are drawn
-  by `SeedSequence([171, 6, 0])`, as #70 drew its 50.
-- **Starts.** Each anchor gives #76's 8 starts (radii 0.5, 1, 2, 4 τ, two directions each), by Stage 2's perturbation
-  and availability rule, keyed `[171, 6, 1, start]`: 400 fresh starts. Stage 2's M = 1 certificate is computed and
-  recorded for each; the gate counts every start, as #76 did.
-- **Controls.** 20 held-out demonstrated starts: 10 times per episode, drawn by `SeedSequence([171, 6, 2, episode])`
-  from t ≤ 435 excluding the anchor times.
+**Eligibility.** "Fresh" is relative to the quantity tested: an episode is eligible if it was not used to fit model 0
+and no recovery controller ever ran from it. BC-only use (#79's calibration of σ_u and α, the pre-protocol reference
+check) does not reveal whether fixed-H recovery works and is allowed. From the committed records:
+- excluded: the 8 episodes that fit model 0 (also every #70/#73/#76/#79 start's source), #79's 45 control episodes,
+  and calibration episodes 0 and 1 (#79's smoke controls);
+- eligible: the other 43 #79 calibration episodes and #70's validation episodes 80 and 81, 45 in all.
 
-The inventory (anchors, start states, availability redraws, certificates and controls) is computed from the seeds and
-the demonstrations alone, written to `tools/recovery_fixed_horizon/inventory.json`, and committed before any
-controller runs.
+**Selection** ([`tools/recovery_fixed_horizon/select.py`](../../tools/recovery_fixed_horizon/select.py), output
+[`selection.json`](../../tools/recovery_fixed_horizon/selection.json)). The eligible list's sha256 seeds a
+permutation (`SeedSequence([171, 6, 0, int(sha256[:16], 16)])`); the first 20 episodes supply anchors and the next
+5 are the control episodes, disjoint from them. The 50 anchors are spread as evenly as possible: 3 in each of the
+first 10 episodes and 2 in each of the next 10, at distinct times drawn by `SeedSequence([171, 6, 1, episode])`.
+Each control episode gives 4 times by `SeedSequence([171, 6, 2, episode])`. Every anchor and control time is at most
+308 = 499 − (64 + 127), so the demonstration continues for H + the recovery budget after it. The selection reads no
+demonstration state and was frozen before any perturbed start was generated.
+
+**Starts.** Each anchor gives #76's 8 starts (radii 0.5, 1, 2, 4 τ, two directions each), by Stage 2's perturbation
+and availability rule, keyed `[171, 6, 3, start]`: 400 fresh starts. Stage 2's M = 1 certificate is computed and
+recorded for each; the gate counts every start, as #76 did. The 20 controls start on their demonstrated states. The
+start inventory is computed from the selection, the seeds and the demonstrations alone, written to
+`tools/recovery_fixed_horizon/inventory.json`, and committed before any controller runs.
 
 ## Arms (all on the 400 fresh starts)
 
@@ -45,17 +52,18 @@ controller runs.
 3. **Fixed-H learned (primary):** the wrapper below, planning through model 0.
 4. **Fixed-H exact (control ceiling):** the same wrapper planning through the evaluator map.
 
-Arms 2–4 also run the 20 controls.
+Arms 2–4 also run the 20 controls. Arm 2 keeps #79's own horizon search, unchanged.
 
 ## The fixed-H wrapper
 
 #79's wrapper with the horizon handling replaced; nothing else changes.
-- **Entry.** At a base step with D > δ_out, solve H = min(64, 499 − p) from x toward c_(p+H) with #76's 8 restarts
-  (keyed `[171, 6, 3, arm, unit, k, restart]`). Enter only if the best restart's predicted endpoint is within ε and
+- **Entry.** At a base step with D > δ_out, solve H = 64 from x toward c_(p+64) with #76's 8 restarts
+  (keyed `[171, 6, 4, arm, unit, k, restart]`). Enter only if the best restart's predicted endpoint is within ε and
   its predicted states stay in the envelope; otherwise abstain (`no_feasible_plan`). No shorter horizon is tried.
-- **Each recovery step** at phase p: execute the plan's first action, observe the real state, advance the phase by
-  one, and solve again with H = min(64, 499 − p) toward c_(p+H) from 2 warm restarts: the previous plan shifted by
-  one with the demonstrated action a_(p+H−1) appended, and the demonstrated actions a_p … a_(p+H−1). The executed action is the
+- **H is fixed at 64 throughout.** It is never shortened. Each recovery step at phase p: execute the plan's first
+  action, observe the real state, advance the phase by one, and solve again with H = 64 toward c_(p+64) from 2 warm
+  restarts: the previous plan shifted by one with the demonstrated action a_(p+63) appended, and the demonstrated
+  actions a_p … a_(p+63). The executed action is the
   first action of the restart with the smallest predicted terminal miss; ties go to the earlier restart.
 - **A valid plan** at every recovery step is finite with predicted states in the envelope. A non-finite plan
   abstains (`solver`); predicted states outside the envelope abstain (`plan_envelope`); an executed state outside
@@ -63,7 +71,11 @@ Arms 2–4 also run the 20 controls.
 - **Handoff** after any executed recovery step at which D ≤ ε and the last five recovery steps were close and
   agreeing (#79's rule, checked every step rather than at segment ends).
 - **Budgets and the end.** More than 127 recovery steps in one recovery episode abstains (`timeout`); a fourth entry
-  abstains (`reentry_limit`); if no target remains (p = 499), abstain (`continuation_end`).
+  abstains (`reentry_limit`). An entry or replan with p + 64 > 499 abstains (`insufficient_continuation`); with
+  every anchor at t ≤ 308 this cannot happen within a recovery entered at step 0.
+- **Entry establishes authority once.** The predicted endpoint is required within ε only at entry; replanning then
+  supplies feedback. Requiring a fresh terminal certificate at every step would recreate #79's feasibility
+  classifier.
 
 **A declared recovery** is a recovery episode that ends in a handoff. Its audit is #76's segment audit applied to the
 executed actions from the entry state to the handoff state, with target c_(p_entry + steps): bounds, envelope,
@@ -94,10 +106,11 @@ A negative result ends #82: no horizon sweep, tolerance relaxation, online model
 
 ## Development replay, smoke, then the run
 
-- **Development replay** (descriptive, not gated): the fixed-H learned wrapper on #76's 400 starts, after the
-  inventory is frozen, as an implementation check.
+- **Development replay** (descriptive, not gated): the fixed-H learned wrapper on #76's 400 starts. It runs only
+  after the fresh inventory and the implementation commit are frozen, and its outcomes authorize no parameter or code
+  change.
 - **Smoke:** Stage 2's key-99 smoke starts and #79's 8 smoke controls (calibration episodes 0 and 1), so the smoke
-  touches no fresh episode; byte-identical rerun, fresh-process audit, injected faults (a forged base action, a forged
-  agreement flag, a forged plan validity, a forged handoff), and a cost projection against a 3 h wall ceiling on
-  siddh with 32 workers.
+  touches no fresh episode; byte-identical rerun, fresh-process audit, injected faults (a forged base action, a
+  forged agreement flag, a forged plan validity, a forged handoff), and a cost projection against a 3 h wall ceiling
+  on siddh with 32 workers.
 - The run waits for the smoke and its own go.
