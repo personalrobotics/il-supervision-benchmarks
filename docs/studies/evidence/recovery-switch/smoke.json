@@ -1,0 +1,331 @@
+{
+ "audit_ok": true,
+ "code": {
+  "commit": "a63e1628ea584405f2aadb0f70beaf8979d06f4f",
+  "dirty": false
+ },
+ "faults": {
+  "agreement": {
+   "first_refusal": "agreement",
+   "injected": {
+    "file": "control-0000.json"
+   },
+   "refused_for_the_right_reason": true
+  },
+  "calibration": {
+   "first_refusal": "calibration",
+   "injected": {
+    "file": "calibration.json"
+   },
+   "refused_for_the_right_reason": true
+  },
+  "declared": {
+   "first_refusal": "declared",
+   "injected": {
+    "file": "control-0000.json"
+   },
+   "refused_for_the_right_reason": true
+  },
+  "trajectory": {
+   "first_refusal": "trajectory",
+   "injected": {
+    "file": "control-0000.json"
+   },
+   "refused_for_the_right_reason": true
+  },
+  "transitions": {
+   "first_refusal": "transitions",
+   "injected": {
+    "file": "control-0000.json"
+   },
+   "refused_for_the_right_reason": true
+  }
+ },
+ "files_compared": 50,
+ "note": "Stage 2's key-99 smoke starts and calibration-episode controls; not a study outcome",
+ "ok": true,
+ "projection": {
+  "calibration_seconds": 0.059098243713378906,
+  "ceiling_wall_hours": 3,
+  "episodes": {
+   "control": 8,
+   "start": 40
+  },
+  "measured_with_workers": 32,
+  "seconds_per_episode": {
+   "control": {
+    "max": 1.0625033378601074,
+    "mean": 0.5178138315677643
+   },
+   "start": {
+    "max": 53.98169779777527,
+    "mean": 11.99629853963852
+   }
+  },
+  "study_core_hours": 1.3588127515382238,
+  "study_wall_hours": 0.042479314664378764,
+  "study_workers": 32,
+  "within_ceiling": true
+ },
+ "record_sha256": "bdc217f73bd7ce310acbde764083f722a06ee97bb011794f7ef339023180a722",
+ "rerun_byte_identical": true,
+ "schema": "ilsb.recovery_switch.smoke 1",
+ "smoke_decision": {
+  "accounted": true,
+  "base_first": [
+   8,
+   8
+  ],
+  "base_reproduced": [
+   48,
+   48
+  ],
+  "declared_not_audited": 0,
+  "entries_valid": [
+   38,
+   38
+  ],
+  "handoffs_valid": [
+   7,
+   7
+  ],
+  "passes": false,
+  "recover_population": 18,
+  "retained": 7
+ },
+ "smoke_summary": {
+  "control": {
+   "bc_departed": 7,
+   "bc_first_departure": {
+    "0": 12.0,
+    "10": 24.0,
+    "100": 308.0,
+    "50": 99.0,
+    "90": 260.0
+   },
+   "bc_upright": {
+    "0": 67.0,
+    "10": 109.0,
+    "100": 162.0,
+    "50": 139.0,
+    "90": 150.8
+   },
+   "declared_not_audited": 0,
+   "declared_segments": 0,
+   "departed_then_entered": 7,
+   "departed_then_handed_back": 0,
+   "entered": 7,
+   "entered_at_step_0": 0,
+   "episodes": 8,
+   "episodes_by_radius": {},
+   "handoff_steps": null,
+   "handoffs": 0,
+   "in_base_throughout": 1,
+   "outcome": {
+    "complete": 1,
+    "endpoint_miss": 7
+   },
+   "recovery_episodes": 7,
+   "recovery_steps": {
+    "0": 0.0,
+    "10": 0.7000000000000001,
+    "100": 8.0,
+    "50": 2.0,
+    "90": 8.0
+   },
+   "reentries_after_handoff": 0,
+   "retained": 0,
+   "retained_by_radius": {},
+   "segment_M": {
+    "1": 2,
+    "2": 2,
+    "8": 3
+   },
+   "segments": 7,
+   "switches": {
+    "0": 0.0,
+    "10": 0.7000000000000001,
+    "100": 1.0,
+    "50": 1.0,
+    "90": 1.0
+   },
+   "upright_complete": {
+    "0": 67.0,
+    "10": 67.0,
+    "100": 67.0,
+    "50": 67.0,
+    "90": 67.0
+   },
+   "upright_minus_bc_complete": {
+    "0": 0.0,
+    "10": 0.0,
+    "100": 0.0,
+    "50": 0.0,
+    "90": 0.0
+   }
+  },
+  "recover": {
+   "bc_departed": 18,
+   "bc_first_departure": {
+    "0": 0.0,
+    "10": 0.0,
+    "100": 0.0,
+    "50": 0.0,
+    "90": 0.0
+   },
+   "bc_upright": {
+    "0": 53.0,
+    "10": 57.7,
+    "100": 153.0,
+    "50": 98.0,
+    "90": 144.8
+   },
+   "declared_not_audited": 0,
+   "declared_segments": 142,
+   "departed_then_entered": 18,
+   "departed_then_handed_back": 7,
+   "entered": 18,
+   "entered_at_step_0": 18,
+   "episodes": 18,
+   "episodes_by_radius": {
+    "0.5": 10,
+    "1.0": 6,
+    "2.0": 2
+   },
+   "handoff_steps": {
+    "0": 21.0,
+    "10": 21.0,
+    "100": 82.0,
+    "50": 37.0,
+    "90": 74.2
+   },
+   "handoffs": 7,
+   "in_base_throughout": 0,
+   "outcome": {
+    "complete": 1,
+    "continuation_end": 1,
+    "endpoint_miss": 16
+   },
+   "recovery_episodes": 23,
+   "recovery_steps": {
+    "0": 2.0,
+    "10": 4.0,
+    "100": 83.0,
+    "50": 20.5,
+    "90": 65.5
+   },
+   "reentries_after_handoff": 5,
+   "retained": 7,
+   "retained_by_radius": {
+    "0.5": 5,
+    "1.0": 1,
+    "2.0": 1
+   },
+   "segment_M": {
+    "1": 137,
+    "16": 6,
+    "2": 1,
+    "32": 4,
+    "4": 6,
+    "64": 1,
+    "8": 3
+   },
+   "segments": 158,
+   "switches": {
+    "0": 1.0,
+    "10": 1.0,
+    "100": 3.0,
+    "50": 1.0,
+    "90": 3.0
+   },
+   "upright_complete": {
+    "0": 165.0,
+    "10": 165.0,
+    "100": 165.0,
+    "50": 165.0,
+    "90": 165.0
+   },
+   "upright_minus_bc_complete": {
+    "0": 82.0,
+    "10": 82.0,
+    "100": 82.0,
+    "50": 82.0,
+    "90": 82.0
+   }
+  },
+  "unknown": {
+   "bc_departed": 22,
+   "bc_first_departure": {
+    "0": 0.0,
+    "10": 0.0,
+    "100": 0.0,
+    "50": 0.0,
+    "90": 0.0
+   },
+   "bc_upright": {
+    "0": 60.0,
+    "10": 63.4,
+    "100": 187.0,
+    "50": 105.0,
+    "90": 155.9
+   },
+   "declared_not_audited": 0,
+   "declared_segments": 0,
+   "departed_then_entered": 8,
+   "departed_then_handed_back": 0,
+   "entered": 8,
+   "entered_at_step_0": 8,
+   "episodes": 22,
+   "episodes_by_radius": {
+    "1.0": 4,
+    "2.0": 8,
+    "4.0": 10
+   },
+   "handoff_steps": null,
+   "handoffs": 0,
+   "in_base_throughout": 0,
+   "outcome": {
+    "endpoint_miss": 8,
+    "no_feasible_plan": 14
+   },
+   "recovery_episodes": 8,
+   "recovery_steps": {
+    "0": 0.0,
+    "10": 0.0,
+    "100": 64.0,
+    "50": 0.0,
+    "90": 64.0
+   },
+   "reentries_after_handoff": 0,
+   "retained": 0,
+   "retained_by_radius": {
+    "1.0": 0,
+    "2.0": 0,
+    "4.0": 0
+   },
+   "segment_M": {
+    "16": 1,
+    "32": 2,
+    "64": 4,
+    "8": 1
+   },
+   "segments": 8,
+   "switches": {
+    "0": 0.0,
+    "10": 0.0,
+    "100": 1.0,
+    "50": 0.0,
+    "90": 1.0
+   },
+   "upright_complete": null,
+   "upright_minus_bc_complete": null
+  }
+ },
+ "smoke_tolerances": {
+  "alpha": 0.0556727354103985,
+  "delta_in": 0.014039779876517956,
+  "delta_out": 0.028079559753035912,
+  "sha256": "2ab799e45b7f1dda0d9818bb73433666b8fc3280653ae8cda60e196472b367c0",
+  "sigma_u": 1.4560928535215745
+ }
+}

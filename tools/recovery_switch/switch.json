@@ -1,0 +1,63 @@
+{
+ "study": "value-free recovery switch on Pendulum",
+ "issue": 79,
+ "protocol": "docs/studies/recovery-switch.md",
+ "frozen_at": "cab2e0b",
+ "split": "tools/recovery_switch/split.json",
+ "stage4": {
+  "spec": "tools/recovery_receding/receding.json",
+  "record_sha256": {
+   "study": "e9e2cb9c91d49e2266bfe58c921f5a82a79332c05e1c01b0a2390398ce501e67",
+   "smoke": "af3bfd2af1e9d51dd8673cf73c06c2a87be1bd40ebf3d0fb7bcbff625d2e0d24"
+  },
+  "study_release": "evidence-recovery-receding-v1"
+ },
+ "tracking": {
+  "advance": [
+   0,
+   2
+  ],
+  "ties": "smallest forward advance",
+  "recover": "timed: p_entry + j"
+ },
+ "tolerances": {
+  "delta_in": "epsilon (#76's recovery contract)",
+  "delta_out": "2 epsilon",
+  "sigma_u": "population standard deviation of the calibration episodes' demonstrated actions",
+  "alpha": "95th percentile over calibration transitions of |clip(pi(x)) - clip(u_demo)| / sigma_u",
+  "alpha_percentile": 95
+ },
+ "handoff_window": 5,
+ "budgets": {
+  "recovery_steps": 127,
+  "entries": 3
+ },
+ "seeds": "first solve restart r: SeedSequence([171, 5, 2, (99,) population, unit, k, M, r]); population 0 starts (unit = start), 1 controls (unit = 4 * episode + index)",
+ "abstention": [
+  "reentry_limit",
+  "continuation_end",
+  "timeout",
+  "no_feasible_plan",
+  "solver",
+  "envelope",
+  "endpoint_miss"
+ ],
+ "decision": {
+  "min_retained": 146,
+  "recover_population": 182
+ },
+ "smoke": {
+  "starts": "Stage 2's key-99 smoke starts",
+  "controls": "the 8 starts of calibration episodes 0 and 1",
+  "calibration": "the other 43 calibration episodes",
+  "faults": [
+   "forged base action",
+   "forged agreement flag",
+   "forged declared segment",
+   "forged mode transition",
+   "forged tolerance"
+  ],
+  "ceiling_wall_hours": 3,
+  "workers": 32
+ }
+}

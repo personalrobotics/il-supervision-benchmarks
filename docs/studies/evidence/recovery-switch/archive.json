@@ -1,0 +1,14 @@
+{
+ "archive": "20261119T045404Z-recovery-switch.tar.gz",
+ "contents": "the complete #79 study run directory: the calibration, every switched episode (actions, modes, phases, distances, states; transitions; every search with its tried plans; every segment with its closeness, agreement, declared state and #76 audit checks; the BC-alone reproduction check and upright counts), timing, identity.json, record.json, run and audit logs, and the fresh-process audit",
+ "bytes": 3202453,
+ "sha256": "1f0053f31cc8bb49829476c7e4bdc07ff26557b0b3d547507d7bf8f3a5455ef9",
+ "built_with": "tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner -cf - -C runs 20261119T045404Z-study | gzip -n",
+ "location": "GitHub release asset of the evidence-only tag evidence-recovery-switch-v1 (published after this result is merged; never overwritten: a correction is a new evidence version, -v2, ...). Copies also kept on the run host and off it.",
+ "tag": "evidence-recovery-switch-v1",
+ "url": "https://github.com/personalrobotics/il-supervision-benchmarks/releases/download/evidence-recovery-switch-v1/20261119T045404Z-recovery-switch.tar.gz",
+ "run_commit": "08ef12ecf3fef150ceafbd259e6ef139a1085080",
+ "ccil_commit": "12b2fbf8c336ed55a35e942f471d7c96a0f69005",
+ "record_sha256": "403b5dea3d6f163bc368df19cb003d1dd1ae9c9330497ed3324eeaf94be12b5f",
+ "reproduce": "curl -LO URL; sha256sum -c (expect sha256); tar -xzf ARCHIVE -C DIR; at run_commit, in an environment with CCIL ccil_commit: PY tools/recovery_switch/audit.py --run-dir DIR/20261119T045404Z-study --workers N --pendulum pendulum_cont_corrected.npz --policy POLICY --stage2 STAGE2_PENDULUM_STUDY_DIR --stage3 STAGE3_STUDY_DIR --stage4 STAGE4_STUDY_DIR (POLICY from evidence-pendulum-recovery-segments-stage-a-v1, STAGE2 from evidence-recovery-feasibility-stage-2-v1, STAGE3 from evidence-recovery-learned-stage-3-v1, STAGE4 from evidence-recovery-receding-v1); exits 0 and recomputes record.json byte for byte"
+}

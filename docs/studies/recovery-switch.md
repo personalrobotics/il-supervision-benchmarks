@@ -150,3 +150,83 @@ starts, showed that rule made the BC's own failures nominal: the BC leaves its c
 (median maximum 263 ε), so δ_out was about 265 ε and the switch could never enter. No study or control episode had
 run. The revision above replaces that rule by δ_in = ε, δ_out = 2ε, and replaces the "controls stay with the BC"
 gate by gates 1–4. The smoke's fault list now also forges a base action.
+
+## Code and smoke
+
+The code is [`tools/recovery_switch/`](../../tools/recovery_switch/) (`switch.json` restates the frozen choices and
+pins #76's records by hash; `split.json` is the frozen split). It builds on #76's code for the starts, model 0 and
+the BC, and runs #76's controller with its target and demonstrated actions taken from the episode's phase.
+Implementation choices the protocol leaves open:
+- **Keys.** First-solve restart r is keyed `[171, 5, 2, (99,) population, unit, k, M, r]`: population 0 for starts
+  (unit = start), 1 for controls (unit = 4 × episode + index).
+- **The search** keeps the ladder M with p + M ≤ 499 and k + M ≤ the remaining steps (none: `continuation_end`),
+  then those within the recovery budget (none: `timeout`), and tries them in order (none feasible:
+  `no_feasible_plan`). A mode transition to `recover` is recorded only with a feasible plan; feasibility is
+  recomputed from the stored plan by a single-row model rollout.
+- **The BC alone** is rolled out from every start with the wrapper's own single-state calls and phase tracking, so
+  gate 2 compares actions bitwise; its upright steps are the descriptive comparator.
+- **The audit** reruns every episode with the stored first-solve plans and executed recovery actions, recomputing
+  states, phase, distances, base actions, closeness, agreement, feasibility, decisions and #76's segment checks.
+
+**Smoke result**, from `a63e162` on siddh with CCIL `12b2fbf`: Stage 2's 40 key-99 starts and 8 controls from
+calibration episodes 0 and 1, calibrated on the other 43
+([`evidence/recovery-switch/smoke.json`](evidence/recovery-switch/smoke.json)):
+- **Reproduction.** The second run was byte-identical on all 50 files (the calibration, every episode and the
+  record). The fresh-process audit found nothing.
+- **Faults.** Each injected fault was refused with its own reason first: a forged base action, a forged agreement
+  flag, a forged declared segment, a forged mode transition, and a forged tolerance.
+- **Projection.** 12 s per start and 0.5 s per control on average: 0.04 h of wall time for the study on 32 workers,
+  within the 3 h ceiling.
+
+These smoke figures are not study outcomes. Every episode reproduced the BC exactly up to its first departure;
+every entry and handoff was valid. Of the 18 smoke starts in the recover population, 7 were retained; most
+recoveries ended in `endpoint_miss`, as did the 7 controls whose BC departed.
+
+## Result
+
+The study ran from `08ef12e` on siddh on 2026-11-18, with CCIL `12b2fbf`, on Stage 2's 400 Pendulum starts and the
+180 control starts, reading Stage 2, #73 and #76 from their releases. Calibration gave σ_u = 1.452 and α = 0.0572.
+The fresh-process audit found nothing. The record, calibration and audit are in
+[`evidence/recovery-switch/study/`](evidence/recovery-switch/study/); the complete run directory is the asset of
+`evidence-recovery-switch-v1` ([`archive.json`](evidence/recovery-switch/archive.json)).
+
+**#79 does not pass.** The switch's mechanics hold on every check; retention fails:
+
+| Gate | Required | Result |
+|---|---|---|
+| 1. Base first (controls) | all | 180 of 180 |
+| 2. Exact base reproduction before the first departure | all | 580 of 580 |
+| 3. Valid entries | all | 510 of 510 |
+| 4. Valid handoffs | all | 91 of 91 |
+| 5. Retention of #76's 182 recoveries | ≥ 146 | **78** (43%) |
+| 6. Declared segments passing #76's audit | all | 2,206 of 2,206 |
+| 7. Complete accounting | all | 580 of 580 |
+
+Retention by radius 0.5, 1, 2 and 4: 33 of 79, 21 of 58, 18 of 29, 6 of 16.
+
+**Recoveries end at the endpoint contract, by small margins.** In the recover population, the wrapper entered at
+step 0 on 171 starts (11 had no feasible plan). 152 of the 182 episodes end in `endpoint_miss`: 92 in the first
+recovery and 60 after a handoff, once the BC departed again (63 re-entries in all). The failing segment's median
+miss is 1.6 ε, and its M is spread over the ladder (1: 37, 4: 22, 8: 30, 16: 33, 32: 24). Of the population's 1,994
+segments, 1,788 are M = 1, chained close to the continuation. #76 counted a start as recovered if any of its seven
+independent executions, one per M, met ε; the wrapper commits to the shortest model-feasible M and abstains on a
+miss.
+
+**On the held-out demonstration starts**, the frozen BC departed from its continuation on 164 of 180 (median first
+departure at step 104). Recovery entered on 152 and handed back on 10; 148 ended in `endpoint_miss` (median miss
+1.35 ε), 16 stayed with the BC throughout, and 19 reached step 500. In the unknown population, 104 starts had no
+feasible plan at entry and the 114 that entered all ended in `endpoint_miss`.
+
+**Descriptive.** The 9 recover-population episodes that reached step 500 were upright a median 73 steps more than
+the BC alone; too few episodes complete for this to be more than descriptive.
+
+**The conclusion.** The switching and handoff rules behaved correctly: all 510 entries and 91 handoffs satisfied
+their contracts, and the wrapper reproduced the frozen BC exactly until it departed. The wrapper did not retain
+enough of #76's recovery capability. #76 evaluated an oracle over horizons (a start counted if some M succeeded),
+whereas deployment must select one horizon from the learned model without exact dynamics; the shortfall is
+attributed to that difference in contracts, which #79 did not test separately. The failure does not show that
+proximity plus action agreement is an invalid switching rule. It shows that #76's recovery controller is not yet
+autonomous: "some M succeeds" is materially easier than choosing M. The median miss of 1.6 ε and the repeated
+selection of M = 1 are descriptive diagnostics. By the protocol, #79 ends here, with no change to the endpoint
+tolerance or the horizon selection, and no threshold tuning, target selector, online model updates or policy
+training.
