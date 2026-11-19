@@ -105,7 +105,7 @@ The comparator is #76's always-on learned arm, read from its record and not reru
 ## Gates
 
 All of the following must hold, in every population:
-1. **Base first.** Every episode begins under the base policy.
+1. **Base first.** Every control's first action is the base policy's.
 2. **Exact base reproduction.** Before the first frozen departure event (the first step with D > δ_out), the
    wrapper's actions are exactly, bitwise, the frozen BC's actions from the same start, and that event is where the
    wrapper first leaves `base`.
@@ -133,7 +133,7 @@ training.
 
 The smoke uses Stage 2's key-99 smoke starts and 8 calibration-episode starts as controls, with tolerances from a
 calibration that excludes those episodes. It checks a byte-identical rerun, a fresh-process audit, and faults the
-audit must refuse for the right reason: a forged mode transition, a forged handoff (an agreement flag), a forged
+audit must refuse for the right reason: a forged base action, a forged mode transition, a forged handoff (an agreement flag), a forged
 declared segment, and a forged tolerance. It also projects the cost against a 3 h wall ceiling on siddh with 32
 workers. The run waits for the smoke and its own go.
 
@@ -149,4 +149,4 @@ full calibration rollouts. A development smoke of the wrapper, on calibration ep
 starts, showed that rule made the BC's own failures nominal: the BC leaves its continuation on most calibration runs
 (median maximum 263 ε), so δ_out was about 265 ε and the switch could never enter. No study or control episode had
 run. The revision above replaces that rule by δ_in = ε, δ_out = 2ε, and replaces the "controls stay with the BC"
-gate by gates 1–4.
+gate by gates 1–4. The smoke's fault list now also forges a base action.
