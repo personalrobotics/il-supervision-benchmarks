@@ -246,7 +246,7 @@ class Study(F.Study):
         frozen BC from the abstention state for this measure only."""
         t, n = ep["t"], T - ep["t"]
         m = len(a["actions"])
-        up = [bool(v) for v in S3.upright(np.asarray(a["states"][:m], np.float64))]
+        up = [bool(S3.upright(np.asarray(s, np.float64))) for s in a["states"][:m]]
         x = np.asarray(a["states"][m], np.float64)
         for _ in range(m, n):
             up.append(bool(S3.upright(x)))
