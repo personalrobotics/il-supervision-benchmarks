@@ -114,3 +114,33 @@ A negative result ends #82: no horizon sweep, tolerance relaxation, online model
   forged agreement flag, a forged plan validity, a forged handoff), and a cost projection against a 3 h wall ceiling
   on siddh with 32 workers.
 - The run waits for the smoke and its own go.
+
+## Code, smoke and development replay
+
+The code is [`tools/recovery_fixed_horizon/`](../../tools/recovery_fixed_horizon/) (`fixedh.json` restates the frozen
+choices and pins #79's calibration by hash). It builds on #79's code: the shortest-feasible arm is #79's wrapper
+unchanged, the any-horizon arm is #76's segment execution per M, and the fixed-H wrapper is #79's switch with the
+horizon handling above. Implementation choices the protocol leaves open:
+- **Keys** are listed in `fixedh.json`; the fresh starts and controls are populations 2 and 3, distinct from every
+  #76 and #79 stream.
+- **The any-horizon reference** counts a start if some M's execution is declared and passes #76's audit.
+- **An episode whose clock ends during a recovery** records `episode_end_in_recovery`; with every fresh anchor at
+  t ≤ 308 it cannot happen within a recovery entered at step 0.
+- **The audit** replays every arm from its stored plans (each fixed-H step's chosen plan is stored), recomputing
+  states, phase, distances, base actions, plan validity, closeness, agreement, handoffs, #76's audit of each
+  declared recovery, and the base reproduction.
+
+**Smoke result**, from `2caba58` on siddh with CCIL `12b2fbf`, Stage 2's 40 key-99 starts and #79's 8 smoke controls,
+all four arms ([`evidence/recovery-fixed-horizon/smoke.json`](evidence/recovery-fixed-horizon/smoke.json)):
+- **Reproduction.** The second run was byte-identical on all 49 files. The fresh-process audit found nothing.
+- **Faults.** Each injected fault was refused with its own reason first: a forged base action, a forged agreement
+  flag, a forged plan validity, and a forged handoff.
+- **Projection.** 0.92 h of wall time for the study on 32 workers, within the 3 h ceiling.
+
+**Development replay** (descriptive; it authorizes no change), from `2caba58`: the fixed-H learned wrapper on #76's
+400 starts ([`evidence/recovery-fixed-horizon/development/`](evidence/recovery-fixed-horizon/development/)). Its
+audit found nothing. It recovered 108 starts, 93 of them among #76's 182 learned recoveries. These starts include
+anchors later than t = 308, and 84 episodes ended in `insufficient_continuation`, so they are not comparable with the
+fresh population.
+
+These smoke and development figures are not study outcomes.
