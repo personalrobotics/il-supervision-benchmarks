@@ -72,18 +72,18 @@ committed target. Observed failure can only move the target later or cause abste
 - **Commitment.** At a base step with D > δ_out, try the targets in increasing M: solve toward c_(p₀+M) with horizon M
   from #76's 8 restarts (keyed `[171, 7, 4, arm, unit, k, M, restart]`) and commit to the first that passes. If none
   passes, abstain (`no_feasible_plan`).
-- **Countdown.** While committed to target j at phase p < j: replan toward the same c_j with horizon j − p from 2 warm
-  restarts, the previous plan shifted by one and the demonstrated actions a_p … a_(j−1); the best restart is the one
-  with the smallest predicted terminal miss, ties to the earlier. If it passes, execute its first action, observe the
-  real state and advance the phase by one. The first step after a commitment executes the commitment plan itself. The
-  target never moves while it is active.
+- **Countdown.** A commitment executes its plan's first action. At each later step committed to target j at phase
+  p < j, replan toward the same c_j with horizon j − p from 2 warm restarts: the previous plan shifted by one, and the
+  demonstrated actions a_p … a_(j−1). The best restart has the smallest predicted terminal miss; ties go to the
+  earlier. If it passes, execute its first action, observe the real state and advance the phase by one. The target
+  never moves while it is active.
 - **Handoff** after any executed recovery step at which #79's rule holds: D ≤ ε and the last five recovery steps
   close and agreeing.
 - **Target failure is local.** The current target fails, and its plan is not executed, if the replan is non-finite,
   leaves the predicted envelope, or predicts an endpoint miss above ε; it also fails when the phase reaches j without
   a handoff. The controller then tries the remaining unexpired targets in increasing M from the current state, each
-  with horizon p₀ + M − p and 8 restarts (keyed as above), and commits to the first that passes. Each failure and its
-  reason are recorded.
+  with horizon p₀ + M − p and 8 restarts (keyed as above), and commits to the first that passes. Each failure and
+  its reason are recorded.
 - **Abstention**, only when: no unexpired target passes (`targets_exhausted`); an observed state leaves the envelope
   (`envelope`); the demonstrated continuation ends, here an entry with p₀ + 64 > 499 (`insufficient_continuation`);
   the recovery exceeds #79's 127-step budget (`timeout`); a fourth entry (`reentry_limit`); or the episode ends during
