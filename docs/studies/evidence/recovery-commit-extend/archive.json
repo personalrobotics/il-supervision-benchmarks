@@ -1,0 +1,17 @@
+{
+ "archive": "20261120T010053Z-recovery-commit-extend.tar.gz",
+ "contents": "both #85 stage run directories (stage-a: commit-and-extend exact; stage-b: the any-horizon reference, fixed-H learned and commit-and-extend learned): every fresh start and control unit with each arm's actions, modes, phases, distances, states, transitions and every recovery with its entry, every planner call (commitments and replans, passing or failing, with plan, horizon, predicted miss and envelope), targets and their ends, agreement, handoff and #76 audit checks, the base reproduction and the advantage; timing, identity.json, record.json, run and audit logs, and each stage's fresh-process audit",
+ "bytes": 39445372,
+ "sha256": "b31116631b056a22d58e87f9fddeb5e706237dbfe048a1b11a3652b25961dd09",
+ "built_with": "tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner -cf - -C runs 20261120T010053Z-study | gzip -n",
+ "location": "GitHub release asset of the evidence-only tag evidence-recovery-commit-extend-v1 (published after this result is merged; never overwritten: a correction is a new evidence version, -v2, ...). Copies also kept on the run host and off it.",
+ "tag": "evidence-recovery-commit-extend-v1",
+ "url": "https://github.com/personalrobotics/il-supervision-benchmarks/releases/download/evidence-recovery-commit-extend-v1/20261120T010053Z-recovery-commit-extend.tar.gz",
+ "run_commit": "c592a14b8870247dd0784cd67262b26f0798fca7",
+ "ccil_commit": "12b2fbf8c336ed55a35e942f471d7c96a0f69005",
+ "record_sha256": {
+  "stage-a": "37d169d6a66f2ace445bfdbc68a36975591a43fc01ae8909b672526c9d91a50a",
+  "stage-b": "dbfd897025d344739fab4fdda207e718e10ac9ba5cb5d64a0ad3c0eaa54ea16f"
+ },
+ "reproduce": "curl -LO URL; sha256sum -c (expect sha256); tar -xzf ARCHIVE -C DIR; at run_commit, in an environment with CCIL ccil_commit, for S in stage-a stage-b: PY tools/recovery_commit_extend/audit.py --run-dir DIR/20261120T010053Z-study/S --workers N --pendulum pendulum_cont_corrected.npz --policy POLICY --stage2 STAGE2_PENDULUM_STUDY_DIR --stage3 STAGE3_STUDY_DIR --stage4 STAGE4_STUDY_DIR (POLICY from evidence-pendulum-recovery-segments-stage-a-v1, STAGE2 from evidence-recovery-feasibility-stage-2-v1, STAGE3 from evidence-recovery-learned-stage-3-v1, STAGE4 from evidence-recovery-receding-v1); exits 0 and recomputes record.json byte for byte"
+}

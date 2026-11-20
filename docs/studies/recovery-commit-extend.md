@@ -163,3 +163,61 @@ all four arms ([`evidence/recovery-commit-extend/smoke.json`](evidence/recovery-
   within the 3 h ceiling.
 
 These smoke figures are not study outcomes.
+
+## Result
+
+Both stages ran from `c592a14` on siddh on 2026-11-19, with CCIL `12b2fbf`, on the 400 fresh starts and 20 fresh
+controls, reading Stage 2, #73 and #76 from their releases. Each fresh-process audit found nothing. The records and
+audits are in [`evidence/recovery-commit-extend/stage-a/`](evidence/recovery-commit-extend/stage-a/) and
+[`stage-b/`](evidence/recovery-commit-extend/stage-b/); both run directories are the asset of
+`evidence-recovery-commit-extend-v1` ([`archive.json`](evidence/recovery-commit-extend/archive.json)).
+
+**Stage A passes.**
+
+| Gate | Required | Result |
+|---|---|---|
+| A1. Treatment | ≥ 20, ≥ 10% at one radius | 209 (85% at 1 τ) |
+| A2. Base reproduction before the first departure | all | 420 of 420 |
+| A3. Recomputation: entries, calls, targets, handoffs, declared recoveries | all | 611, 20,655, 750, 547, 547 |
+| A4. Accounting | all | 420 of 420 |
+
+**Stage B does not pass.** Gates 1 and 4 hold; gates 2 and 3 fail:
+
+| Gate | Required | Result |
+|---|---|---|
+| B1. Treatment | ≥ 20, ≥ 10% at one radius | 91 (55% at 0.5 τ) |
+| B2. Retention of the any-horizon reference's 170 | ≥ 136 | **88** (52%) |
+| B3. More than fixed-H learned | > 127 | **91** |
+| B4. Base reproduction, recomputation, accounting | all | 420 of 420 per arm; fixed-H 458, 286, 286; commit-and-extend 413, 19,610, 541, 221, 221 |
+
+Recoveries by arm and radius 0.5, 1, 2 and 4 τ (100 starts each):
+
+| Arm | 0.5 | 1 | 2 | 4 | All |
+|---|---|---|---|---|---|
+| Any-horizon reference | 75 | 65 | 18 | 12 | 170 |
+| Fixed-H learned (#82) | 59 | 43 | 18 | 7 | 127 |
+| Commit-and-extend learned | 55 | 27 | 9 | 0 | 91 |
+| Commit-and-extend exact (Stage A) | 83 | 85 | 28 | 13 | 209 |
+
+Retention by radius: 55 of 75, 24 of 65, 9 of 18, 0 of 12. Paired with fixed-H learned: 68 both, 23 commit-and-extend
+only, 59 fixed-H only.
+
+**Where the coverage is lost.** Through exact dynamics no plan failed the authority test; targets ended by expiry
+(976) or handoff (507), and the controller extended 557 times. Through model 0 the authority test rejected 491
+targets (`predicted_miss`), 187 starts ended in `targets_exhausted` and 128 in `no_feasible_plan`; 166 of the 194
+target handoffs came at M = 64. On the controls, both learned arms entered on 19 and handed back on 17.
+
+**Recovery advantage** (descriptive). Δ ≥ 0 on 209 of 209 recovered starts against 177 of 191 others (exact); 88 of
+91 against 241 of 309 (commit-and-extend learned); 127 of 127 against 208 of 273 (fixed-H learned). Among recovered
+starts the median Δ, recomputed from the unit files, is +118 upright steps (exact), +108 (commit-and-extend learned)
+and +108 (fixed-H learned); the records' Δ quantiles are over all 400 starts, with medians +62, 0 and 0.
+
+**The conclusion.** Commit-and-extend is effective with exact dynamics but does not overcome learned-model
+limitations. On the same fresh population, the exact controller recovered 209 starts, every one with positive
+advantage (median +118 upright steps among recoveries). The learned controller recovered 91 starts, retained 52% of
+the any-horizon reference, and recovered fewer starts than fixed-H learned control (127). Its authority test rejected
+491 targets and exhausted the available targets on 187 starts. Every executed recovery satisfied the declared
+validity and audit checks, and the recoveries it made were as valuable as fixed-H's (88 of 91 positive, median +108
+against +108). Thus, under this model and protocol, repeated feasibility certification contracts recovery authority
+to a smaller set without improving the value of each recovery, and the loss in coverage is not repaid. The result does
+not justify relaxing the authority test or further tuning the horizon rule. By the protocol, #85 ends here.
